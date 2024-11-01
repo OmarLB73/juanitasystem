@@ -141,8 +141,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-#SUPERUSER
-
-#   admin
-#   omar.lazo.b@gmail.com
-#   2521
+port = int(os.environ.get("PORT", 5000))  # Usa el puerto de Render o 5000 por defecto
+app.run(host='0.0.0.0', port=port)
