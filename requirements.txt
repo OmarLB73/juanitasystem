@@ -47,10 +47,7 @@ jedi==0.18.1
 Jinja2==3.1.2
 joblib==1.3.2
 jsonschema==4.8.0
-<<<<<<< HEAD
-=======
 kiwisolver==1.4.5
->>>>>>> d880e726c4c68dccdf0824f014da27a7457004f0
 libclang==18.1.1
 Markdown==3.6
 markdown-it-py==3.0.0
@@ -118,7 +115,3 @@ Werkzeug==3.0.2
 whitenoise==6.8.2
 wrapt==1.16.0
 yarg==0.1.9
-<<<<<<< HEAD
-yellowbrick==1.5
-=======
->>>>>>> d880e726c4c68dccdf0824f014da27a7457004f0
