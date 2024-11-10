@@ -142,7 +142,7 @@ LOGIN_URL = '/user/login/'   # Redirigir al login si no está autenticado
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true" # SECURITY WARNING: don't run with debug turned on in production!
-# ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
