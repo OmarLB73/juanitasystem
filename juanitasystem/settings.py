@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os # para gestionar variables de entorno
+import dj_database_url # para gestionar la base de datos de desarrollo, en la nube
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -34,11 +35,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users'
+    'user',
+    'proyect'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para desplegar
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,7 +55,9 @@ ROOT_URLCONF = 'juanitasystem.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+             BASE_DIR / 'templates',  # Asegúrate de que esta línea esté configurada para agregar header.html y footer.html
+        ],
         'APP_DIRS': True, # En la configuración TEMPLATES, agrega 'APP_DIRS': True, si no está activado, para que Django pueda buscar plantillas dentro de las aplicaciones.
         'OPTIONS': {
             'context_processors': [
@@ -129,8 +134,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_COOKIE_AGE = 3600  # Duración de la sesión en segundos (1 hora)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expirar sesión cuando se cierra el navegador
 
-LOGIN_REDIRECT_URL = '/'  # Redirige al inicio después de un login exitoso
-# LOGIN_URL = 'users:login'  # Redirigir al login si no está autenticado
+LOGIN_REDIRECT_URL = '/user/login/'    # Redirige al inicio después de un login exitoso
+LOGIN_URL = '/user/login/'   # Redirigir al login si no está autenticado
+
+
+########## DESPLIEGUE ##########
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true" # SECURITY WARNING: don't run with debug turned on in production!
+# ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# This production code might break development mode, so we check whether we're in DEBUG mode
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 ##########################################################
@@ -161,8 +183,8 @@ DATABASES = {
 
 }
 
-#database_url = 'postgresql://juanitadb_user:dRHm1eDJC6pMywIrOO931avP9CpRuGdk@dpg-cshuma9u0jms73f6rgog-a.oregon-postgres.render.com/juanitadb'
-#DATABASES['default'] = dj_database_url.parse(database_url) 
+database_url = 'postgresql://juanitadb_user:dRHm1eDJC6pMywIrOO931avP9CpRuGdk@dpg-cshuma9u0jms73f6rgog-a.oregon-postgres.render.com/juanitadb'
+DATABASES['default'] = dj_database_url.parse(database_url) 
 
 DEBUG = True
 

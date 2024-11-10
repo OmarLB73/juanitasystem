@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+	<head><base href="">
+		<title>Login</title>
+		<meta name="description" content="Juanitas Drapery System" />		
+		<meta charset="utf-8" />				
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />		        
+        <link href="{% static '/css/plugins.bundle.css' %}"rel="stylesheet" type="text/css" />		
+		<link href="{% static '/css/style.bundle.css' %}" rel="stylesheet" type="text/css" />	
+	</head>	
+
+    <body id="kt_body" class="bg-body">	
+		<div class="d-flex flex-column flex-root">			
+			<div class="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed" 
+				style="background-image: url(/static/images/login.webp); background-size:cover;">				
+				<div class="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">					
+					<div class="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
+					
+						<form class="form w-100" novalidate="novalidate" id="loginForm" method="POST">
+							{% csrf_token %}
+							<div class="text-center mb-10">
+								<!--begin::Logo-->
+								<img alt="Logo" src="{% static 'images/logo.png' %}" class="h-40px h-lg-60px" />
+								<!--end::Logo-->
+								<br/><br/>								
+								<h1 class="text-gray-400 mb-3">Sign In</h1>		
+                                						
+							</div>							
+							<div class="fv-row mb-10">								
+								<label class="form-label fs-6 fw-bolder text-dark">Username</label>								
+								<input class="form-control form-control-lg form-control-solid" type="text" name="username" autocomplete="off" value="{{ form.username.value|default:'' }}" />
+							</div>							
+							<div class="fv-row mb-10">								
+								<div class="d-flex flex-stack mb-2">									
+									<label class="form-label fw-bolder text-dark fs-6 mb-0">Password</label>									
+									<a href="#" class="link-primary fs-6 fw-bolder">Forgot Password ?</a>									
+								</div>								
+								<input class="form-control form-control-lg form-control-solid" type="password" name="password" autocomplete="off" />								
+							</div>							
+							<div class="text-center">								
+								<button type="submit" id="buttonSubmit" class="btn btn-lg btn-primary w-100 mb-5">
+									<span class="indicator-label">Continue</span>
+									<span class="indicator-progress">Please wait...
+									<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+								</button>								
+							</div>							
+						</form>	
+						
+					</div>					
+				</div>				
+				<div class="d-flex flex-center flex-column-auto p-10">
+
+				</div>				
+			</div>			
+		</div>
+		                        
+		<script src="{% static '/js/plugins.bundle.js' %}"></script>
+		<script src="{% static '/js/scripts.bundle.js' %}"></script>
+        <script src="{% static '/js/sign-in/general.js' %}"></script>
+		<script src="{% static '/js/jquery.min.js' %}"></script>		
+	</body>	
+</html>

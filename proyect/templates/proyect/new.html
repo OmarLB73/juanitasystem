@@ -1,0 +1,677 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<base href="">
+	<title>Proyect</title>
+	<meta name="csrf-token" content="{{ csrf_token }}">
+
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
+
+	<link href="{% static 'css/fullcalendar/fullcalendar.bundle.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/plugins.bundle.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/style.bundle.css' %}" rel="stylesheet" type="text/css" />
+	<!--end::Global Stylesheets Bundle-->		
+</head>
+<!--end::Head-->
+<!--begin::Body-->
+
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed"
+	style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
+	<!--begin::Main-->
+	<!--begin::Root-->
+	<div class="d-flex flex-column flex-root">
+		<!--begin::Page-->
+		<div class="page d-flex flex-row flex-column-fluid">
+			<!--begin::Wrapper-->
+			<div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+
+				<!--begin::Header-->
+				{% include 'header.html' %}
+				<!--end::Header-->
+
+				<!--begin::Content-->
+				<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+
+					<!--begin::Toolbar-->
+					<div class="toolbar" id="kt_toolbar">
+
+						<!--begin::Container-->
+						<div id="kt_toolbar_container" class="container-xxl d-flex flex-stack">
+
+							<!--begin::Page title (Titulo de la página) -->
+							<div data-kt-swapper="true" data-kt-swapper-mode="prepend"
+								data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
+								class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
+								<!--begin::Title-->
+								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Proyect</h1>
+								<!--end::Title-->
+								<!--begin::Separator-->
+								<span class="h-20px border-gray-200 border-start mx-4"></span>
+								<!--end::Separator-->
+								<!--begin::Breadcrumb-->
+								<ul class="breadcrumb breadcrumb-separatorless fw-bold fs-7 my-1">
+									<!--begin::Item-->
+									<li class="breadcrumb-item text-muted">
+										<a href="#" class="text-muted text-hover-primary">New</a>
+									</li>
+								</ul>
+								<!--end::Breadcrumb-->
+
+								{% if messages %}
+									<div class="alert alert-dismissible fade show" role="alert">
+										{% for message in messages %}
+											<div class="alert alert-{{ message.tags }}">
+												{{ message }}
+											</div>
+										{% endfor %}
+									</div>
+								{% endif %}
+
+
+
+							</div>
+							<!--end::Page title-->
+
+						</div>
+						<!--end::Container-->
+					</div>
+					<!--end::Toolbar-->
+
+					<style>
+						/**
+						 * @license
+						 * Copyright 2024 Google LLC. All Rights Reserved.
+						 * SPDX-License-Identifier: Apache-2.0
+						 */
+
+						/*
+						 * Optional: Makes the sample page fill the window.
+						 */
+
+						/*
+						 * Prevent a flash of unstyled content before the custom element is defined.
+						 */
+						gmp-map:not(:defined) {
+							display: none;
+						}
+
+						#title {
+							color: #fff;
+							background-color: #4d90fe;
+							font-size: 25px;
+							font-weight: 500;
+							padding: 6px 12px;
+						}
+
+						#infowindow-content {
+							display: none;
+						}
+
+						.pac-card {
+							background-color: #fff;
+							border-radius: 2px;
+							box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+							margin: 10px;
+							font: 400 18px Roboto, Arial, sans-serif;
+							overflow: hidden;
+						}
+
+						.pac-controls {
+							display: inline-block;
+							padding: 5px 11px;
+						}
+
+						.pac-controls label {
+							font-size: 13px;
+							font-weight: 300;
+						}
+
+						#place-picker {
+							box-sizing: border-box;
+							width: 100%;
+							padding: 0.5rem 1rem 1rem;
+							background-color: #f5f8fa;
+							border-color: #f5f8fa;
+							color: #5e6278;
+							transition: color .2s ease, background-color .2s ease;
+
+							display: block;
+							width: 100%;
+							padding: .75rem 1rem;
+							font-size: 1.1rem;
+							font-weight: 500;
+							line-height: 1.5;
+							background-clip: padding-box;
+							border: 1px solid #e4e6ef;
+							appearance: none;
+							border-radius: .475rem;				
+
+
+						}
+					</style>
+
+					<!--begin::Post-->					
+					<div class="post d-flex flex-column-fluid" id="kt_post">
+						<!--begin::Container-->							
+						<div id="kt_content_container" class="container-xxl">							
+							<!--begin::Form-->
+							<form id="kt_project_settings_form" class="form" method="POST">
+								{% csrf_token %}
+
+								<!--begin::Card-->
+								<div class="card mb-5 mb-xl-10">
+
+									<!--begin::Card header Customer-->
+									<div class="card-header">
+										<!--begin::Card title-->
+										<div class="card-title fs-3 fw-bolder">Customer information</div>
+										<!--end::Card title-->
+									</div>
+									<!--end::Card header-->
+
+									<!--begin::Card body-->
+									<div class="card-body p-9">
+
+										<!--begin::Row Buscar-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Search address</div>
+												<div id="street-view-panorama" style="width: 100%; height: 250px; float: center; padding-top: 50px;"></div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+
+												
+
+
+
+											<div class="col-xl-9 fv-row">
+
+												<gmpx-place-picker id="place-picker" for-map="map"class="form-control form-control-solid"></gmpx-place-picker>
+
+												<div style="height: 300px">
+
+													<script type="module"
+														src="https://unpkg.com/@googlemaps/extended-component-library@0.6">
+														</script>
+													<gmpx-api-loader key="AIzaSyAjTuqaptDsxiU79IQ5nil8JyVw5AxQenU"
+														solution-channel="GMP_CCS_autocomplete_v3">
+													</gmpx-api-loader>
+													<gmp-map id="map" center="40.749933,-73.98633" zoom="13"
+														map-id="DEMO_MAP_ID">
+														<div slot="control-block-start-inline-start" class="pac-card"
+															id="pac-card">
+
+														</div>
+														<gmp-advanced-marker id="marker"></gmp-advanced-marker>
+
+														<!-- <img id="street-preview" src="" alt="Vista previa de Street View" /> -->
+
+													</gmp-map>
+													<div id="infowindow-content">
+														<span id="place-name" class="title"style="font-weight: bold;"></span><br />
+														<span id="place-address"></span>														
+													</div>
+													
+												</div>
+											</div>
+
+										</div>
+										<!--end::Row-->
+
+										<!--begin::Type-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Type:</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<!--begin::Input-->
+
+												<select class="form-select form-select-solid" data-kt-select2="false" data-placeholder="Select" data-allow-clear="true"  name="type">																								
+													{% for type in types %}
+														<option value="{{ type.id }}" {% if type.id == type_select.id %}selected{% endif %}>{{ type.name }}</option>
+													{% endfor %}
+
+												</select>
+
+												<!--end::Input-->
+											</div>
+											<!--end::Col-->
+										</div>
+										<!--end::Row-->
+
+										<!--begin::Row Direccion-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Selected address</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-9 fv-row">
+												<input id="inputAddress" type="text" class="form-control" name="address" value="" readonly />
+												
+											</div>
+											<!--begin::Col-->
+										</div>
+										
+										<!--begin::Row nombre-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Customer name</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-8 fv-row">
+												<input id="inputCustomer" type="text" class="form-control form-control-solid" name="customerName" value="" maxlength="150"/>
+											</div>
+											<!--begin::Col-->
+										</div>
+
+										<!--begin::Email-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Email</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-5 fv-row">
+												<input id="inputEmail" type="text" class="form-control form-control-solid" name="email" value="" maxlength="100"/>
+											</div>
+											<!--begin::Col-->
+										</div>
+
+										<!--begin::Row Numero-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Phone number</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-3 fv-row">
+												<input id="inputPhone" type="text" class="form-control form-control-solid" name="phone" value="" maxlength="50"/>
+											</div>
+											<!--begin::Col-->
+										</div>
+
+										<!--begin::Row Descripcion-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Customer description</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-9 fv-row">
+												<textarea id="textareaDescCustomer" name="customerDescription" class="form-control form-control-solid h-100px" maxlength="2000"></textarea>
+												<right><button id="btnDesCustomer" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
+											</div>
+											<!--begin::Col-->
+										</div>
+										<!--end::Row-->
+										
+										<input id="customerId" type="hidden" name="customerId" value="" />
+
+									</div>
+								
+								</div>
+								<!--end::Card-->
+
+								<!--begin::Card-->
+								<div class="card mb-5 mb-xl-10">
+									<!--begin::Card header Proyect-->
+									<div class="card-header">
+										<!--begin::Card title-->
+										<div class="card-title fs-3 fw-bolder">Proyect information</div>
+										<!--end::Card title-->
+									</div>
+									<!--end::Card header-->
+									<div class="card-body p-9">
+
+										<!--begin::Row Resposable-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Responsible:</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-8">
+												<!--begin::Input-->
+
+												<select class="form-select form-select-solid" data-kt-select2="true" data-placeholder="Select" data-allow-clear="false" name="responsible">														
+													{% for responsible in responsibles %}
+														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>
+													{% endfor %}
+												</select>
+
+												<!--end::Input-->
+											</div>
+											<!--end::Col-->
+										</div>
+										<!--end::Row-->
+
+										<!--begin::Row Fecha-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Date</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-6 fv-row">
+												<div class="position-relative d-flex align-items-center">
+													<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
+													<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+															viewBox="0 0 24 24" fill="none">
+															<path opacity="0.3"
+																d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z"
+																fill="black" />
+															<path
+																d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z"
+																fill="black" />
+															<path
+																d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z"
+																fill="black" />
+														</svg>
+													</span>
+													<!--end::Svg Icon-->
+													<div class="col-6">
+														<input class="form-control form-control-solid ps-12" name="date"
+															placeholder="Pick a date" id="kt_datepicker_1" />
+													</div>
+
+													<div class="col-1"></div>
+
+													<div class="form-check form-check-custom form-check-solid me-9">
+
+														<input class="form-check-input" type="checkbox" value="" id="allDay" />
+														<label class="form-check-label ms-3" for="email">All day</label>
+													</div>
+												</div>
+											</div>
+											<!--begin::Col-->
+										</div>
+										<!--end::Row-->
+
+										<!--begin::Row Descripcion-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-3">
+												<div class="fs-6 fw-bold mt-2 mb-3">Proyect description</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-9 fv-row">
+												<textarea id="textareaDescProyect" name="proyectDescription" class="form-control form-control-solid h-100px" maxlength="2000"></textarea>
+												<right><button id="btnDesProyect" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
+											</div>
+											<!--begin::Col-->
+										</div>
+										<!--end::Row-->
+										
+									</div>																		
+									<!--end::Card body-->	
+																	
+
+									<!--begin::Card footer-->
+									<div class="card-footer d-flex justify-content-end py-6 px-9">
+										<button type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
+										<button type="submit" class="btn btn-primary" id="kt_project_settings_submit">Save</button>
+									</div>
+									<!--end::Card footer-->
+
+								</div>
+								<!--end::Card-->
+
+							</form>
+							<!--end:Form-->
+						</div>
+						<!--end::Container-->
+
+					</div>
+					<!--end::Post-->
+
+					
+				</div>
+
+
+
+				<!--end::Content-->
+				<!--begin::Footer-->
+				{% include 'footer.html' %}
+				<!--end::Footer-->
+			</div>
+			<!--end::Wrapper-->
+		</div>
+		<!--end::Page-->
+	</div>
+	<!--end::Root-->
+	<!--begin::Drawers-->
+
+	<!--begin::Scrolltop-->
+	<div id="kt_scrolltop" class="scrolltop" data-kt-scrolltop="true">
+		<!--begin::Svg Icon | path: icons/duotune/arrows/arr066.svg-->
+		<span class="svg-icon">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+				<rect opacity="0.5" x="13" y="6" width="13" height="2" rx="1" transform="rotate(90 13 6)"
+					fill="black" />
+				<path
+					d="M12.5657 8.56569L16.75 12.75C17.1642 13.1642 17.8358 13.1642 18.25 12.75C18.6642 12.3358 18.6642 11.6642 18.25 11.25L12.7071 5.70711C12.3166 5.31658 11.6834 5.31658 11.2929 5.70711L5.75 11.25C5.33579 11.6642 5.33579 12.3358 5.75 12.75C6.16421 13.1642 6.83579 13.1642 7.25 12.75L11.4343 8.56569C11.7467 8.25327 12.2533 8.25327 12.5657 8.56569Z"
+					fill="black" />
+			</svg>
+		</span>
+		<!--end::Svg Icon-->
+	</div>
+	<!--end::Scrolltop-->
+	<!--end::Main-->
+	<!--<script>var hostUrl = "assets/";</script>-->
+	<!--begin::Javascript-->
+	<!--begin::Global Javascript Bundle(used by all pages)-->
+
+	<script>var KTAppSettings = { "breakpoints": { "sm": 576, "md": 768, "lg": 992, "xl": 1200, "xxl": 1400 }, "colors": { "theme": { "base": { "white": "#ffffff", "primary": "#3699FF", "secondary": "#E5EAEE", "success": "#1BC5BD", "info": "#8950FC", "warning": "#FFA800", "danger": "#F64E60", "light": "#E4E6EF", "dark": "#181C32" }, "light": { "white": "#ffffff", "primary": "#E1F0FF", "secondary": "#EBEDF3", "success": "#C9F7F5", "info": "#EEE5FF", "warning": "#FFF4DE", "danger": "#FFE2E5", "light": "#F3F6F9", "dark": "#D6D6E0" }, "inverse": { "white": "#ffffff", "primary": "#ffffff", "secondary": "#3F4254", "success": "#ffffff", "info": "#ffffff", "warning": "#ffffff", "danger": "#ffffff", "light": "#464E5F", "dark": "#ffffff" } }, "gray": { "gray-100": "#F3F6F9", "gray-200": "#EBEDF3", "gray-300": "#E4E6EF", "gray-400": "#D1D3E0", "gray-500": "#B5B5C3", "gray-600": "#7E8299", "gray-700": "#5E6278", "gray-800": "#3F4254", "gray-900": "#181C32" } }, "font-family": "Poppins" };</script>
+
+	<script src="{% static 'js/jquery.min.js' %}"></script>
+
+	<script src="{% static 'js/plugins.bundle.js' %}"></script>
+	<script src="{% static 'js/scripts.bundle.js' %}"></script>
+	<script src="{% static 'js/settings.js' %}"></script>
+	<script src="{% static 'js/fullcalendar/fullcalendar.bundle.js' %}"></script>
+
+
+	<script>
+
+		var div = document.getElementById('kt_activities_toggle');
+		div.parentNode.remove();
+
+
+		async function init() {
+			await customElements.whenDefined('gmp-map');
+
+			const map = document.querySelector("gmp-map");
+			const marker = document.getElementById("marker");
+			const strictBoundsInputElement = document.getElementById("use-strict-bounds");
+			const placePicker = document.getElementById("place-picker");
+			const infowindowContent = document.getElementById("infowindow-content");
+			const infowindow = new google.maps.InfoWindow();
+
+			map.innerMap.setOptions({ mapTypeControl: false });
+			infowindow.setContent(infowindowContent);
+
+			placePicker.addEventListener('gmpx-placechange', () => {
+				const place = placePicker.value;
+
+				if (!place.location) {
+					window.alert(
+						"No details available for input: '" + place.name + "'"
+					);
+					infowindow.close();
+					marker.position = null;
+					return;
+				}
+
+				if (place.viewport) {
+					map.innerMap.fitBounds(place.viewport);
+				} else {
+					map.center = place.location;
+					map.zoom = 17;
+				}
+
+				marker.position = place.location;
+				infowindowContent.children["place-name"].textContent = place.displayName;
+				infowindowContent.children["place-address"].textContent = place.formattedAddress;												
+				$('#inputAddress').val(place.formattedAddress);
+
+				getDataCustomerJs();				
+
+				// Inicializar el panorama de Street View				
+				const panorama = new google.maps.StreetViewPanorama(
+						document.getElementById('street-view-panorama'), {
+							position: place.location,
+							pov: {
+								heading: 50,
+								pitch: 0,
+							},
+							zoom: 1,
+						}
+					);
+
+
+				marker.addListener('click', () => {
+						// Cambiar la posición del panorama al marcador
+						panorama.setPosition(marker.getPosition());
+						panorama.setVisible(true); // Asegúrate de que el panorama sea visible
+					});
+
+
+				infowindow.open(map.innerMap, marker);
+			});
+
+			// Sets a listener on a radio button to change the filter type on the place picker
+			function setupClickListener(id, type) {
+				const radioButton = document.getElementById(id);
+				radioButton.addEventListener("click", () => {
+					placePicker.type = type;
+				});
+			}
+			setupClickListener("changetype-all", "");
+			setupClickListener("changetype-address", "address");
+			setupClickListener("changetype-establishment", "establishment");
+			setupClickListener("changetype-geocode", "geocode");
+			setupClickListener("changetype-cities", "(cities)");
+			setupClickListener("changetype-regions", "(regions)");
+
+			strictBoundsInputElement.addEventListener("change", () => {
+				placePicker.strictBounds = strictBoundsInputElement.checked;
+			});
+		}
+
+		document.addEventListener('DOMContentLoaded', init);
+
+
+		$(document).ready(function () {
+			$('#allDay').change(function () {
+				if ($('#allDay').is(':checked')) {
+					$("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
+				} else {
+					$("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });
+				}
+			});
+		});
+
+
+		const textarea = document.getElementById('textareaDescCustomer');
+		const textarea2 = document.getElementById('textareaDescProyect');
+		const startBtn = document.getElementById('btnDesCustomer');
+		const startBtn2 = document.getElementById('btnDesProyect');
+		let recognition, recognition2;
+
+		// Verificar si el navegador soporta la API de Web Speech
+		if ('webkitSpeechRecognition' in window) {
+			recognition = new webkitSpeechRecognition();
+			recognition2 = new webkitSpeechRecognition();
+
+			recognition.continuous = false; // No continúa escuchando
+			recognition2.continuous = false; // No continúa escuchando
+			
+			recognition.interimResults = false; // No muestra resultados intermedios
+			recognition2.interimResults = false; // No muestra resultados intermedios
+
+			recognition.onresult = (event) => {
+				const transcript = event.results[0][0].transcript;
+				textarea.value += transcript + ' '; // Añadir el texto al textarea
+			};
+
+			recognition2.onresult = (event) => {
+				const transcript2 = event.results[0][0].transcript;
+				textarea2.value += transcript2 + ' '; // Añadir el texto al textarea
+			};
+
+			recognition.onerror = (event) => {
+				console.error("Error en reconocimiento: ", event.error);
+			};
+
+			recognition.onend = () => {
+				console.log("Reconocimiento de voz detenido.");
+			};
+
+			startBtn.addEventListener('click', () => {
+				recognition.start(); // Iniciar el reconocimiento
+			});
+
+			startBtn2.addEventListener('click', () => {
+				recognition2.start(); // Iniciar el reconocimiento
+			});
+
+		} else {
+			alert("Las imagenes de los microfones deben desaparecer");
+		}
+
+		
+		function getDataCustomerJs(){	
+			var inputValue = $("#inputAddress").val();
+
+			if(inputValue) {
+				$.ajax({
+					url: "{% url 'getDataCustomer_url' %}",  // La URL que manejará la consulta AJAX
+					method: 'POST',
+					data: {
+						'address': inputValue  // El valor que se envía al servidor
+					},
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						// Rellena los campos con los datos obtenidos de la respuesta
+						$('#inputCustomer').val(response.name);
+						$('#inputEmail').val(response.email);
+						$('#inputPhone').val(response.phone);
+						$('#textareaDescCustomer').val(response.description);
+						$('#customerId').val(response.id);
+					},
+					error: function(xhr, status, error) {
+						console.error("Server error.", error);
+					}
+				});
+			}			
+
+		}
+
+
+	</script>
+
+</body>
+<!--end::Body-->
+
+</html>
