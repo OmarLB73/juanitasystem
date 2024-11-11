@@ -15,7 +15,7 @@ def dashboard_view(request):
 
 def proyect_new(request):
      
-    if request.method == 'POST':         
+    if request.method == 'POST':
         
         type_id = request.POST.get('type')
         address = request.POST.get('address')
@@ -106,13 +106,27 @@ def getDataProyectCustomer(request):
      # Creamos una lista con los datos de cada proyecto
     proyects_data = []
     for proyect in proyects:
+
+        parsed_date = ''
+        allDay = False
+
+        if len(proyect.date) == 10:
+            allDay = True
+            try:
+                parsed_date = proyect.date + ', 00:00'
+            except ValueError:
+                parsed_date = '1900-01-01, 00:00'
+        else:
+            parsed_date = proyect.date
+
         proyects_data.append({
             'id': proyect.id,
             'name': proyect.customer.name,
             'address': proyect.customer.address,
-            'date': datetime.strptime(proyect.date, "%Y-%m-%d, %H:%M"),
+            'date': datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"),
             'email': proyect.customer.email,
-            'state': proyect.state.name
+            'state': proyect.state.name,
+            'allDay': allDay,
         })
     
     # Devolvemos la lista de proyectos como respuesta JSON

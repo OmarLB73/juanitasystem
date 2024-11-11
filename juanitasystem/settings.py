@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'proyect.context_processors.settings_variables', # Aquí se registra el context processor en la app proyect, para usar por el  ejemplo la API_KEY
             ],
         },
     },
@@ -156,3 +157,6 @@ if not DEBUG:
 
 database_url = os.environ.get("DATABASES_URL")
 DATABASES['default'] = dj_database_url.parse(database_url) 
+
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+
