@@ -15,7 +15,7 @@ def custom_login(request):
             if user is not None:
                 login(request, user)
                 #messages.success(request, '¡Welcome to back!')
-                return JsonResponse({'success': True, 'message': 'You have successfully logged in!', 'redirect_url': '../../proyect/dashboard'})
+                return JsonResponse({'success': True, 'message': 'You have successfully logged in!', 'redirect_url': '../../proyect/panel'})
                 
                 #return redirect('/admin')  # Redirigir a la página principal (o donde desees)
             else:                

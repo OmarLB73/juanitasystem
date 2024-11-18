@@ -20,7 +20,9 @@ var KTSigninGeneral = function () {
                             }
                         }
                     },
-                    plugins: { trigger: new FormValidation.plugins.Trigger, bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row" }) }
+                    plugins: { 
+                        trigger: new FormValidation.plugins.Trigger, 
+                        bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row" }) }
                 }),
                 e.addEventListener("click", (function (n) {
                     n.preventDefault(),
@@ -36,7 +38,8 @@ var KTSigninGeneral = function () {
                                         data: $form.serialize(),
                                         success: function (response) {
                                             if (response.success) {
-                                                Swal.fire({ text: response.message, icon: "success", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" }, }).then((function (e) { e.isConfirmed && (window.location.href = response.redirect_url) }))
+                                                // Swal.fire({ text: response.message, icon: "success", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" }, }).then((function (e) { e.isConfirmed && (window.location.href = response.redirect_url) }))
+                                                window.location.href = response.redirect_url
                                             }
                                             else {
                                                 Swal.fire({ text: response.message, icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
@@ -50,7 +53,7 @@ var KTSigninGeneral = function () {
 
                                     e.removeAttribute("data-kt-indicator"),
                                         e.disabled = !1
-                                }), 2e3)) : Swal.fire({ text: "Sorry, looks like there are some errors detected, please try again.", icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
+                                }), 1e3)) : Swal.fire({ text: "Please complete the required information.", icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
                         }))
                 }))
         }

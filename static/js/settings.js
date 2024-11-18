@@ -3,7 +3,7 @@ var KTProjectSettings = {
     init: function () {
         !function () {
             var t;            
-            $("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });
+            $("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });                      
             var e = document.getElementById("kt_project_settings_form"),
                 i = e.querySelector("#kt_project_settings_submit");
             t = FormValidation.formValidation(e, {
@@ -19,6 +19,12 @@ var KTProjectSettings = {
                 }
             }),
                 i.addEventListener("click", (function (e) {
+
+                    document.querySelectorAll('.fv-help-block').forEach(function(message) {
+                        message.style.display = 'none'; // Oculta los mensajes de error
+                      });
+
+
                     e.preventDefault(),
                         t.validate().then((function (t) {                            
                             "Valid" == t ?                            
@@ -39,7 +45,7 @@ var KTProjectSettings = {
                                     }
                                 })                                                                                                                                                                                            
                                 : swal.fire({
-                                    text: "Sorry, looks like there are some errors detected, please try again.",
+                                    text: "Please complete the required information.",
                                     icon: "error",
                                     buttonsStyling: !1,
                                     confirmButtonText: "Ok, got it!",

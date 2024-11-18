@@ -132,7 +132,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Configuración de sesiones
-SESSION_COOKIE_AGE = 3600  # Duración de la sesión en segundos (1 hora)
+SESSION_COOKIE_AGE = 3600 * 12  # Duración de la sesión en segundos (12 horas)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expirar sesión cuando se cierra el navegador
 
 LOGIN_REDIRECT_URL = '/user/login/'    # Redirige al inicio después de un login exitoso
@@ -141,22 +141,60 @@ LOGIN_URL = '/user/login/'   # Redirigir al login si no está autenticado
 
 ########## DESPLIEGUE ##########
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true" # SECURITY WARNING: don't run with debug turned on in production!
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+# DEBUG = os.environ.get("DEBUG", "False").lower() == "true" # SECURITY WARNING: don't run with debug turned on in production!
+# ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# This production code might break development mode, so we check whether we're in DEBUG mode
-if not DEBUG:
-    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
-    # and renames the files with unique names for each version to support long-term caching
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# # This production code might break development mode, so we check whether we're in DEBUG mode
+# if not DEBUG:
+#     # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+#     # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+#     # and renames the files with unique names for each version to support long-term caching
+#     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-database_url = os.environ.get("DATABASES_URL")
-DATABASES['default'] = dj_database_url.parse(database_url) 
+# database_url = os.environ.get("DATABASES_URL")
+# DATABASES['default'] = dj_database_url.parse(database_url) 
 
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+# GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 
+
+
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+#################### DESARROLLO ##########################
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+
+#PASO N1: Agregar la siguiente configuracion para adaptar el ambiente a desarrollo
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-uoa7$hdjz+ok151$j8h=s!6r=#f!n2u^4qno+j3s0nx=+mhg$w'
+
+DATABASES = {
+    'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'juanitadb',
+            'USER': 'administrator_jsystem',
+            'PASSWORD': 'juanita.pass.2024',
+            'HOST': 'localhost',
+            'PORT': 5432,
+        },
+
+}
+
+# database_url = 'postgresql://juanitadb_user:dRHm1eDJC6pMywIrOO931avP9CpRuGdk@dpg-cshuma9u0jms73f6rgog-a.oregon-postgres.render.com/juanitadb'
+# DATABASES['default'] = dj_database_url.parse(database_url) 
+
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+GOOGLE_API_KEY = "AIzaSyAjTuqaptDsxiU79IQ5nil8JyVw5AxQenU"

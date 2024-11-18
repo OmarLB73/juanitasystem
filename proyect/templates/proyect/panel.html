@@ -7,9 +7,13 @@
 	<title>Proyect - Dashboard</title>	
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
 
+	<link href="{% static 'css/datatables.bundle.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/datatables.bundle.rtl.css' %}" rel="stylesheet" type="text/css" />
+
 	<link href="{% static 'css/fullcalendar/fullcalendar.bundle.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/plugins.bundle.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/style.bundle.css' %}" rel="stylesheet" type="text/css" />
+	
 	<!--end::Global Stylesheets Bundle-->
 </head>
 <!--end::Head-->
@@ -43,7 +47,7 @@
 								data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
 								class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
 								<!--begin::Title-->
-								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Dashboard</h1>
+								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Panel</h1>
 								<!--end::Title-->
 								<!--begin::Separator-->
 								<span class="h-20px border-gray-200 border-start mx-4"></span>
@@ -83,71 +87,7 @@
 
 							<!--begin::Actions (Búsqueda + Nuevo proyecto)-->
 							<div class="d-flex align-items-center py-1">
-								<!--begin::Wrapper-->
-								<div class="me-4">
-									<!--begin::Menu-->
-									<a href="#" class="btn btn-sm btn-flex btn-light btn-active-primary fw-bolder"
-										data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-										<!--begin::Svg Icon | path: icons/duotune/general/gen031.svg-->
-										<span class="svg-icon svg-icon-5 svg-icon-gray-500 me-1">
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-												viewBox="0 0 24 24" fill="none">
-												<path
-													d="M19.0759 3H4.72777C3.95892 3 3.47768 3.83148 3.86067 4.49814L8.56967 12.6949C9.17923 13.7559 9.5 14.9582 9.5 16.1819V19.5072C9.5 20.2189 10.2223 20.7028 10.8805 20.432L13.8805 19.1977C14.2553 19.0435 14.5 18.6783 14.5 18.273V13.8372C14.5 12.8089 14.8171 11.8056 15.408 10.964L19.8943 4.57465C20.3596 3.912 19.8856 3 19.0759 3Z"
-													fill="black" />
-											</svg>
-										</span>
-										<!--end::Svg Icon-->Filtrar</a>
-									<!--begin::Menu 1-->
-									<div class="menu menu-sub menu-sub-dropdown w-250px w-md-300px" data-kt-menu="true"
-										id="kt_menu_61484bf845268">
-										<!--begin::Header-->
-										<div class="px-7 py-5">
-											<div class="fs-5 text-dark fw-bolder">Filtra opciones</div>
-										</div>
-										<!--end::Header-->
-										<!--begin::Menu separator-->
-										<div class="separator border-gray-200"></div>
-										<!--end::Menu separator-->
-										<!--begin::Form-->
-										<div class="px-7 py-5">
-											<!--begin::Input group-->
-											<div class="mb-10">
-												<!--begin::Label-->
-												<label class="form-label fw-bold">Status:</label>
-												<!--end::Label-->
-												<!--begin::Input-->
-												<div>
-													<select class="form-select form-select-solid" data-kt-select2="true"
-														data-placeholder="Seleccione"
-														data-dropdown-parent="#kt_menu_61484bf845268"
-														data-allow-clear="true">
-														<option></option>
-														<option value="1">Finalizado</option>
-														<option value="2">Pendiente</option>
-														<option value="3">En proceso</option>
-														<option value="4">Rechazado</option>
-													</select>
-												</div>
-												<!--end::Input-->
-											</div>
-											<!--end::Input group-->
-											<!--begin::Actions-->
-											<div class="d-flex justify-content-end">
-												<button type="reset"
-													class="btn btn-sm btn-light btn-active-light-primary me-2"
-													data-kt-menu-dismiss="true">Canelar</button>
-												<button type="submit" class="btn btn-sm btn-primary"
-													data-kt-menu-dismiss="true">Aplicar</button>
-											</div>
-											<!--end::Actions-->
-										</div>
-										<!--end::Form-->
-									</div>
-									<!--end::Menu 1-->
-									<!--end::Menu-->
-								</div>
-								<!--end::Wrapper-->
+
 								<!--begin::Button-->
 								<a href="{% url 'proyect_new_url' %}" class="btn btn-sm btn-primary">New Proyect</a>
 								<!--end::Button-->
@@ -165,599 +105,104 @@
 							<!--begin::Row-->
 							<div class="row gy-5 g-xl-8">
 
-								<!--begin::Col (Resumen app general)-->
-								<div class="col-xxl-4">
-									<!--begin::Mixed Widget 2-->
-									<div class="card card-xxl-stretch">
-										<!--begin::Header-->
-										<div class="card-header border-0 bg-success py-5">
-											<h3 class="card-title fw-bolder text-white">Proyectos realizados</h3>
-											<div class="card-toolbar">
+								<!--begin::Col-->
+								<div class="col-xxl-12">
+									<!--begin::Tables Widget 5-->
+									<div class="card card-xxl-stretch mb-8 mb-xl-12">
 
-											</div>
-										</div>
-										<!--end::Header-->
-										<!--begin::Body-->
-										<div class="card-body p-0">
-											<!--begin::Chart-->
-											<div class="mixed-widget-2-chart card-rounded-bottom bg-success"
-												data-kt-color="success" style="height: 200px"></div>
-											<!--end::Chart-->
-											<!--begin::Stats-->
-											<div class="card-p mt-n20 position-relative">
-												<!--begin::Row-->
-												<div class="row g-0">
-													<!--begin::Col-->
-													<div class="col bg-light-warning px-6 py-8 rounded-2 me-7 mb-7">
-														<!--begin::Svg Icon | path: icons/duotune/general/gen032.svg-->
-														<span
-															class="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-															<svg xmlns="http://www.w3.org/2000/svg" width="24"
-																height="24" viewBox="0 0 24 24" fill="none">
-																<rect x="8" y="9" width="3" height="10" rx="1.5"
-																	fill="black" />
-																<rect opacity="0.5" x="13" y="5" width="3" height="14"
-																	rx="1.5" fill="black" />
-																<rect x="18" y="11" width="3" height="8" rx="1.5"
-																	fill="black" />
-																<rect x="3" y="13" width="3" height="6" rx="1.5"
-																	fill="black" />
-															</svg>
-														</span>
-														<!--end::Svg Icon-->
-														<a href="#" class="text-warning fw-bold fs-6">En curso
-														</a>
-													</div>
-													<!--end::Col-->
-													<!--begin::Col-->
-													<div class="col bg-light-primary px-6 py-8 rounded-2 mb-7">
-														<!--begin::Svg Icon | path: icons/duotune/finance/fin006.svg-->
-														<span
-															class="svg-icon svg-icon-3x svg-icon-primary d-block my-2">
-															<svg xmlns="http://www.w3.org/2000/svg" width="24"
-																height="24" viewBox="0 0 24 24" fill="none">
-																<path opacity="0.3"
-																	d="M20 15H4C2.9 15 2 14.1 2 13V7C2 6.4 2.4 6 3 6H21C21.6 6 22 6.4 22 7V13C22 14.1 21.1 15 20 15ZM13 12H11C10.5 12 10 12.4 10 13V16C10 16.5 10.4 17 11 17H13C13.6 17 14 16.6 14 16V13C14 12.4 13.6 12 13 12Z"
-																	fill="black" />
-																<path
-																	d="M14 6V5H10V6H8V5C8 3.9 8.9 3 10 3H14C15.1 3 16 3.9 16 5V6H14ZM20 15H14V16C14 16.6 13.5 17 13 17H11C10.5 17 10 16.6 10 16V15H4C3.6 15 3.3 14.9 3 14.7V18C3 19.1 3.9 20 5 20H19C20.1 20 21 19.1 21 18V14.7C20.7 14.9 20.4 15 20 15Z"
-																	fill="black" />
-															</svg>
-														</span>
-														<!--end::Svg Icon-->
-														<a href="#" class="text-primary fw-bold fs-6">Carpeta</a>
-													</div>
-													<!--end::Col-->
-												</div>
-												<!--end::Row-->
-												<!--begin::Row-->
-												<div class="row g-0">
-													<!--begin::Col-->
-													<div class="col bg-light-success px-6 py-8 rounded-2 me-7">
-														<!--begin::Svg Icon | path: icons/duotune/abstract/abs027.svg-->
-														<span
-															class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
-															<svg xmlns="http://www.w3.org/2000/svg" width="24"
-																height="24" viewBox="0 0 24 24" fill="none">
-																<path opacity="0.3"
-																	d="M21.25 18.525L13.05 21.825C12.35 22.125 11.65 22.125 10.95 21.825L2.75 18.525C1.75 18.125 1.75 16.725 2.75 16.325L4.04999 15.825L10.25 18.325C10.85 18.525 11.45 18.625 12.05 18.625C12.65 18.625 13.25 18.525 13.85 18.325L20.05 15.825L21.35 16.325C22.35 16.725 22.35 18.125 21.25 18.525ZM13.05 16.425L21.25 13.125C22.25 12.725 22.25 11.325 21.25 10.925L13.05 7.62502C12.35 7.32502 11.65 7.32502 10.95 7.62502L2.75 10.925C1.75 11.325 1.75 12.725 2.75 13.125L10.95 16.425C11.65 16.725 12.45 16.725 13.05 16.425Z"
-																	fill="black" />
-																<path
-																	d="M11.05 11.025L2.84998 7.725C1.84998 7.325 1.84998 5.925 2.84998 5.525L11.05 2.225C11.75 1.925 12.45 1.925 13.15 2.225L21.35 5.525C22.35 5.925 22.35 7.325 21.35 7.725L13.05 11.025C12.45 11.325 11.65 11.325 11.05 11.025Z"
-																	fill="black" />
-															</svg>
-														</span>
-														<!--end::Svg Icon-->
-														<a href="#"
-															class="text-success fw-bold fs-6 mt-2">Inventario</a>
-													</div>
-													<!--end::Col-->
-													<!--begin::Col-->
-													<div class="col bg-light-danger px-6 py-8 rounded-2">
-														<!--begin::Svg Icon | path: icons/duotune/communication/com010.svg-->
-														<span class="svg-icon svg-icon-3x svg-icon-danger d-block my-2">
-															<svg xmlns="http://www.w3.org/2000/svg" width="24"
-																height="24" viewBox="0 0 24 24" fill="none">
-																<path
-																	d="M6 8.725C6 8.125 6.4 7.725 7 7.725H14L18 11.725V12.925L22 9.725L12.6 2.225C12.2 1.925 11.7 1.925 11.4 2.225L2 9.725L6 12.925V8.725Z"
-																	fill="black" />
-																<path opacity="0.3"
-																	d="M22 9.72498V20.725C22 21.325 21.6 21.725 21 21.725H3C2.4 21.725 2 21.325 2 20.725V9.72498L11.4 17.225C11.8 17.525 12.3 17.525 12.6 17.225L22 9.72498ZM15 11.725H18L14 7.72498V10.725C14 11.325 14.4 11.725 15 11.725Z"
-																	fill="black" />
-															</svg>
-														</span>
-														<!--end::Svg Icon-->
-														<a href="#" class="text-danger fw-bold fs-6 mt-2">Informar
-															bug</a>
-													</div>
-													<!--end::Col-->
-												</div>
-												<!--end::Row-->
-											</div>
-											<!--end::Stats-->
-										</div>
-										<!--end::Body-->
-									</div>
-									<!--end::Mixed Widget 2-->
-								</div>
-								<!--end::Col-->
-
-								<!--begin::Col (Control de inventario) -->
-								<div class="col-xxl-4">
-									<!--begin::List Widget 5-->
-									<div class="card card-xxl-stretch">
 										<!--begin::Header-->
-										<div class="card-header align-items-center border-0 mt-4">
+										<div class="card-header border-0 pt-5">
 											<h3 class="card-title align-items-start flex-column">
-												<span class="fw-bolder mb-2 text-dark">Inventario</span>
-												<span class="text-muted fw-bold fs-7">120 productos</span>
+												<span class="card-label fw-bolder fs-3 mb-1">Proyects</span>
+												<span class="text-muted mt-1 fw-bold fs-7">List</span>
 											</h3>
 										</div>
 										<!--end::Header-->
 										<!--begin::Body-->
-										<div class="card-body pt-5">
-											<!--begin::Timeline-->
-											<div class="timeline-label">
-												<!--begin::Item-->
-												<div class="timeline-item">
+										<div class="card-body py-3">
 
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/09/10
-														<br />$50
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-warning fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														1</div>
+											<div class="table-responsive">
+												<input type="text" id="globalSearch" class="form-control form-control-sm" placeholder="Search...">
+												<!--begin: Datatable-->
+												<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" id="kt_datatable">
+													<thead>
+														<tr class="fw-bolder text-muted">
+															<th title="Field #1">Proyect ID</th>
+															<th title="Field #2">Customer name</th>
+															<th title="Field #3">Address</th>
+															<th title="Field #4">Date creation</th>
+															<th title="Field #5">State</th>
+															<th title="Field #6"></th>
+															
+														</tr>
+													</thead>
+													<tbody>
+														{% for proyect in proyects_data %}
+														<tr>
+														<td>{{ proyect.id }}</td>
+														<td class="text-muted">{{ proyect.customerName }}</td>
+														<td class="text-muted">{{ proyect.address }}</td>
+														<td class="text-muted">{{ proyect.creationDate }}</td>
+														<td class="text-muted">{{ proyect.state }}</td>
+														<td class='text-end'><a href='#'class='btn btn-sm btn-icon btn-bg-light btn-active-color-primary'><span class='svg-icon svg-icon-2'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><rect opacity='0.5' x='18' y='13' width='13' height='2' rx='1' transform='rotate(-180 18 13)' fill='black' /> <path d='M15.4343 12.5657L11.25 16.75C10.8358 17.1642 10.8358 17.8358 11.25 18.25C11.6642 18.6642 12.3358 18.6642 12.75 18.25L18.2929 12.7071C18.6834 12.3166 18.6834 11.6834 18.2929 11.2929L12.75 5.75C12.3358 5.33579 11.6642 5.33579 11.25 5.75C10.8358 6.16421 10.8358 6.83579 11.25 7.25L15.4343 11.4343C15.7467 11.7467 15.7467 12.2533 15.4343 12.5657Z' fill='black' /></svg></span></a></td>
+														</tr>
+														{% endfor %}
+																												
+													</tbody>
+												</table>
 
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/09/02
-														<br />$120
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-success fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														2</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/25
-														<br />$30
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-danger fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														3</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/22
-														<br />$60
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-primary fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														4</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/20
-														<br />$23
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-danger fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														5</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/18
-														<br />$70
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-primary fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														6</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/15
-														<br />$16
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-danger fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														7</div>
-
-												</div>
-												<!--end::Item-->
-												<!--begin::Item-->
-												<div class="timeline-item">
-
-													<div class="timeline-label fw-bolder text-gray-800 fs-8">24/08/12
-														<br />$200
-													</div>
-													<div class="timeline-badge"> <i
-															class="fa fa-genderless text-success fs-1"></i></div>
-													<div class="timeline-content fw-bolder text-gray-800 ps-3">Material
-														8</div>
-
-												</div>
-												<!--end::Item-->
 											</div>
-											<!--end::Timeline-->
-										</div>
-										<!--end: Card Body-->
+																				
+										</div>								
+
+
 									</div>
-									<!--end: List Widget 5-->
 								</div>
-								<!--end::Col-->
 
-								<!--begin::Col (Reportes)-->
-								<div class="col-xxl-4">
-									<!--begin::Mixed Widget 7-->
-									<div class="card card-xxl-stretch-50 mb-5 mb-xl-8">
-										<!--begin::Body-->
-										<div class="card-body d-flex flex-column p-0">
-											<!--begin::Stats-->
-											<div class="flex-grow-1 card-p pb-0">
-												<div class="d-flex flex-stack flex-wrap">
-													<div class="me-2">
-														<a href="#"
-															class="text-dark text-hover-primary fw-bolder fs-3">Reporte
-															general</a>
-														<div class="text-muted fs-7 fw-bold">Ingresos últimos 6 meses
-														</div>
-													</div>
-													<div class="fw-bolder fs-3 text-primary">$1.650</div>
-												</div>
-											</div>
-											<!--end::Stats-->
-											<!--begin::Chart-->
-											<div class="mixed-widget-7-chart card-rounded-bottom"
-												data-kt-chart-color="primary" style="height: 150px"></div>
-											<!--end::Chart-->
-										</div>
-										<!--end::Body-->
-									</div>
-									<!--end::Mixed Widget 7-->
-									<!--begin::Mixed Widget 10-->
-									<div class="card card-xxl-stretch-50 mb-5 mb-xl-8">
-										<!--begin::Body-->
-										<div
-											class="card-body p-0 d-flex justify-content-between flex-column overflow-hidden">
-											<!--begin::Hidden-->
-											<div class="d-flex flex-stack flex-wrap flex-grow-1 px-9 pt-9 pb-3">
-												<div class="me-2">
-													<span class="fw-bolder text-gray-800 d-block fs-3">Proyectos en
-														curso</span>
-													<span class="text-gray-400 fw-bold">Sep 1 - Sep 14 24</span>
-												</div>
-												<div class="fw-bolder fs-3 text-primary">14</div>
-											</div>
-											<!--end::Hidden-->
-											<!--begin::Chart-->
-											<div class="mixed-widget-10-chart" data-kt-color="primary"
-												style="height: 175px"></div>
-											<!--end::Chart-->
-										</div>
-									</div>
-									<!--end::Mixed Widget 10-->
-								</div>
-								<!--end::Col-->
 							</div>
 							<!--end::Row-->
 
 
 							<!--begin::Row (Calendario)-->
 							<div class="row gy-5 g-xl-8">
-								<!--begin::Calendar Widget 1-->
-								<div class="card card-xxl-stretch">
-									<!--begin::Card header-->
-									<div class="card-header">
-										<h3 class="card-title align-items-start flex-column">
-											<span class="card-label fw-bolder text-dark">Calendario</span>
-											<span class="text-muted mt-1 fw-bold fs-7">Vista previa</span>
-										</h3>
-										<!-- <div class="card-toolbar">
-											<a href="../../sistema/apps/calendar.html"
-												class="btn btn-primary">Gestionar calendario</a>
-										</div> -->
-									</div>
-									<!--end::Card header-->
-									<!--begin::Card body-->
-									<div class="card-body">
-										<!--begin::Calendar-->
-										<div id="kt_calendar_widget_1"></div>
-										<!--end::Calendar-->
-									</div>
-									<!--end::Card body-->
-								</div>
-								<!--end::Calendar Widget 1-->
 
+								<!--begin::Col-->
+								<div class="col-xxl-12">
+
+									<!--begin::Calendar Widget 1-->
+									<div class="card card-xxl-stretch">
+										<!--begin::Card header-->
+										<div class="card-header">
+											<h3 class="card-title align-items-start flex-column">
+												<span class="card-label fw-bolder text-dark">Calendar</span>
+												<span class="text-muted mt-1 fw-bold fs-7">Preview view</span>
+											</h3>
+											<!-- <div class="card-toolbar">
+												<a href="../../sistema/apps/calendar.html"
+													class="btn btn-primary">Gestionar calendario</a>
+											</div> -->
+										</div>
+										<!--end::Card header-->
+										<!--begin::Card body-->
+										<div class="card-body">
+											<!--begin::Calendar-->
+											<div id="kt_calendar_widget_1">
+
+											</div>
+
+											<br/>
+											<br/>
+											<!--end::Calendar-->
+										</div>
+										<!--end::Card body-->
+									</div>
+									<!--end::Calendar Widget 1-->
+								</div>
 							</div>
 							<!--end::Row-->
 
 
 							<br />
-
-
-
-							<!--begin::Row (Decoradores)-->
-							<div class="row gy-5 g-xl-8">
-
-								<!--begin::Col-->
-								<div class="col-xl-12">
-									<!--begin::Tables Widget 9-->
-									<div class="card card-xl-stretch mb-5 mb-xl-8">
-										<!--begin::Header-->
-										<div class="card-header border-0 pt-5">
-											<h3 class="card-title align-items-start flex-column">
-												<span class="card-label fw-bolder fs-3 mb-1">Decoradores</span>
-												<span class="text-muted mt-1 fw-bold fs-7">Lista</span>
-											</h3>
-											<div class="card-toolbar" data-bs-toggle="tooltip" data-bs-placement="top"
-												data-bs-trigger="hover" title="Click para agregar un decorador">
-												<a href="#" class="btn btn-sm btn-light btn-active-primary"
-													data-bs-toggle="modal" data-bs-target="#kt_modal_invite_friends">
-													<!--begin::Svg Icon | path: icons/duotune/arrows/arr075.svg-->
-													<span class="svg-icon svg-icon-3">
-														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-															viewBox="0 0 24 24" fill="none">
-															<rect opacity="0.5" x="11.364" y="20.364" width="16"
-																height="2" rx="1" transform="rotate(-90 11.364 20.364)"
-																fill="black" />
-															<rect x="4.36396" y="11.364" width="16" height="2" rx="1"
-																fill="black" />
-														</svg>
-													</span>
-													<!--end::Svg Icon-->Agregar</a>
-											</div>
-										</div>
-										<!--end::Header-->
-										<!--begin::Body-->
-										<div class="card-body py-3">
-											<!--begin::Table container-->
-											<div class="table-responsive">
-												<!--begin::Table-->
-												<table
-													class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
-													<!--begin::Table head-->
-													<thead>
-														<tr class="fw-bolder text-muted">
-															<th class="min-w-150px">Nombre</th>
-															<th class="min-w-140px">Proyectos</th>
-															<th class="min-w-120px">Progreso</th>
-															<th class="min-w-100px text-end">Acciones</th>
-														</tr>
-													</thead>
-													<!--end::Table head-->
-													<!--begin::Table body-->
-													<tbody>
-														<tr>
-															<td>
-																<div class="d-flex align-items-center">
-																	<div class="symbol symbol-45px me-5">
-																		<img src="{% static 'images/avatars/blank.png' %}"
-																			alt="" />
-																	</div>
-																	<div
-																		class="d-flex justify-content-start flex-column">
-																		<a href="#"
-																			class="text-dark fw-bolder text-hover-primary fs-6">Tata
-																			José</a>
-																		<span
-																			class="text-muted fw-bold text-muted d-block fs-7">tatajose.roldanb@gmail.com</span>
-																	</div>
-																</div>
-															</td>
-															<td>
-																<a href="#"
-																	class="text-success fw-bolder text-hover-success d-block fs-8">#84250</a>
-
-																<a href="#"
-																	class="text-success fw-bolder text-hover-primary d-block fs-8">#45789</a>
-															</td>
-															<td class="text-end">
-																<div class="d-flex flex-column w-100 me-2">
-																	<div class="d-flex flex-stack mb-2">
-																		<span
-																			class="text-muted me-2 fs-7 fw-bold">100%</span>
-																	</div>
-																	<div class="progress h-6px w-100">
-																		<div class="progress-bar bg-success"
-																			role="progressbar" style="width: 100%"
-																			aria-valuenow="50" aria-valuemin="0"
-																			aria-valuemax="100"></div>
-																	</div>
-																</div>
-															</td>
-															<td>
-																<div class="d-flex justify-content-end flex-shrink-0">
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen019.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path
-																					d="M17.5 11H6.5C4 11 2 9 2 6.5C2 4 4 2 6.5 2H17.5C20 2 22 4 22 6.5C22 9 20 11 17.5 11ZM15 6.5C15 7.9 16.1 9 17.5 9C18.9 9 20 7.9 20 6.5C20 5.1 18.9 4 17.5 4C16.1 4 15 5.1 15 6.5Z"
-																					fill="black" />
-																				<path opacity="0.3"
-																					d="M17.5 22H6.5C4 22 2 20 2 17.5C2 15 4 13 6.5 13H17.5C20 13 22 15 22 17.5C22 20 20 22 17.5 22ZM4 17.5C4 18.9 5.1 20 6.5 20C7.9 20 9 18.9 9 17.5C9 16.1 7.9 15 6.5 15C5.1 15 4 16.1 4 17.5Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-																		<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path opacity="0.3"
-																					d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z"
-																					fill="black" />
-																				<path
-																					d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path
-																					d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z"
-																					fill="black" />
-																				<path opacity="0.5"
-																					d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z"
-																					fill="black" />
-																				<path opacity="0.5"
-																					d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																</div>
-															</td>
-														</tr>
-														<tr>
-															<td>
-																<div class="d-flex align-items-center">
-																	<div class="symbol symbol-45px me-5">
-																		<img src="{% static 'images/avatars/blank.png' %}"
-																			alt="" />
-																	</div>
-																	<div
-																		class="d-flex justify-content-start flex-column">
-																		<a href="#"
-																			class="text-dark fw-bolder text-hover-primary fs-6">Nina
-																			Cruz</a>
-																		<span
-																			class="text-muted fw-bold text-muted d-block fs-7">cruzcpaty@gmail.com</span>
-																	</div>
-																</div>
-															</td>
-															<td>
-																<a href="#"
-																	class="text-primary fw-bolder text-hover-primary d-block fs-8">#67945</a>
-															</td>
-															<td class="text-end">
-																<div class="d-flex flex-column w-100 me-2">
-																	<div class="d-flex flex-stack mb-2">
-																		<span
-																			class="text-muted me-2 fs-7 fw-bold">50%</span>
-																	</div>
-																	<div class="progress h-6px w-100">
-																		<div class="progress-bar bg-primary"
-																			role="progressbar" style="width: 50%"
-																			aria-valuenow="50" aria-valuemin="0"
-																			aria-valuemax="100"></div>
-																	</div>
-																</div>
-															</td>
-															<td>
-																<div class="d-flex justify-content-end flex-shrink-0">
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen019.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path
-																					d="M17.5 11H6.5C4 11 2 9 2 6.5C2 4 4 2 6.5 2H17.5C20 2 22 4 22 6.5C22 9 20 11 17.5 11ZM15 6.5C15 7.9 16.1 9 17.5 9C18.9 9 20 7.9 20 6.5C20 5.1 18.9 4 17.5 4C16.1 4 15 5.1 15 6.5Z"
-																					fill="black" />
-																				<path opacity="0.3"
-																					d="M17.5 22H6.5C4 22 2 20 2 17.5C2 15 4 13 6.5 13H17.5C20 13 22 15 22 17.5C22 20 20 22 17.5 22ZM4 17.5C4 18.9 5.1 20 6.5 20C7.9 20 9 18.9 9 17.5C9 16.1 7.9 15 6.5 15C5.1 15 4 16.1 4 17.5Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-																		<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path opacity="0.3"
-																					d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z"
-																					fill="black" />
-																				<path
-																					d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																	<a href="#"
-																		class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-																		<span class="svg-icon svg-icon-3">
-																			<svg xmlns="http://www.w3.org/2000/svg"
-																				width="24" height="24"
-																				viewBox="0 0 24 24" fill="none">
-																				<path
-																					d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z"
-																					fill="black" />
-																				<path opacity="0.5"
-																					d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z"
-																					fill="black" />
-																				<path opacity="0.5"
-																					d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z"
-																					fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</a>
-																</div>
-															</td>
-														</tr>
-
-													</tbody>
-													<!--end::Table body-->
-												</table>
-												<!--end::Table-->
-											</div>
-											<!--end::Table container-->
-										</div>
-										<!--begin::Body-->
-									</div>
-									<!--end::Tables Widget 9-->
-								</div>
-								<!--end::Col-->
-							</div>
-							<!--end::Row-->
 
 							<!--begin::Row (Clientes)-->
 							<div class="row g-5 g-xxl-8">
@@ -777,7 +222,7 @@
 										<div class="card-body py-3">
 											<div class="tab-content">
 
-												<div class="table-responsive">
+												<div class="table-responsive">													
 													<!--begin::Table-->
 													<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" id="tableCustomerProyect">
 														<!--begin::Table head-->
@@ -1353,6 +798,7 @@
 	<script src="{% static 'js/scripts.bundle.js' %}"></script>
 	<!-- <script src="{% static 'proyect/js/widgets.js' %}"></script> -->
 	<script src="{% static 'js/fullcalendar/fullcalendar.bundle.js' %}"></script>
+	<script src="{% static 'js/datatable/datatables.bundle.js' %}"></script>
 
 
 	<script>
@@ -1475,197 +921,40 @@
 		$(document).ready(function() {
             cargarProyectos();
 			cargarCalendario();
+
+			// $("#kt_datatable").DataTable({
+			// 	"initComplete": function () {
+			// 		this.api().columns().every(function () {
+			// 			var column = this;
+			// 			var input = document.createElement("input");
+			// 			$(input).appendTo($(column.header()).empty())
+			// 				.on('keyup change', function () {
+			// 					column.search($(this).val()).draw();
+			// 				});
+			// 		});
+			// 	}
+			// });
+
+			// $("#kt_datatable").appendTo($(column.header()).empty()).addClass('form-control form-control-sm')
+			// .on('keyup change', function () {
+			// 	column.search($(this).val()).draw();
+			// });
+
+			var table = $('#kt_datatable').DataTable({				
+			});
+
+			$('#globalSearch').on('keyup change', function() {
+				table.search(this.value).draw();  // Filtra la tabla con el valor del input
+			});
+
+
+
+
         });
-
-
-		
-
-
-		var e, t, a,
-			o = document.querySelectorAll(".mixed-widget-2-chart"),
-			s = KTUtil.getCssVariableValue("--bs-gray-500"),
-			r = KTUtil.getCssVariableValue("--bs-gray-200");
-		[].slice.call(o).map((
-			function (o) {
-				a = parseInt(KTUtil.css(o, "height")),
-					e = KTUtil.getCssVariableValue("--bs-" + o.getAttribute("data-kt-color")),
-					t = KTUtil.colorDarken(e, 15),
-					new ApexCharts(o, {
-						series: [{
-							name: "Proyects number",
-							data: [10, 9, 12, 13, 10, 8, 14]
-						}],
-						chart: {
-							fontFamily: "inherit",
-							type: "area",
-							height: a,
-							toolbar: { show: !1 },
-							zoom: { enabled: !1 },
-							sparkline: { enabled: !0 },
-							dropShadow: { enabled: !0, enabledOnSeries: void 0, top: 5, left: 0, blur: 3, color: t, opacity: .5 }
-						},
-						plotOptions: {},
-						legend: { show: !1 },
-						dataLabels: { enabled: !1 },
-						fill: { type: "solid", opacity: 0 },
-						stroke: { curve: "smooth", show: !0, width: 3, colors: [t] },
-						xaxis: {
-							categories: ["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
-							axisBorder: { show: !1 },
-							axisTicks: { show: !1 },
-							labels: { show: !1, style: { colors: s, fontSize: "12px" } },
-							crosshairs: { show: !1, position: "front", stroke: { color: r, width: 1, dashArray: 3 } }
-						},
-						yaxis: { min: 0, max: 20, labels: { show: !1, style: { colors: s, fontSize: "12px" } } },
-						states: {
-							normal: { filter: { type: "none", value: 0 } },
-							hover: { filter: { type: "none", value: 0 } },
-							active: {
-								allowMultipleDataPointsSelection: !1,
-								filter: { type: "none", value: 0 }
-							}
-						},
-						tooltip: {
-							style: { fontSize: "12px" },
-							// y: { formatter: function (e) { return "$" + e + " thousands" } },
-							y: { formatter: function (e) { return e } },
-							marker: { show: !1 }
-						},
-						colors: ["transparent"],
-						markers: {
-							colors: [e],
-							strokeColor: [t],
-							strokeWidth: 3
-						}
-					}).render()
-			}))
-
-
-		var e = document.querySelectorAll(".mixed-widget-7-chart");
-		[].slice.call(e).map((
-			function (e) {
-				var t = parseInt(KTUtil.css(e, "height"));
-				if (e) {
-					var a = e.getAttribute("data-kt-chart-color"),
-						o = KTUtil.getCssVariableValue("--bs-gray-800"),
-						s = KTUtil.getCssVariableValue("--bs-gray-300"),
-						r = KTUtil.getCssVariableValue("--bs-" + a),
-						i = KTUtil.getCssVariableValue("--bs-light-" + a);
-					new ApexCharts(e, {
-						series: [{
-							name: "Input",
-							data: [150, 250, 150, 400, 200, 350]
-						}],
-						chart: {
-							fontFamily: "inherit",
-							type: "area",
-							height: t,
-							toolbar: { show: !1 },
-							zoom: { enabled: !1 },
-							sparkline: { enabled: !0 }
-						},
-						plotOptions: {},
-						legend: { show: !1 },
-						dataLabels: { enabled: !1 },
-						fill: { type: "solid", opacity: 1 },
-						stroke: { curve: "smooth", show: !0, width: 3, colors: [r] },
-						xaxis: {
-							categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"],
-							axisBorder: { show: !1 },
-							axisTicks: { show: !1 },
-							labels: { show: !1, style: { colors: o, fontSize: "12px" } },
-							crosshairs: { show: !1, position: "front", stroke: { color: s, width: 1, dashArray: 3 } },
-							tooltip: { enabled: !0, formatter: void 0, offsetY: 0, style: { fontSize: "12px" } }
-						},
-						yaxis: { min: 0, max: 400, labels: { show: !1, style: { colors: o, fontSize: "12px" } } },
-						states: {
-							normal: { filter: { type: "none", value: 0 } },
-							hover: { filter: { type: "none", value: 0 } },
-							active: {
-								allowMultipleDataPointsSelection: !1,
-								filter: { type: "none", value: 0 }
-							}
-						},
-						tooltip: {
-							style: { fontSize: "12px" },
-							// y: { formatter: function (e) { return "$" + e + " thousands" } }
-							y: { formatter: function (e) { return "$" + e + " " } }
-						},
-						colors: [i],
-						markers: { colors: [i], strokeColor: [r], strokeWidth: 3 }
-					}).render()
-				}
-			}))
-
-
-		var e, t, a, o = document.querySelectorAll(".mixed-widget-10-chart"),
-			s = KTUtil.getCssVariableValue("--bs-gray-500"),
-			r = KTUtil.getCssVariableValue("--bs-gray-200"),
-			i = KTUtil.getCssVariableValue("--bs-gray-300");
-		[].slice.call(o).map((
-			function (o) {
-				e = o.getAttribute("data-kt-color"),
-					t = parseInt(KTUtil.css(o, "height")),
-					a = KTUtil.getCssVariableValue("--bs-" + e),
-					new ApexCharts(o, {
-						series: [{
-							name: "Cotizaciones",
-							data: [12, 12, 14, 13, 15, 12, 10, 14]
-						}, {
-							name: "Aprobados",
-							data: [12, 10, 9, 12, 13, 10, 8, 14]
-						}],
-						chart: {
-							fontFamily: "inherit",
-							type: "bar",
-							height: t,
-							toolbar: { show: !1 }
-						},
-						plotOptions: {
-							bar: {
-								horizontal: !1,
-								columnWidth: ["50%"],
-								borderRadius: 4
-							}
-						},
-						legend: { show: !1 },
-						dataLabels: { enabled: !1 },
-						stroke: {
-							show: !0,
-							width: 2,
-							colors: ["transparent"]
-						},
-						xaxis: {
-							categories: ["Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
-							axisBorder: { show: !1 },
-							axisTicks: { show: !1 },
-							labels: { style: { colors: s, fontSize: "12px" } }
-						},
-						yaxis: { y: 0, offsetX: 0, offsetY: 0, labels: { style: { colors: s, fontSize: "12px" } } },
-						fill: { type: "solid" },
-						states: {
-							normal: { filter: { type: "none", value: 0 } },
-							hover: { filter: { type: "none", value: 0 } },
-							active: { allowMultipleDataPointsSelection: !1, filter: { type: "none", value: 0 } }
-						},
-						tooltip: {
-							style: { fontSize: "12px" },
-							// y: { formatter: function (e) { return "$" + e + " revenue" } }
-							y: { formatter: function (e) { return e } }
-						},
-						colors: [a, i], grid: {
-							padding: { top: 10 },
-							borderColor: r,
-							strokeDashArray: 4, yaxis: { lines: { show: !0 } }
-						}
-					}).render()
-			}))
 
 
 
 	</script>
-
-
 
 </body>
 <!--end::Body-->

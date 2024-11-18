@@ -4,15 +4,52 @@ from django.http import JsonResponse # para responder llamadas Ajax
 from django.contrib import messages
 from datetime import datetime # dar formato a la fecha
 from django.shortcuts import redirect # redireccionar a páginas
+from django.contrib.auth.decorators import login_required #para controlar las sesiones
 
 
 from .models import Type, Responsible, Customer, State, Proyect #Aquí importamos a los modelos que necesitamos
 
+@login_required
+def panel_view(request):
 
-def dashboard_view(request):
-    return render(request, 'proyect/dashboard.html')    
+    #Consulta los proyectos desde la base de datos
+    proyects = Proyect.objects.all()
+
+    # Creamos una lista con los datos de cada proyecto
+    proyects_data = []
+    for proyect in proyects:
+
+        parsed_date = ''
+        allDay = False
+
+        if len(proyect.date) == 10:
+            allDay = True
+            try:
+                parsed_date = proyect.date + ', 00:00'
+            except ValueError:
+                parsed_date = '1900-01-01, 00:00'
+        else:
+            parsed_date = proyect.date
+
+        proyects_data.append({
+            'id': proyect.id,
+            'customerName': proyect.customer.name,
+            'address': proyect.customer.address,
+            'date': datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"),
+            'creationDate': proyect.creation_date,
+            'email': proyect.customer.email,
+            'state': proyect.state.name,
+            'allDay': allDay,
+        })
+
+    return render(request, 'proyect/panel.html', {'proyects_data': proyects_data,})    
 
 
+@login_required
+def grafics_view(request):
+    return render(request, 'proyect/grafics.html')    
+
+@login_required
 def proyect_new(request):
      
     if request.method == 'POST':
@@ -72,7 +109,7 @@ def proyect_new(request):
                     'responsibles': responsibles,
                     'responsable_select': responsable_select,})
 
-
+@login_required
 def getDataCustomer(request):
     # Verifica si la solicitud es por POST y si tiene el parámetro 'input_value'
     input_value = request.POST.get('address', None)
@@ -99,11 +136,12 @@ def getDataCustomer(request):
         return JsonResponse(datos)
     
 
+@login_required
 def getDataProyectCustomer(request):
     #Consulta los proyectos desde la base de datos
     proyects = Proyect.objects.all()
 
-     # Creamos una lista con los datos de cada proyecto
+    # Creamos una lista con los datos de cada proyecto
     proyects_data = []
     for proyect in proyects:
 

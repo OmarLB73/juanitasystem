@@ -26,8 +26,8 @@
 						id="#kt_header_menu" data-kt-menu="true">
 
 						<div class="menu-item me-lg-1">
-							<a class="menu-link py-3" href="{% url 'dashboard_url' %}">
-								<span class="menu-title">Dashboard</span>
+							<a class="menu-link py-3" href="{% url 'panel_url' %}">
+								<span class="menu-title">Panel</span>
 							</a>
 						</div>
 						
@@ -196,9 +196,8 @@
 										<span class="menu-title">PDF</span>
 									</span>
 								</div>
-								<div data-kt-menu-trigger="{default:'click', lg: 'hover'}"
-									data-kt-menu-placement="right-start" class="menu-item menu-lg-dropdown">
-									<span class="menu-link py-3" href="#">
+								<div data-kt-menu-placement="right-start" class="menu-item menu-lg-dropdown">
+									<a class="menu-link py-3" href="{% url 'grafics_url' %}">
 										<span class="menu-icon">
 											<!--begin::Svg Icon | path: icons/duotune/general/gen009.svg-->
 											<span class="svg-icon svg-icon-muted svg-icon-2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -210,8 +209,9 @@
 											<!--end::Svg Icon-->
 										</span>
 										<span class="menu-title">Grafics</span>
-									</span>
+									</a>
 								</div>
+
 							</div>
 						</div>
 
