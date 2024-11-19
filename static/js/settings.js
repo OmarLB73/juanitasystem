@@ -3,14 +3,14 @@ var KTProjectSettings = {
     init: function () {
         !function () {
             var t;            
-            $("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });                      
+            $("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });
             var e = document.getElementById("kt_project_settings_form"),
                 i = e.querySelector("#kt_project_settings_submit");
             t = FormValidation.formValidation(e, {
                 fields: {
-                    address: { validators: { notEmpty: { message: "Address is required" } } },
-                    customerName: { validators: { notEmpty: { message: "Name is required" } } },
-                    date: { validators: { notEmpty: { message: "Date is required" } } },                    
+                    address: { validators: { notEmpty: { message: " " } } },
+                    customerName: { validators: { notEmpty: { message: " " } } },
+                    date: { validators: { notEmpty: { message: " " } } },                    
                 },
                 plugins: {
                     trigger: new FormValidation.plugins.Trigger,

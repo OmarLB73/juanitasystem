@@ -5,6 +5,7 @@ from django.contrib import messages
 from datetime import datetime # dar formato a la fecha
 from django.shortcuts import redirect # redireccionar a páginas
 from django.contrib.auth.decorators import login_required #para controlar las sesiones
+from django.db.models import Q # permite realizar consultas complejas
 
 
 from .models import Type, Responsible, Customer, State, Proyect #Aquí importamos a los modelos que necesitamos
@@ -12,8 +13,45 @@ from .models import Type, Responsible, Customer, State, Proyect #Aquí importamo
 @login_required
 def panel_view(request):
 
-    #Consulta los proyectos desde la base de datos
+    #Consulta los proyectos/tipos/estados desde la base de datos    
+    types = Type.objects.filter(status=1).order_by('id')
+    states = State.objects.filter(status=1).order_by('id')
+
+    type_id = 0
+    state_id = 0
+    date_from = ''
+    date_until = ''
+
     proyects = Proyect.objects.all()
+
+    if request.method == 'POST':
+
+        condiciones = Q()
+
+        date_from = request.POST.get('dateFrom')
+        date_until = request.POST.get('dateUntil')
+        type_id = int(request.POST.get('type'))
+        state_id = int(request.POST.get('state'))
+
+        if date_from != '':
+            date_from += ' 23:59:59'
+            condiciones &= Q(creation_date__gte = date_from) ##fecha mayor o igual
+
+        if date_until != '':
+            date_until += ' 23:59:59'
+            condiciones &= Q(creation_date__lte = date_until) ##fecha mayor o igual
+
+        if type_id != '0':
+            condiciones &= Q(type__id = type_id) ##igual a fk
+
+        if state_id != '0':
+            condiciones &= Q(state__id = state_id) ##igual a fk
+
+        proyects = Proyect.objects.filter(condiciones)
+
+    else:
+        proyects = Proyect.objects.all()
+            
 
     # Creamos una lista con los datos de cada proyecto
     proyects_data = []
@@ -38,16 +76,19 @@ def panel_view(request):
             'date': datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"),
             'creationDate': proyect.creation_date,
             'email': proyect.customer.email,
+            'state_id': proyect.state.id,
             'state': proyect.state.name,
-            'allDay': allDay,
+            'allDay': allDay,            
         })
 
-    return render(request, 'proyect/panel.html', {'proyects_data': proyects_data,})    
+    return render(request, 'proyect/panel.html', {'proyects_data': proyects_data,
+                                                  'date_from': date_from,
+                                                  'date_until': date_until,
+                                                  'type_id': type_id,
+                                                  'state_id': state_id,
+                                                  'types': types,
+                                                  'states': states})    
 
-
-@login_required
-def grafics_view(request):
-    return render(request, 'proyect/grafics.html')    
 
 @login_required
 def proyect_new(request):
@@ -97,8 +138,8 @@ def proyect_new(request):
                                       
     else:
 
-        types = Type.objects.filter(status=1)
-        responsibles = Responsible.objects.filter(status=1)
+        types = Type.objects.filter(status=1).order_by('id')
+        responsibles = Responsible.objects.filter(status=1).order_by('name')
 
         type_select = Type.objects.first()
         responsable_select = -1
@@ -108,6 +149,16 @@ def proyect_new(request):
                     'type_select': type_select,
                     'responsibles': responsibles,
                     'responsable_select': responsable_select,})
+
+@login_required
+def proyect_edit(request):
+    return render(request, 'proyect/edit.html')   
+
+
+@login_required
+def grafics_view(request):
+    return render(request, 'proyect/grafics.html')    
+
 
 @login_required
 def getDataCustomer(request):

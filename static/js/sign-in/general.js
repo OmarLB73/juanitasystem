@@ -49,11 +49,9 @@ var KTSigninGeneral = function () {
                                             Swal.fire({ text: "Communication error with the server. Please contact to system administrator.", icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
                                         }
                                     });
-
-
                                     e.removeAttribute("data-kt-indicator"),
-                                        e.disabled = !1
-                                }), 1e3)) : Swal.fire({ text: "Please complete the required information.", icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
+                                    e.disabled = !1
+                                }), 0.5e3)) : Swal.fire({ text: "Please complete the required information.", icon: "error", buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } })
                         }))
                 }))
         }

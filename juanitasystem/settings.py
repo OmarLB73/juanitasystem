@@ -159,3 +159,42 @@ database_url = os.environ.get("DATABASES_URL")
 DATABASES['default'] = dj_database_url.parse(database_url) 
 
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+
+
+
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+#################### DESARROLLO ##########################
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+
+# #PASO N1: Agregar la siguiente configuracion para adaptar el ambiente a desarrollo
+
+# # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-uoa7$hdjz+ok151$j8h=s!6r=#f!n2u^4qno+j3s0nx=+mhg$w'
+
+# DATABASES = {
+#     'default': {
+#             'ENGINE': 'django.db.backends.postgresql',
+#             'NAME': 'juanitadb',
+#             'USER': 'administrator_jsystem',
+#             'PASSWORD': 'juanita.pass.2024',
+#             'HOST': 'localhost',
+#             'PORT': 5432,
+#         },
+
+# }
+
+# # database_url = 'postgresql://juanitadb_user:dRHm1eDJC6pMywIrOO931avP9CpRuGdk@dpg-cshuma9u0jms73f6rgog-a.oregon-postgres.render.com/juanitadb'
+# # DATABASES['default'] = dj_database_url.parse(database_url) 
+
+# DEBUG = True
+
+# ALLOWED_HOSTS = []
+
+# GOOGLE_API_KEY = "AIzaSyAjTuqaptDsxiU79IQ5nil8JyVw5AxQenU"
