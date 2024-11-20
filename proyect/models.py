@@ -2,21 +2,33 @@ from django.db import models
 
 # Create your models here.
 
+
+ESTADOS = [
+        (1, 'Active'),
+        (0, 'Inactive'),
+    ]
+
+YESNO = [
+        (1, 'Yes'),
+        (2, 'No'),
+    ]
+
 class Type(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
-    status = models.IntegerField(default=1)        
+    status = models.IntegerField(choices=ESTADOS,  default=1)        
     creation_user = models.CharField(max_length=50, default='admin')    
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
     modification_user = models.CharField(max_length=50, default='admin')
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
-  #La clase Meta, ayuda a evitar usar prefijos de la aplicacion en la base de datos. 
+    #La clase Meta, ayuda a evitar usar prefijos de la aplicacion en la base de datos. 
     # Pero por un tema de orden, no la usaremos.
     #class Meta:
     #   db_table = 'Type'
 
     #Esto sirve para el shell, retorna la estructura definida
+
     def __str__(self):
         return f'{self.id} - {self.name}'
     
@@ -26,7 +38,7 @@ class Responsible(models.Model):
     name = models.CharField(max_length=150)
     email = models.CharField(max_length=100)
     id_user = models.IntegerField(default=0)
-    status = models.IntegerField(default=1)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.CharField(max_length=50, default='admin')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
     modification_user = models.CharField(max_length=50, default='admin')
@@ -46,7 +58,7 @@ class Customer(models.Model):
     email = models.CharField(max_length=100)
     phone = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
-    status = models.IntegerField(default=1)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.CharField(max_length=50, default='admin')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
     modification_user = models.CharField(max_length=50, default='admin')
@@ -59,7 +71,7 @@ class Customer(models.Model):
 class State(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
-    status = models.IntegerField(default=1)        
+    status = models.IntegerField(choices=ESTADOS,  default=1)        
     creation_user = models.CharField(max_length=50, default='admin')    
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
     modification_user = models.CharField(max_length=50, default='admin')
@@ -77,7 +89,7 @@ class Proyect(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE)    
     date = models.CharField(max_length=50)        
     description = models.CharField(max_length=2000)
-    status = models.IntegerField(default=1)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.CharField(max_length=50, default='admin')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
     modification_user = models.CharField(max_length=50, default='admin')
@@ -85,3 +97,59 @@ class Proyect(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.customer.address} - {self.customer.name} - {self.date}'
+
+
+class Category(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)    
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user = models.CharField(max_length=50, default='admin')    
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user = models.CharField(max_length=50, default='admin')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.name}'
+    
+
+class Subcategory(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)   
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user = models.CharField(max_length=50, default='admin')    
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user = models.CharField(max_length=50, default='admin')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.name}'
+    
+
+class Decorator(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=150)
+    email = models.CharField(max_length=100)
+    phone = models.CharField(max_length=50)
+    address = models.CharField(max_length=500)
+    city = models.CharField(max_length=150)
+    state = models.CharField(max_length=150)
+    apartment = models.CharField(max_length=150)
+    zipcode = models.CharField(max_length=50)    
+    description = models.CharField(max_length=2000)
+    is_supervisor = models.IntegerField(choices=YESNO,  default=1)
+    supervisor = models.ForeignKey(
+        'self',  # 'self' hace referencia a esta misma clase
+        on_delete=models.SET_NULL,  # Si se elimina la categoría padre, se establece como NULL
+        null=True,  # Permitir categorías que no tengan categoría padre
+        blank=True,  # Permitir que el campo esté vacío en el formulario
+        related_name='assistant'  # El nombre de la relación inversa
+    )    
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user = models.CharField(max_length=50, default='admin')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+    modification_user = models.CharField(max_length=50, default='admin')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.name} - {self.email}'

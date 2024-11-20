@@ -1092,7 +1092,7 @@
 					dayMaxEvents: !0,
 					navLinks: !0,
 					events: [
-						{ title: "Blanca Estela 500, Con Cón", start: t + "-01", description: "Living", className: "fc-event-danger", backgroundColor: "red" }						
+						/*{ title: "Blanca Estela 500, Con Cón", start: t + "-01", description: "Living", className: "fc-event-danger", backgroundColor: "red" }*/
 					]
 				}).render()
 			}
@@ -1103,8 +1103,8 @@
 			$("#dateFrom").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
 			$("#dateUntil").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
 
-            //cargarProyectos();
-			//cargarCalendario();
+            cargarProyectos();
+			cargarCalendario();
 
 			var table = $('#kt_datatable').DataTable({				
 			});

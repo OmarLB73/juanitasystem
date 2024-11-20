@@ -41,10 +41,10 @@ def panel_view(request):
             date_until += ' 23:59:59'
             condiciones &= Q(creation_date__lte = date_until) ##fecha mayor o igual
 
-        if type_id != '0':
+        if type_id != 0:
             condiciones &= Q(type__id = type_id) ##igual a fk
 
-        if state_id != '0':
+        if state_id != 0:
             condiciones &= Q(state__id = state_id) ##igual a fk
 
         proyects = Proyect.objects.filter(condiciones)
