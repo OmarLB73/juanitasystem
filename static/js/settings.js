@@ -9,8 +9,7 @@ var KTProjectSettings = {
             t = FormValidation.formValidation(e, {
                 fields: {
                     address: { validators: { notEmpty: { message: " " } } },
-                    customerName: { validators: { notEmpty: { message: " " } } },
-                    date: { validators: { notEmpty: { message: " " } } },                    
+                    customerName: { validators: { notEmpty: { message: " " } } }                                     
                 },
                 plugins: {
                     trigger: new FormValidation.plugins.Trigger,

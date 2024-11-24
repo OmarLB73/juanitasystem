@@ -78,95 +78,7 @@
 						</div>
 						<!--end::Container-->
 					</div>
-					<!--end::Toolbar-->
-
-					<style>
-						/**
-						 * @license
-						 * Copyright 2024 Google LLC. All Rights Reserved.
-						 * SPDX-License-Identifier: Apache-2.0
-						 */
-
-						/*
-						 * Optional: Makes the sample page fill the window.
-						 */
-
-						/*
-						 * Prevent a flash of unstyled content before the custom element is defined.
-						 */
-						gmp-map:not(:defined) {
-							display: none;
-						}
-
-						#title {
-							color: #fff;
-							background-color: #4d90fe;
-							font-size: 25px;
-							font-weight: 500;
-							padding: 6px 12px;
-						}
-
-						#infowindow-content {
-							display: none;
-						}
-
-						.pac-card {
-							background-color: #fff;
-							border-radius: 2px;
-							box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
-							margin: 10px;
-							font: 400 18px Roboto, Arial, sans-serif;
-							overflow: hidden;
-						}
-
-						.pac-controls {
-							display: inline-block;
-							padding: 5px 11px;
-						}
-
-						.pac-controls label {
-							font-size: 13px;
-							font-weight: 300;
-						}
-
-						#place-picker {
-							box-sizing: border-box;
-							width: 100%;
-							padding: 0.5rem 1rem 1rem;
-							background-color: #f5f8fa;
-							border-color: #f5f8fa;
-							color: #5e6278;
-							transition: color .2s ease, background-color .2s ease;
-
-							display: block;
-							width: 100%;
-							padding: .75rem 1rem;
-							font-size: 1.1rem;
-							font-weight: 500;
-							line-height: 1.5;
-							background-clip: padding-box;
-							border: 1px solid #e4e6ef;
-							appearance: none;
-							border-radius: .475rem;				
-
-
-						}
-
-						/* Estilos para el cuadro pequeño de Street View */
-						#street-view-container {
-									position: absolute;
-									bottom: 10px;
-									left: 10px;
-									width: 200px;
-									height: 150px;
-									background-color: white;
-									border: 1px solid #ccc;
-									box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-								}
-
-
-					</style>
-
+					<!--end::Toolbar-->				
 					<!--begin::Post-->					
 					<div class="post d-flex flex-column-fluid" id="kt_post">
 						<!--begin::Container-->							
@@ -197,10 +109,10 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-3">
+											<div class="col-xl-2">
 												<!--begin::Input-->
 
-												<select class="form-select form-select-solid" data-kt-select2="false" data-placeholder="Select" data-allow-clear="true"  name="type">																								
+												<select id="selectType" class="form-select form-select-solid" data-kt-select2="false" data-placeholder="Select" data-allow-clear="true"  name="type">																								
 													{% for type in types %}
 														<option value="{{ type.id }}" {% if type.id == type_select.id %}selected{% endif %}>{{ type.name }}</option>
 													{% endfor %}
@@ -209,6 +121,32 @@
 												<!--end::Input-->
 											</div>
 											<!--end::Col-->
+
+								
+												<!--begin::Col-->
+												<div class="col-xl-1 divDecorator" style="display: none;">
+													<div class="fs-7 fw-bold mt-2 mb-3">Decorator</div>
+												</div>
+												<!--end::Col-->
+												<!--begin::Col-->
+												<div class="col-xl-6 divDecorator" style="display: none;">
+													<!--begin::Input-->
+
+													<select id="selectDecorator" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="decorator" multiple>																									
+														{% for decorator in decorators %}
+															<option value="{{ decorator.id }}">{{ decorator.name }}</option>
+														{% endfor %}
+													</select>
+
+													<!--end::Input-->
+												</div>
+												<!--end::Col-->
+												<!--begin::Col-->
+												<div class="col-xl-2 fv-row divDecorator" style="display: none;">
+													<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_decorator_data">View decorator data</a>
+												</div>
+												<!--end::Col-->
+									
 										</div>
 										<!--end::Row-->
 
@@ -220,18 +158,15 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-9 fv-row">
-												<input id="inputAddress" type="text" class="form-control form-control-solid" name="address" value="" maxlength="2000" />
-												
+											<div class="col-xl-6 fv-row">
+												<input id="inputAddress" type="text" class="form-control form-control-solid" name="address" value="" maxlength="2000" />												
 											</div>
 											<!--end::Col-->
-																	<!--begin::Col-->
-																	<div class="col-xl-2 fv-row">
-																		<div class="d-flex align-items-center">														
-																			<a id="kt_horizontal_search_advanced_link" class="btn btn-link fs-7" data-bs-toggle="collapse" href="#search_maps">Google maps</a>
-																		</div>
-																	</div>
-																	<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row">
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
+											</div>
+											<!--end::Col-->
 					
 										</div>
 
@@ -243,12 +178,10 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-3 fv-row">
-												<input id="inputCity" type="text" class="form-control form-control-solid" name="city" value="" maxlength="150"/>
-												
+											<div class="col-xl-2 fv-row">
+												<input id="inputCity" type="text" class="form-control form-control-solid" name="city" value="" maxlength="150"/>												
 											</div>
-											<!--begin::Col-->
-
+											<!--end::Col-->								
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">State</div>
@@ -258,8 +191,7 @@
 											<div class="col-xl-2 fv-row">
 												<input id="inputState" type="text" class="form-control form-control-solid" name="state" value="" maxlength="150"/>										
 											</div>
-											<!--begin::Col-->
-
+											<!--end::Col-->											
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">ZIP code</div>
@@ -269,58 +201,35 @@
 											<div class="col-xl-2 fv-row">
 												<input id="inputZipcode" type="text" class="form-control form-control-solid" name="zipcode" value="" maxlength="50"/>										
 											</div>
+											<!--end::Col-->
 											<!--begin::Col-->
-				
+											<div class="col-xl-1">
+												<div class="fs-7 fw-bold mt-2 mb-3">Apartment</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row">
+												<input id="inputApartment" type="text" class="form-control form-control-solid" name="apartment" value="" maxlength="150"/>										
+											</div>
+											<!--end::Col-->
 										</div>
 
 
-
-
-										<!--begin::Row Buscar-->
-										<div class="row mb-8 collapse" id="search_maps">
-
-											<div class="col-xl-6">
-
-												<gmpx-place-picker id="place-picker" for-map="map" class="form-control form-control-solid"></gmpx-place-picker>
-
-												<div style="height: 300px">
-
-													<script type="module"
-														src="https://unpkg.com/@googlemaps/extended-component-library@0.6">
-														</script>
-													<gmpx-api-loader key="{{API_KEY}}" solution-channel="GMP_CCS_autocomplete_v3">
-													</gmpx-api-loader>
-													<gmp-map id="map" center="32.743473, -96.926985" zoom="13" map-id="DEMO_MAP_ID">
-														<div slot="control-block-start-inline-start" class="pac-card" id="pac-card">
-														</div>
-														<gmp-advanced-marker id="marker"></gmp-advanced-marker>
-
-														<!-- <img id="street-preview" src="" alt="Vista previa de Street View" /> -->
-
-													</gmp-map>
-													<div id="infowindow-content">
-														<span id="place-name" class="title"style="font-weight: bold;"></span><br />
-														<span id="place-address"></span>														
-													</div>
-
-																																							
-												</div>
-
+										<!--begin::Row Descripcion-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-1">
+												<div class="fs-7 fw-bold mt-2 mb-3">Description</div>
 											</div>
-
-											<div class="col-xl-6">
-
-												<div id="street-view-panorama" style="height: 350px; width: 100%; float: left; padding-top: -50px;"></div>
-
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-11 fv-row">
+												<textarea id="textareaDescCustomer" name="customerDescription" class="form-control form-control-solid h-70px" maxlength="2000"></textarea>
+												<right><button id="btnDesCustomer" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
 											</div>
-
-											<div class="separator separator-dashed mt-9 mb-6"></div>
-
+											<!--begin::Col-->
 										</div>
 										<!--end::Row-->
-
-
-
 										
 										<!--begin::Row nombre-->
 										<div class="row mb-8">
@@ -360,57 +269,15 @@
 											<!--begin::Col-->
 										</div>
 
-										<!--begin::Row Descripcion-->
-										<div class="row mb-8">
-											<!--begin::Col-->
-											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Customer description</div>
-											</div>
-											<!--end::Col-->
-											<!--begin::Col-->
-											<div class="col-xl-11 fv-row">
-												<textarea id="textareaDescCustomer" name="customerDescription" class="form-control form-control-solid h-70px" maxlength="2000"></textarea>
-												<right><button id="btnDesCustomer" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
-											</div>
-											<!--begin::Col-->
-										</div>
-										<!--end::Row-->
-										
-										<input id="customerId" type="hidden" name="customerId" value="" />
 
-
-										<div class="separator separator-dashed mt-9 mb-6"></div>
-
-	
-										<!--begin::Row Resposable-->
-										<div class="row mb-8">
-											<!--begin::Col-->
-											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Responsible:</div>
-											</div>
-											<!--end::Col-->
-											<!--begin::Col-->
-											<div class="col-xl-8">
-												<!--begin::Input-->
-
-												<select class="form-select form-select-solid" data-kt-select2="true" data-placeholder="Select" data-allow-clear="True" name="responsible">	
-														<option value="0">-</option>												
-													{% for responsible in responsibles %}
-														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>
-													{% endfor %}
-												</select>
-
-												<!--end::Input-->
-											</div>
-											<!--end::Col-->
-										</div>
-										<!--end::Row-->
+										<div class="separator separator-dashed mt-12 mb-6"></div>
+																																												
 
 										<!--begin::Row Fecha-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">Date</label></div>
+												<div class="fs-7 fw-bold mt-2 mb-3">Next Stape</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -450,6 +317,30 @@
 										</div>
 										<!--end::Row-->
 
+										<!--begin::Row Resposable-->
+										<div class="row mb-8">
+											<!--begin::Col-->
+											<div class="col-xl-1">
+												<div class="fs-7 fw-bold mt-2 mb-3">Responsible</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-6">
+												<!--begin::Input-->
+
+												<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">	
+														<option value="0">-</option>												
+													{% for responsible in responsibles %}
+														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>
+													{% endfor %}
+												</select>
+
+												<!--end::Input-->
+											</div>
+											<!--end::Col-->
+										</div>
+										<!--end::Row-->
+
 										<!--begin::Row Descripcion-->
 										<div class="row mb-8">
 											<!--begin::Col-->
@@ -472,7 +363,7 @@
 
 									<!--begin::Card footer-->
 									<div class="card-footer d-flex justify-content-end py-6 px-9">
-										<button type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
+										<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
 										<button type="submit" class="btn btn-primary" id="kt_project_settings_submit">Save</button>
 									</div>
 									<!--end::Card footer-->
@@ -490,7 +381,340 @@
 					
 				</div>
 
+				<!--begin::Modal Street-->
+				<div class="post d-flex flex-column-fluid" id="kt_post">
+					<!--begin::Container-->
+					<div id="kt_content_container" class="container-xxl">												
+						<!--begin::Modal - Select Location-->
+						<div class="modal fade" id="modal_select_location" tabindex="-1" >
+							<!--begin::Modal dialog-->
+							<div class="modal-dialog mw-1000px">
+								<!--begin::Modal content-->
+								<div class="modal-content">
+									<!--begin::Modal header-->
+									<div class="modal-header">
+										<!--begin::Title-->
+										<h2>Select Location</h2>
+										<!--end::Title-->
+										<!--begin::Close-->
+										<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+										</div>
+										<!--end::Close-->
+									</div>
+									<!--end::Modal header-->
+									<!--begin::Modal body-->
+									<div class="modal-body">
 
+										<script src="https://maps.googleapis.com/maps/api/js?key={{API_KEY}}&libraries=places"></script>
+
+										<style>
+											/**
+											* @license
+											* Copyright 2024 Google LLC. All Rights Reserved.
+											* SPDX-License-Identifier: Apache-2.0
+											*/
+					
+											/*
+											* Optional: Makes the sample page fill the window.
+											*/
+					
+											/*
+											* Prevent a flash of unstyled content before the custom element is defined.
+											*/
+											gmp-map:not(:defined) {
+												display: none;																			
+											}
+					
+											#title {
+												color: #fff;
+												background-color: #4d90fe;
+												font-size: 25px;
+												font-weight: 500;
+												padding: 6px 12px;
+											}
+					
+											#infowindow-content {
+												display: none;
+											}
+					
+											.pac-card {
+												background-color: #fff;
+												border-radius: 2px;
+												box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+												margin: 10px;
+												font: 400 18px Roboto, Arial, sans-serif;
+												overflow: hidden;
+												z-index: 1060 !important;
+											}
+
+											.pac-container {
+											z-index: 9999 !important; /* Asegúrate de que este valor sea mayor al z-index del modal */
+											}
+
+											/* Asegúrate de que el Autocomplete se muestre por encima */
+											.gm-style .pac-card {
+												z-index: 9999 !important;
+											}
+																							
+											.pac-controls {
+												display: inline-block;
+												padding: 5px 11px;
+											}
+					
+											.pac-controls label {
+												font-size: 13px;
+												font-weight: 300;
+											}
+					
+											#place-picker {																			
+												width: 100%;
+												box-sizing: border-box;
+												padding: 0.5rem 1rem 1rem;
+												background-color: #f5f8fa;
+												border-color: #f5f8fa;
+												color: #5e6278;
+												transition: color .2s ease, background-color .2s ease;
+												display: block;
+												width: 100%;
+												padding: .75rem 1rem;
+												font-size: 1.1rem;
+												font-weight: 500;
+												line-height: 1.5;
+												background-clip: padding-box;
+												border: 1px solid #e4e6ef;
+												appearance: none;
+												border-radius: .475rem;		
+												position: relative;
+												z-index: 1050 !important;		
+					
+					
+											}
+
+											#autocomplete-input {
+												position: relative;
+												z-index: 9999 !important;
+											}
+					
+											#map {
+												height: 400px;
+												width: 48%; /* Ajusta el tamaño del mapa */
+												float: left; /* El mapa se coloca a la izquierda */
+											}
+											
+											#street-view {
+												height: 400px;
+												width: 48%; /* Ajusta el tamaño de la vista de calle */
+												float: right; /* La vista de calle se coloca a la derecha */
+											}
+					
+					
+										</style>
+										<div class="row mb-12">																																																					
+												<div class="col-xl-4 fv-row">																			
+													<input id="direccion" type="text" placeholder="Search adress.." class="form-control form-control-solid">
+												</div>
+											
+											
+											<div class="col-xl-2 fv-row"><input id="ciudad" type="text" placeholder="City" class="form-control form-control-solid" readonly></div>
+											<div class="col-xl-2 fv-row"><input id="estado" type="text" placeholder="State" class="form-control form-control-solid" readonly></div>
+											<div class="col-xl-2 fv-row"><input id="zip_code" type="text" placeholder="Zip Code" class="form-control form-control-solid" readonly></div>
+										</div>
+
+										<div id="map"></div>
+										<div id="street-view" style="display:none"></div>
+
+										<script>
+											let map; // Variable global para el mapa
+											let marker; // Marker para indicar la ubicación
+											let streetViewPanorama; // Panorama de Street View
+
+											// Inicializa el mapa
+											function initMap() {
+												// Establece una ubicación inicial (por ejemplo, las coordenadas de Nueva York)
+												const defaultLocation = { lat: 32.743677, lng: -96.927189};
+
+												// Crea el mapa centrado en la ubicación predeterminada
+												map = new google.maps.Map(document.getElementById('map'), {
+													center: defaultLocation,
+													zoom: 13,
+													mapTypeControl: false, // Desactiva el control del tipo de mapa (como satélite, relieve, etc.)
+													//fullscreenControl: false, // Desactiva el control de pantalla completa
+													//zoomControl: true, // Mantén el control de zoom (puedes cambiarlo a 'false' si no lo deseas)
+													streetViewControl: true, // Desactiva el control de Street View en el mapa
+													rotateControl: false // Desactiva el control de rotación (si está habilitado)
+												});
+
+												// Crea un marcador en la ubicación predeterminada
+												marker = new google.maps.Marker({
+													//position: defaultLocation,
+													map: map
+												});
+
+												// Crear la vista de Street View
+												streetViewPanorama = new google.maps.StreetViewPanorama(
+													document.getElementById('street-view'),
+													{
+													//position: defaultLocation,
+													pov: { heading: 270, pitch: 0 }, // Dirección de la cámara y ángulo
+													zoom: 1
+													}
+												);
+
+												// Vincula el Street View al mapa
+												map.setStreetView(streetViewPanorama);
+
+
+											}
+
+											// Función para actualizar el mapa y el marcador cuando se selecciona una dirección
+											function updateMap(location) {
+
+												$('#street-view').show();
+												const latLng = new google.maps.LatLng(location.lat(), location.lng());
+
+												// Mueve el mapa a la nueva ubicación
+												map.setCenter(latLng);
+												map.setZoom(15);
+
+												// Mueve el marcador a la nueva ubicación
+												marker.setPosition(latLng);
+
+												// Actualiza el Street View
+												streetViewPanorama.setPosition(latLng);
+												streetViewPanorama.setPov({ heading: 270, pitch: 0 }); // Puedes ajustar la dirección del POV
+												
+											}
+
+											// Inicializa la autocompletación y el mapa
+											function initAutocomplete() {
+												const inputDireccion = document.getElementById('direccion');
+												const autocomplete = new google.maps.places.Autocomplete(inputDireccion);
+												autocomplete.setFields(['address_components', 'geometry']);  // Incluimos 'geometry' para obtener las coordenadas
+
+												autocomplete.addListener('place_changed', function () {
+													const place = autocomplete.getPlace();
+													console.log(place); 
+													// Asegúrate de que la respuesta tiene las coordenadas
+													if (place.geometry) {
+														const location = place.geometry.location;
+
+														// Actualiza el mapa con la nueva ubicación
+														updateMap(location);
+
+														// Puedes rellenar los otros campos como la dirección, ciudad, estado, etc.
+														let numero = ''
+														let direccion = '';
+														let ciudad = '';
+														let estado = '';
+														let zipcode = '';
+
+														for (let i = 0; i < place.address_components.length; i++) {
+															const component = place.address_components[i];
+															if (component.types.includes('street_number')) {
+																numero = component.long_name;
+															}
+
+															if (component.types.includes('street_address') || component.types.includes('route')) {
+																direccion = component.long_name;
+															}
+															if (component.types.includes('locality')) {
+																ciudad = component.long_name;
+															}
+															if (component.types.includes('administrative_area_level_1')) {
+																estado = component.long_name;
+															}
+															if (component.types.includes('postal_code')) {
+																zipcode = component.long_name;
+															}
+														}
+														
+														if(numero != ''){
+															direccion = numero + ' ' + direccion;
+														}
+
+														// Actualiza los campos de texto
+														document.getElementById('direccion').value = direccion;
+														document.getElementById('ciudad').value = ciudad;
+														document.getElementById('estado').value = estado;
+														document.getElementById('zip_code').value = zipcode;
+													} else {
+														// Si no se pueden obtener las coordenadas, muestra un error
+														alert("No se pudo obtener la ubicación seleccionada.");
+													}
+												});
+											}
+
+											// Llama a la inicialización de los mapas y el autocompletado
+											google.maps.event.addDomListener(window, 'load', function () {
+												initMap(); // Inicializa el mapa
+												initAutocomplete(); // Inicializa el autocompletado
+											});
+
+										</script>							
+										
+									</div>
+									<!--end::Modal body-->
+									<!--begin::Modal footer-->
+									<div class="modal-footer d-flex justify-content-end">
+										<a href="#" class="btn btn-active-light me-5" data-bs-dismiss="modal">Cancel</a>
+										<button type="button" id="copy" class="btn btn-primary" data-bs-dismiss="modal">Copy</button>
+									</div>
+									<!--end::Modal footer-->
+								</div>
+								<!--end::Modal content-->
+							</div>
+							<!--end::Modal dialog-->
+						</div>
+						<!--end::Modal - Select Location-->
+					</div>
+					<!--end::Container-->
+				</div>
+				<!--end::Modal Street-->
+
+				<!--begin::Modal Decorator Data-->
+				<div class="post d-flex flex-column-fluid" id="kt_post">
+					<!--begin::Container-->
+					<div id="kt_content_container" class="container-xxl">												
+						<!--begin::Modal - Select Location-->
+						<div class="modal fade" id="modal_decorator_data" tabindex="-1" >
+							<!--begin::Modal dialog-->
+							<div class="modal-dialog mw-1000px">
+								<!--begin::Modal content-->
+								<div class="modal-content">
+									<!--begin::Modal header-->
+									<div class="modal-header">
+										<!--begin::Title-->
+										<h2>Decorator data</h2>
+										<!--end::Title-->
+										<!--begin::Close-->
+										<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+										</div>
+										<!--end::Close-->
+									</div>
+									<!--end::Modal header-->
+									<!--begin::Modal body-->
+									<div id="dataDecoratorR" class="modal-body">
+									
+										
+									</div>
+									<!--end::Modal body-->
+									<!--begin::Modal footer-->
+									<div class="modal-footer d-flex justify-content-end">
+										<a id="modal_decorator_data_close" href="#" class="btn btn-active-light me-5" data-bs-dismiss="modal">Close</a>										
+									</div>
+									<!--end::Modal footer-->
+								</div>
+								<!--end::Modal content-->
+							</div>
+							<!--end::Modal dialog-->
+						</div>
+						<!--end::Modal - Select Location-->
+					</div>
+					<!--end::Container-->
+				</div>
+				<!--end::Modal Street-->
+				
+				
 				<!--end::Content-->
 				<!--begin::Footer-->
 				{% include 'footer.html' %}
@@ -537,96 +761,7 @@
 	<script>
 
 		var div = document.getElementById('kt_activities_toggle');
-		div.parentNode.remove();
-
-
-		async function init() {
-			await customElements.whenDefined('gmp-map');
-
-			const map = document.querySelector("gmp-map");
-			const marker = document.getElementById("marker");
-			const strictBoundsInputElement = document.getElementById("use-strict-bounds");
-			const placePicker = document.getElementById("place-picker");
-			const infowindowContent = document.getElementById("infowindow-content");
-			const infowindow = new google.maps.InfoWindow();
-
-			map.innerMap.setOptions({ mapTypeControl: false });
-			infowindow.setContent(infowindowContent);
-
-			// Crear un panorama de Street View para la ubicación seleccionada
-			let streetViewPanorama;
-
-			placePicker.addEventListener('gmpx-placechange', () => {
-				const place = placePicker.value;
-
-				if (!place.location) {
-					window.alert(
-						"No details available for input: '" + place.name + "'"
-					);
-					infowindow.close();
-					marker.position = null;
-					return;
-				}
-
-				if (place.viewport) {
-					map.innerMap.fitBounds(place.viewport);
-				} else {
-					map.center = place.location;
-					map.zoom = 17;
-				}
-
-				marker.position = place.location;
-				infowindowContent.children["place-name"].textContent = place.displayName;
-				infowindowContent.children["place-address"].textContent = place.formattedAddress;												
-				$('#inputAddress').val(place.formattedAddress);
-				
-
-				getDataCustomerJs();				
-
-				// Inicializar el panorama de Street View				
-				const panorama = new google.maps.StreetViewPanorama(
-						document.getElementById('street-view-panorama'), {
-							position: place.location,
-							pov: {
-								heading: 270,
-								pitch: 0,
-								zoom: 1,
-							},
-							
-						}
-					);
-
-
-				marker.addListener('click', () => {
-						// Cambiar la posición del panorama al marcador
-						panorama.setPosition(marker.getPosition());
-						panorama.setVisible(true); // Asegúrate de que el panorama sea visible
-					});
-
-
-				infowindow.open(map.innerMap, marker);
-			});
-
-			// Sets a listener on a radio button to change the filter type on the place picker
-			function setupClickListener(id, type) {
-				const radioButton = document.getElementById(id);
-				radioButton.addEventListener("click", () => {
-					placePicker.type = type;
-				});
-			}
-			setupClickListener("changetype-all", "");
-			setupClickListener("changetype-address", "address");
-			setupClickListener("changetype-establishment", "establishment");
-			setupClickListener("changetype-geocode", "geocode");
-			setupClickListener("changetype-cities", "(cities)");
-			setupClickListener("changetype-regions", "(regions)");
-
-			strictBoundsInputElement.addEventListener("change", () => {
-				placePicker.strictBounds = strictBoundsInputElement.checked;
-			});
-		}
-
-		document.addEventListener('DOMContentLoaded', init);
+		div.parentNode.remove();	
 
 
 		$(document).ready(function () {
@@ -639,6 +774,37 @@
 			});
 
 			$("#inputPhone").mask('(000) 000-0000'); // Formato de teléfono
+
+			
+			$('#copy').click(function() {
+                $('#inputAddress').val($('#direccion').val());
+				$('#inputCity').val($('#ciudad').val());
+				$('#inputState').val($('#estado').val());
+				$('#inputZipcode').val($('#zip_code').val());
+            });
+
+			$('#selectType').change(function() {
+                var valorSeleccionado = $(this).val();                
+                if (valorSeleccionado == 2) {
+                    $('.divDecorator').css('display', '');
+                } else {
+                    $('.divDecorator').css('display', 'none');
+                }
+            });
+
+
+			$('#reset').click(function() {
+				$('.divDecorator').css('display', 'none');
+            });
+
+			$('#modal_decorator_data').on('shown.bs.modal', function () {				
+				getDataDecorator();
+            });
+
+			$('#modal_decorator_data_close').click(function() {				
+				$('#dataDecoratorR').html("");
+            });		
+			
 
 		});
 
@@ -691,15 +857,22 @@
 		}
 
 		
-		function getDataCustomerJs(){	
-			var inputValue = $("#inputAddress").val();
+		function getDataDecorator(){	
+			var selectValue = $("#selectDecorator").val();			
+			$('#dataDecoratorR').html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
 
-			if(inputValue) {
+			if (typeof selectValue === 'string') {
+    			selectValue = selectValue.split(','); 
+			}
+			var selectedValuesStr = selectValue.join(',');
+
+			if(selectValue != "" ) {				
+
 				$.ajax({
-					url: "{% url 'getDataCustomer_url' %}",  // La URL que manejará la consulta AJAX
+					url: "{% url 'getDataDecorators_url' %}",  // La URL que manejará la consulta AJAX
 					method: 'POST',
 					data: {
-						'address': inputValue  // El valor que se envía al servidor
+						'decoratorsSelect': selectedValuesStr  // El valor que se envía al servidor
 					},
 					beforeSend: function(xhr, settings) {
 						// Añadir el token CSRF en las cabeceras
@@ -707,20 +880,19 @@
 					},
 					success: function(response) {
 						// Rellena los campos con los datos obtenidos de la respuesta
-						$('#inputCustomer').val(response.name);
-						$('#inputEmail').val(response.email);
-						$('#inputPhone').val(response.phone);
-						$('#textareaDescCustomer').val(response.description);
-						$('#customerId').val(response.id);
+						$('#dataDecoratorR').html(response.result);
 					},
 					error: function(xhr, status, error) {
-						console.error("Server error.", error);
+						$('#dataDecoratorR').html('<div class="alert alert-danger d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>Server error: ' + error + '</span><div><div>');						
 					}
-				});
-			}			
+				});				
+				
+			}
+			else{				
+				$('#dataDecoratorR').html('<div class="alert alert-warning d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>You have not selected decorators. </span><div><div>');
+			}
 
 		}
-
 
 	</script>
 

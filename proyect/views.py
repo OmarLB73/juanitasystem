@@ -6,9 +6,10 @@ from datetime import datetime # dar formato a la fecha
 from django.shortcuts import redirect # redireccionar a páginas
 from django.contrib.auth.decorators import login_required #para controlar las sesiones
 from django.db.models import Q # permite realizar consultas complejas
+from django.urls import reverse #evita doble envio de formulario
 
 
-from .models import Type, Responsible, Customer, State, Proyect #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, Decorator #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -34,7 +35,7 @@ def panel_view(request):
         state_id = int(request.POST.get('state'))
 
         if date_from != '':
-            date_from += ' 23:59:59'
+            # date_from += ' 00:00:00'
             condiciones &= Q(creation_date__gte = date_from) ##fecha mayor o igual
 
         if date_until != '':
@@ -60,21 +61,31 @@ def panel_view(request):
         parsed_date = ''
         allDay = False
 
-        if len(proyect.date) == 10:
-            allDay = True
-            try:
-                parsed_date = proyect.date + ', 00:00'
-            except ValueError:
-                parsed_date = '1900-01-01, 00:00'
-        else:
-            parsed_date = proyect.date
+        try:
+            if len(proyect.date) == 17:
+                parsed_date = proyect.date
+                parsed_date = str(datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"))
+            
+            elif len(proyect.date) == 10:            
+                allDay = True
+                parsed_date = str(datetime.strptime(proyect.date + ', 00:00', "%Y-%m-%d, %H:%M"))
+            else:
+                parsed_date = '1900-01-01, 00:00'    
+                
+        except ValueError:
+            parsed_date = '1900-01-01, 00:00'
+                    
 
         proyects_data.append({
             'id': proyect.id,
             'customerName': proyect.customer.name,
             'address': proyect.customer.address,
-            'date': datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"),
-            'creationDate': proyect.creation_date,
+            'city': proyect.customer.city,
+            'state_u': proyect.customer.state,
+            'zipcode': proyect.customer.zipcode,
+            'apartment': proyect.customer.apartment,
+            'date': parsed_date,
+            'creationDate': proyect.creation_date.strftime("%Y-%m-%d"),
             'email': proyect.customer.email,
             'state_id': proyect.state.id,
             'state': proyect.state.name,
@@ -96,50 +107,89 @@ def proyect_new(request):
     if request.method == 'POST':
         
         type_id = request.POST.get('type')
+        decorators_ids = request.POST.getlist('decorator')
+        
         address = request.POST.get('address')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        zipcode = request.POST.get('zipcode')
+        apartment = request.POST.get('apartment')
+        
+        customer_Description = request.POST.get('customerDescription')        
         customer_name = request.POST.get('customerName')
+
         email = request.POST.get('email')
         phone = request.POST.get('phone')
-        customer_Description = request.POST.get('customerDescription')
-        customer_id = request.POST.get('customerId')        
+
+        date = request.POST.get('date')           
         responsible_id = request.POST.get('responsible')        
-        date = request.POST.get('date')
         proyectDescription = request.POST.get('proyectDescription')
-        state_Id = 1 #Inicio        
         
+        state_Id = 1 #Inicio
+
+
+            #    if Customer.objects.filter(id=customer_id).exists():
+            #         customer_save = Customer.objects.get(id=customer_id)
+            #         customer_save.name = customer_name
+            #         customer_save.email = email
+            #         customer_save.phone = phone
+            #         customer_save.description = customer_Description
+            #         customer_save.save()
+
+        customer_id = 0
         try:
-            if int(customer_id):
-                if Customer.objects.filter(id=customer_id).exists():
-                    customer_save = Customer.objects.get(id=customer_id)
-                    customer_save.name = customer_name
-                    customer_save.email = email
-                    customer_save.phone = phone
-                    customer_save.description = customer_Description
-                    customer_save.save()
-        except ValueError:
-            customer_save = Customer.objects.create(name=customer_name, address=address, email=email, phone=phone, description=customer_Description)
+            customer_save = Customer.objects.create(name=customer_name, 
+                                                    address=address,
+                                                    city=city,
+                                                    state=state,
+                                                    zipcode=zipcode,
+                                                    apartment=apartment,                                                    
+                                                    email=email,
+                                                    phone=phone,
+                                                    description=customer_Description)
             customer_id = customer_save.id
-
-        try:
-            if int(type_id) and int(customer_id) and (responsible_id):
-                Proyect.objects.create(type=Type.objects.get(id=type_id), 
-                                       customer=Customer.objects.get(id=customer_id), 
-                                       responsible=Responsible.objects.get(id=responsible_id),
-                                       state=State.objects.get(id=state_Id),
-                                       date=date, 
-                                       description=proyectDescription)
-                messages.success(request, 'Project saved successfully')
-                return redirect('../../proyect/dashboard')
-
         except ValueError:
-            Customer.objects.create(name=customer_name, address=address, email=email, phone=phone, description=customer_Description)
+            messages.error(request, 'Server error. Please contact to administrator!')
+            return render(request, 'proyect/new.html')
+
+        
+        #  Se intenta obtener el responsable 
+        try:
+            # Intentamos obtener el objeto
+            responsible = Responsible.objects.get(id=responsible_id),
+        except Responsible.DoesNotExist:
+            # Si no existe, devolvemos None (equivalente a null en otros lenguajes)
+            responsible = None
+
+        proyect_id = 0
+        try:
+            if int(type_id) and int(customer_id):
+                customer_save = Proyect.objects.create( type=Type.objects.get(id=type_id), 
+                                                        customer=Customer.objects.get(id=customer_id), 
+                                                        responsible=responsible,
+                                                        state=State.objects.get(id=state_Id),
+                                                        date=date, 
+                                                        description=proyectDescription)
+                proyect_id = customer_save.id
+
+
+                for decorator_id in decorators_ids:
+                    decorator = Decorator.objects.get(id = decorator_id)
+                    proyect = Proyect.objects.get(id = proyect_id)
+                    decorator.proyects.add(proyect)
+
+                return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
+
+        except ValueError:            
             messages.error(request, 'Server error. Please contact to administrator!')
             return render(request, 'proyect/new.html')
                                       
     else:
 
         types = Type.objects.filter(status=1).order_by('id')
+        decorators = Decorator.objects.filter(is_supervisor=1).order_by('name')
         responsibles = Responsible.objects.filter(status=1).order_by('name')
+
 
         type_select = Type.objects.first()
         responsable_select = -1
@@ -147,12 +197,14 @@ def proyect_new(request):
         return render(request, 'proyect/new.html', 
                     {'types': types,
                     'type_select': type_select,
+                    'decorators': decorators,
                     'responsibles': responsibles,
                     'responsable_select': responsable_select,})
 
+
 @login_required
-def proyect_edit(request):
-    return render(request, 'proyect/edit.html')   
+def proyect_view(request, proyect_id):
+    return render(request, 'proyect/view.html')   
 
 
 @login_required
@@ -199,20 +251,24 @@ def getDataProyectCustomer(request):
         parsed_date = ''
         allDay = False
 
-        if len(proyect.date) == 10:
-            allDay = True
-            try:
-                parsed_date = proyect.date + ', 00:00'
-            except ValueError:
-                parsed_date = '1900-01-01, 00:00'
-        else:
-            parsed_date = proyect.date
+        try:
+            if len(proyect.date) == 17:
+                parsed_date = str(datetime.strptime(proyect.date, "%Y-%m-%d, %H:%M"))
+            
+            elif len(proyect.date) == 10:            
+                allDay = True
+                parsed_date = str(datetime.strptime(proyect.date + ', 00:00', "%Y-%m-%d, %H:%M"))
+            else:
+                parsed_date = '1900-01-01, 00:00'    
+                
+        except ValueError:
+            parsed_date = '1900-01-01, 00:00'
 
         proyects_data.append({
             'id': proyect.id,
             'name': proyect.customer.name,
             'address': proyect.customer.address,
-            'date': datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"),
+            'date': parsed_date,
             'email': proyect.customer.email,
             'state': proyect.state.name,
             'allDay': allDay,
@@ -220,3 +276,44 @@ def getDataProyectCustomer(request):
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'proyects': proyects_data})
+
+
+@login_required
+def getDataDecorator(request):
+    #Consulta los decoradores desde la base de datos
+    selected_values_str = request.POST.get('decoratorsSelect')
+    selected_values = selected_values_str.split(',')
+    selected_values = [int(id_value) for id_value in selected_values]
+     
+    print("Valores recibidos: ", selected_values)
+
+    decorators = Decorator.objects.filter(id__in =selected_values,is_supervisor=1)    
+        
+    # Creamos una lista con los datos de cada proyecto
+    decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-6 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
+    decoratorsHTML += '<th title="Field #1">Name</th>'
+    decoratorsHTML += '<th title="Field #2">Email</th>'
+    decoratorsHTML += '<th title="Field #3">Phone</th>'
+    decoratorsHTML += '<th title="Field #4">Address</th>'
+    decoratorsHTML += '<th title="Field #5">City</th>'
+    decoratorsHTML += '<th title="Field #6">State</th>'
+    decoratorsHTML += '<th title="Field #7">Zipcode</th>'
+    decoratorsHTML += '<th title="Field #8">Apartment</th>'    
+    decoratorsHTML += '</tr></thead><tbody>'
+
+    for decorator in decorators:  
+        decoratorsHTML += '<tr>'
+        decoratorsHTML += '<td>' + decorator.name + '</td>'
+        decoratorsHTML += '<td>' + decorator.email + '</td>'
+        decoratorsHTML += '<td>' + decorator.phone + '</td>'
+        decoratorsHTML += '<td>' + decorator.address + '</td>'
+        decoratorsHTML += '<td>' + decorator.city + '</td>'
+        decoratorsHTML += '<td>' + decorator.state + '</td>'
+        decoratorsHTML += '<td>' + decorator.zipcode + '</td>'
+        decoratorsHTML += '<td>' + decorator.apartment + '</td>'        
+        decoratorsHTML += '</tr>'
+    
+    decoratorsHTML += '</tbody></table>'
+    
+    # Devolvemos la lista de proyectos como respuesta JSON
+    return JsonResponse({'result': decoratorsHTML})

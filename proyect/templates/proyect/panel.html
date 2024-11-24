@@ -122,13 +122,12 @@
 										</div>
 										<!--end::Header-->
 										<!--begin::Body-->
-										<div class="card-body py-3">
+										<div>
 											<div class="tab-content">
 												<!--begin::Form-->
 												<form method="POST">
 													{% csrf_token %}
-													<!--begin::Card-->
-													<div class="card mb-7">
+										
 														<!--begin::Card body-->
 														<div class="card-body">
 															<!--begin::Compact form-->
@@ -279,8 +278,7 @@
 															<!--end::Advance form-->
 														</div>
 														<!--end::Card body-->
-													</div>
-													<!--end::Card-->
+									
 												</form>
 												<!--end::Form-->
 
@@ -295,21 +293,24 @@
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
 																<thead class="border-bottom border-gray-200 fs-6 fw-bolder bg-lighten">
 																	<tr class="fw-bolder text-muted">															
-																		<th title="Field #2" class="min-w-25px ps-2">Address</th>
-																		<th title="Field #1">Customer name</th>															
-																		<th title="Field #3">Date creation</th>
-																		<th title="Field #4">State</th>
-																		<th title="Field #5"></th>
+																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
+																		<th title="Field #2">Customer name</th>
+																		<th title="Field #3">Decorator</th>
+																		<th title="Field #4">Date creation</th>
+																		<th title="Field #5">N° elements</th>
+																		<th title="Field #6">State</th>
+																		<th title="Field #7"></th>
 																		
 																	</tr>
 																</thead>
 																<tbody>
 																	{% for proyect in proyects_data %}
 																	<tr>														
-																	<td class="min-w-25px ps-2"><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>{{ proyect.address }}</a></td>
+																	<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
 																	<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>{{ proyect.customerName }}</a> <span class='text-muted fw-bold d-block'>{{ proyect.email }}</span></td>
-																	
-																	<td class="text-muted">{{ proyect.creationDate }}</td>
+																	<td></td>																	
+																	<td class="text-muted">{{ proyect.creationDate  }}</td>
+																	<td class="text-center text-muted">0</td>
 
 																	{% if proyect.state_id == 1 %}
 																		<td><span class="badge badge-light-success">{{ proyect.state }}</span></td>
