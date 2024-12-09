@@ -42,9 +42,7 @@
 						<div id="kt_toolbar_container" class="container-xxl d-flex flex-stack">
 
 							<!--begin::Page title (Titulo de la página) -->
-							<div data-kt-swapper="true" data-kt-swapper-mode="prepend"
-								data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
-								class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
+							<div data-kt-swapper="true" data-kt-swapper-mode="prepend" data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}" class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
 								<!--begin::Title-->
 								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Proyect</h1>
 								<!--end::Title-->
@@ -70,11 +68,8 @@
 									</div>
 								{% endif %}
 
-
-
 							</div>
 							<!--end::Page title-->
-
 						</div>
 						<!--end::Container-->
 					</div>
@@ -99,7 +94,7 @@
 									<!--end::Card header-->
 									
 									<!--begin::Card body-->
-									<div class="card-body p-12">
+									<div class="card-body">
 										
 										<!--begin::Type-->
 										<div class="row mb-8">
@@ -121,34 +116,61 @@
 												<!--end::Input-->
 											</div>
 											<!--end::Col-->
-
-								
-												<!--begin::Col-->
-												<div class="col-xl-1 divDecorator" style="display: none;">
-													<div class="fs-7 fw-bold mt-2 mb-3">Decorator</div>
-												</div>
-												<!--end::Col-->
-												<!--begin::Col-->
-												<div class="col-xl-6 divDecorator" style="display: none;">
-													<!--begin::Input-->
-
-													<select id="selectDecorator" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="decorator" multiple>																									
-														{% for decorator in decorators %}
-															<option value="{{ decorator.id }}">{{ decorator.name }}</option>
-														{% endfor %}
-													</select>
-
-													<!--end::Input-->
-												</div>
-												<!--end::Col-->
-												<!--begin::Col-->
-												<div class="col-xl-2 fv-row divDecorator" style="display: none;">
-													<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_decorator_data">View decorator data</a>
-												</div>
-												<!--end::Col-->
-									
+																												
 										</div>
 										<!--end::Row-->
+
+										<!--begin::Row Decorators-->
+										<div class="row mb-8">
+
+											<!--begin::Col-->
+											<div class="col-xl-1 divDecorator" style="display: none;">
+												<div class="fs-7 fw-bold mt-2 mb-3">Decorator</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-3 divDecorator" style="display: none;">
+												<!--begin::Input-->
+
+												<select id="selectDecorator" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="decorator" multiple>																									
+													{% for decorator in decorators %}
+														<option value="{{ decorator.id }}">{{ decorator.name }}</option>
+													{% endfor %}
+												</select>
+
+												<!--end::Input-->
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row divDecorator" style="display: none;">
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_decorator_data">View decorator data</a>
+											</div>
+											<!--end::Col-->
+											
+											<!--begin::Col-->
+											<div class="col-xl-1 divDecorator" style="display: none;">
+												<div class="fs-7 fw-bold mt-2 mb-3">Ascociate</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-3 divDecorator" style="display: none;">
+												<!--begin::Input-->
+											
+												<select id="selectAscociate" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="ascociate" multiple>
+
+												</select>
+											
+												<!--end::Input-->
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row divDecorator" style="display: none;">
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_ascociate_data">View ascociate data</a>
+											</div>
+											<!--end::Col-->
+
+
+										</div>
 
 										<!--begin::Row Direccion-->
 										<div class="row mb-8">
@@ -161,10 +183,15 @@
 											<div class="col-xl-6 fv-row">
 												<input id="inputAddress" type="text" class="form-control form-control-solid" name="address" value="" maxlength="2000" />												
 											</div>
+											<!--end::Col-->											
+											<!--begin::Col-->
+											<div class="col-xl-1">
+												<div class="fs-7 fw-bold mt-2 mb-3">Apartment</div>
+											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
 											<div class="col-xl-2 fv-row">
-												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
+												<input id="inputApartment" type="text" class="form-control form-control-solid" name="apartment" value="" maxlength="150"/>										
 											</div>
 											<!--end::Col-->
 					
@@ -178,7 +205,7 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-2 fv-row">
+											<div class="col-xl-3 fv-row">
 												<input id="inputCity" type="text" class="form-control form-control-solid" name="city" value="" maxlength="150"/>												
 											</div>
 											<!--end::Col-->								
@@ -203,29 +230,23 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Apartment</div>
-											</div>
-											<!--end::Col-->
-											<!--begin::Col-->
 											<div class="col-xl-2 fv-row">
-												<input id="inputApartment" type="text" class="form-control form-control-solid" name="apartment" value="" maxlength="150"/>										
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
 											</div>
-											<!--end::Col-->
+											<!--end::Col-->								
 										</div>
 
-
-										<!--begin::Row Descripcion-->
+										<!--begin::Row Address descripcion-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Description</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">Address notes</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-11 fv-row">
-												<textarea id="textareaDescCustomer" name="customerDescription" class="form-control form-control-solid h-70px" maxlength="2000"></textarea>
-												<right><button id="btnDesCustomer" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
+											<div class="col-xl-6 fv-row">
+												<textarea id="textareaDescAddress" name="addressDescription" class="form-control form-control-solid h-50px" maxlength="2000"></textarea>
+												<right><button id="btnDesAddress" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
 											</div>
 											<!--begin::Col-->
 										</div>
@@ -235,12 +256,22 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">Customer</label></div>
+												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">Client</label></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
 											<div class="col-xl-6 fv-row">
 												<input id="inputCustomer" type="text" class="form-control form-control-solid" name="customerName" value="" maxlength="150"/>
+											</div>
+											<!--begin::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-1">
+												<div class="fs-7 fw-bold mt-2 mb-3">Phone</div>
+											</div>
+											<!--end::Col-->
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row">
+												<input id="inputPhone" type="text" class="form-control form-control-solid" name="phone" value="" maxlength="50"/>
 											</div>
 											<!--begin::Col-->
 										</div>
@@ -256,22 +287,26 @@
 											<div class="col-xl-6 fv-row">
 												<input id="inputEmail" type="text" class="form-control form-control-solid" name="email" value="" maxlength="100"/>
 											</div>
-											<!--begin::Col-->
+											<!--begin::Col-->											
+										</div>
+
+										<!--begin::Row Client descripcion-->
+										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Phone</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">Client notes</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-2 fv-row">
-												<input id="inputPhone" type="text" class="form-control form-control-solid" name="phone" value="" maxlength="50"/>
+											<div class="col-xl-6 fv-row">
+												<textarea id="textareaDescCustomer" name="customerDescription" class="form-control form-control-solid h-50px" maxlength="2000"></textarea>
+												<right><button id="btnDesCustomer" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
 											</div>
 											<!--begin::Col-->
 										</div>
+										<!--end::Row-->
 
-
-										<div class="separator separator-dashed mt-12 mb-6"></div>
-																																												
+										<div class="separator separator-dashed mt-4 mb-6"></div>																																											
 
 										<!--begin::Row Fecha-->
 										<div class="row mb-8">
@@ -307,7 +342,6 @@
 													<div class="col-1"></div>
 
 													<div class="form-check form-check-custom form-check-solid me-9">
-
 														<input class="form-check-input" type="checkbox" value="" id="allDay" />
 														<label class="form-check-label ms-3" for="email">All day</label>
 													</div>
@@ -317,29 +351,21 @@
 										</div>
 										<!--end::Row-->
 
-										<!--begin::Row Resposable-->
-										<div class="row mb-8">
-											<!--begin::Col-->
+										<!-- begin::Row Resposable-->
+										<!-- <div class="row mb-8">
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">Responsible</div>
 											</div>
-											<!--end::Col-->
-											<!--begin::Col-->
 											<div class="col-xl-6">
-												<!--begin::Input-->
-
-												<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">	
-														<option value="0">-</option>												
+												<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">
+														<option value="0">-</option>
 													{% for responsible in responsibles %}
 														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>
 													{% endfor %}
 												</select>
-
-												<!--end::Input-->
 											</div>
-											<!--end::Col-->
-										</div>
-										<!--end::Row-->
+										</div> -->
+										<!--end::Row -->
 
 										<!--begin::Row Descripcion-->
 										<div class="row mb-8">
@@ -349,20 +375,27 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-11 fv-row">
-												<textarea id="textareaDescProyect" name="proyectDescription" class="form-control form-control-solid h-100px" maxlength="2000"></textarea>
+											<div class="col-xl-6 fv-row">
+												<textarea id="textareaDescProyect" name="proyectDescription" class="form-control form-control-solid h-50px" maxlength="2000"></textarea>
 												<right><button id="btnDesProyect" style="border: none; background: transparent;" type="button"><img src="{% static 'images/microphone.svg' %}" alt="Microphone" width="20" height="20"></button></right>
 											</div>
 											<!--begin::Col-->
 										</div>
 										<!--end::Row-->
+
+										<div class="row mb-8">
+											<div id="divValidateAddress" style="display: none;">
+										
+											</div>
+										</div>									
 										
 									</div>																		
-									<!--end::Card body-->	
-																	
+									<!--end::Card body-->		
+																			
 
 									<!--begin::Card footer-->
 									<div class="card-footer d-flex justify-content-end py-6 px-9">
+										
 										<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
 										<button type="submit" class="btn btn-primary" id="kt_project_settings_submit">Save</button>
 									</div>
@@ -672,9 +705,9 @@
 				<!--end::Modal Street-->
 
 				<!--begin::Modal Decorator Data-->
-				<div class="post d-flex flex-column-fluid" id="kt_post">
+				<div class="post d-flex flex-column-fluid">
 					<!--begin::Container-->
-					<div id="kt_content_container" class="container-xxl">												
+					<div class="container-xxl">												
 						<!--begin::Modal - Select Location-->
 						<div class="modal fade" id="modal_decorator_data" tabindex="-1" >
 							<!--begin::Modal dialog-->
@@ -693,14 +726,13 @@
 									</div>
 									<!--end::Modal header-->
 									<!--begin::Modal body-->
-									<div id="dataDecoratorR" class="modal-body">
-									
+									<div class="modal-body dataDecoratorR">									
 										
 									</div>
 									<!--end::Modal body-->
 									<!--begin::Modal footer-->
 									<div class="modal-footer d-flex justify-content-end">
-										<a id="modal_decorator_data_close" href="#" class="btn btn-active-light me-5" data-bs-dismiss="modal">Close</a>										
+										<a href="#" class="btn btn-active-light me-5 modal_data_close" data-bs-dismiss="modal">Close</a>										
 									</div>
 									<!--end::Modal footer-->
 								</div>
@@ -712,8 +744,50 @@
 					</div>
 					<!--end::Container-->
 				</div>
-				<!--end::Modal Street-->
-				
+				<!--end::Modal Street-->	
+
+				<!--begin::Modal Ascociate Data-->
+				<div class="post d-flex flex-column-fluid">
+					<!--begin::Container-->
+					<div class="container-xxl">												
+						<!--begin::Modal - Select Location-->
+						<div class="modal fade" id="modal_ascociate_data" tabindex="-1" >
+							<!--begin::Modal dialog-->
+							<div class="modal-dialog mw-1000px">
+								<!--begin::Modal content-->
+								<div class="modal-content">
+									<!--begin::Modal header-->
+									<div class="modal-header">
+										<!--begin::Title-->
+										<h2>Ascociate data</h2>
+										<!--end::Title-->
+										<!--begin::Close-->
+										<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+										</div>
+										<!--end::Close-->
+									</div>
+									<!--end::Modal header-->
+									<!--begin::Modal body-->
+									<div class="modal-body dataDecoratorR">									
+										
+									</div>
+									<!--end::Modal body-->
+									<!--begin::Modal footer-->
+									<div class="modal-footer d-flex justify-content-end">
+										<a href="#" class="btn btn-active-light me-5 modal_data_close" data-bs-dismiss="modal">Close</a>										
+									</div>
+									<!--end::Modal footer-->
+								</div>
+								<!--end::Modal content-->
+							</div>
+							<!--end::Modal dialog-->
+						</div>
+						<!--end::Modal - Select Location-->
+					</div>
+					<!--end::Container-->
+				</div>
+				<!--end::Modal Street-->	
+							
 				
 				<!--end::Content-->
 				<!--begin::Footer-->
@@ -774,7 +848,6 @@
 			});
 
 			$("#inputPhone").mask('(000) 000-0000'); // Formato de teléfono
-
 			
 			$('#copy').click(function() {
                 $('#inputAddress').val($('#direccion').val());
@@ -792,39 +865,55 @@
                 }
             });
 
+			$('#selectDecorator').change(function() {
+                loadAscociate();
+            });
+
+			$('#inputAddress').change(function() {
+                validateAddress();
+            });
+
 
 			$('#reset').click(function() {
 				$('.divDecorator').css('display', 'none');
             });
 
 			$('#modal_decorator_data').on('shown.bs.modal', function () {				
-				getDataDecorator();
+				getDataDecorator(1);
             });
 
-			$('#modal_decorator_data_close').click(function() {				
-				$('#dataDecoratorR').html("");
+			$('#modal_ascociate_data').on('shown.bs.modal', function () {				
+				getDataDecorator(2);
+            });
+
+			$('.modal_data_close').click(function() {				
+				$('.dataDecoratorR').html("");
             });		
 			
 
 		});
 
-
 		const textarea = document.getElementById('textareaDescCustomer');
 		const textarea2 = document.getElementById('textareaDescProyect');
+		const textarea3 = document.getElementById('textareaDescAddress');
 		const startBtn = document.getElementById('btnDesCustomer');
 		const startBtn2 = document.getElementById('btnDesProyect');
-		let recognition, recognition2;
+		const startBtn3 = document.getElementById('btnDesAddress');
+		let recognition, recognition2, recognition3;
 
 		// Verificar si el navegador soporta la API de Web Speech
 		if ('webkitSpeechRecognition' in window) {
 			recognition = new webkitSpeechRecognition();
 			recognition2 = new webkitSpeechRecognition();
+			recognition3 = new webkitSpeechRecognition();
 
 			recognition.continuous = false; // No continúa escuchando
 			recognition2.continuous = false; // No continúa escuchando
+			recognition3.continuous = false; // No continúa escuchando
 			
 			recognition.interimResults = false; // No muestra resultados intermedios
 			recognition2.interimResults = false; // No muestra resultados intermedios
+			recognition3.interimResults = false; // No muestra resultados intermedios
 
 			recognition.onresult = (event) => {
 				const transcript = event.results[0][0].transcript;
@@ -836,13 +925,19 @@
 				textarea2.value += transcript2 + ' '; // Añadir el texto al textarea
 			};
 
-			recognition.onerror = (event) => {
-				console.error("Error en reconocimiento: ", event.error);
+			recognition3.onresult = (event) => {
+				const transcript3 = event.results[0][0].transcript;
+				textarea3.value += transcript3 + ' '; // Añadir el texto al textarea
 			};
 
-			recognition.onend = () => {
-				console.log("Reconocimiento de voz detenido.");
-			};
+
+			// recognition.onerror = (event) => {
+			// 	console.error("Error en reconocimiento: ", event.error);
+			// };
+
+			// recognition.onend = () => {
+			// 	console.log("Reconocimiento de voz detenido.");
+			// };
 
 			startBtn.addEventListener('click', () => {
 				recognition.start(); // Iniciar el reconocimiento
@@ -852,14 +947,29 @@
 				recognition2.start(); // Iniciar el reconocimiento
 			});
 
+			startBtn3.addEventListener('click', () => {
+				recognition3.start(); // Iniciar el reconocimiento
+			});
+
 		} else {
-			alert("Las imagenes de los microfones deben desaparecer");
+			console.error("Los micrófonos no deberían estas disponibles: ", event.error);
 		}
 
 		
-		function getDataDecorator(){	
-			var selectValue = $("#selectDecorator").val();			
-			$('#dataDecoratorR').html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+		function getDataDecorator(dec){	
+
+			var profile = ""
+			$('.dataDecoratorR').html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+
+			if (dec == 1){
+				var selectValue = $("#selectDecorator").val();
+				profile = "decorators"
+			}
+			
+			if (dec == 2){
+				var selectValue = $("#selectAscociate").val();
+				profile = "ascociate"
+			}			
 
 			if (typeof selectValue === 'string') {
     			selectValue = selectValue.split(','); 
@@ -872,6 +982,43 @@
 					url: "{% url 'getDataDecorators_url' %}",  // La URL que manejará la consulta AJAX
 					method: 'POST',
 					data: {
+						'idsSelect': selectedValuesStr  // El valor que se envía al servidor
+					},
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						// Rellena los campos con los datos obtenidos de la respuesta
+						$('.dataDecoratorR').html(response.result);
+					},
+					error: function(xhr, status, error) {
+						$('.dataDecoratorR').html('<div class="alert alert-danger d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>Server error: ' + error + '</span></div></div>');						
+					}
+				});				
+				
+			}
+			else{				
+				$('.dataDecoratorR').html('<div class="alert alert-warning d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>You have not selected ' + profile + '. </span></div></div>');
+			}
+
+		}
+
+
+		function loadAscociate(){	
+			var selectValue = $("#selectDecorator").val();			
+			
+			if (typeof selectValue === 'string') {
+    			selectValue = selectValue.split(','); 
+			}
+			var selectedValuesStr = selectValue.join(',');
+
+			if(selectValue != "" ) {				
+
+				$.ajax({
+					url: "{% url 'getSelectAscociate_url' %}",  // La URL que manejará la consulta AJAX
+					method: 'POST',
+					data: {
 						'decoratorsSelect': selectedValuesStr  // El valor que se envía al servidor
 					},
 					beforeSend: function(xhr, settings) {
@@ -880,19 +1027,46 @@
 					},
 					success: function(response) {
 						// Rellena los campos con los datos obtenidos de la respuesta
-						$('#dataDecoratorR').html(response.result);
+						$('#selectAscociate').html(response.result);
 					},
 					error: function(xhr, status, error) {
-						$('#dataDecoratorR').html('<div class="alert alert-danger d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>Server error: ' + error + '</span><div><div>');						
+						$('#selectAscociate').html('<div class="alert alert-danger d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>Server error: ' + error + '</span><div><div>');						
 					}
 				});				
 				
 			}
-			else{				
-				$('#dataDecoratorR').html('<div class="alert alert-warning d-flex align-items-center p-5"><div class="d-flex flex-column"> <span>You have not selected decorators. </span><div><div>');
-			}
 
 		}
+
+
+		function validateAddress(){	
+
+			var address = $("#inputAddress").val();
+			$('#divValidateAddress').css('display', 'none');
+			$('#divValidateAddress').html("");
+			
+			$.ajax({
+				url: "{% url 'getAddress_url' %}",  // La URL que manejará la consulta AJAX
+				method: 'POST',
+				data: {
+					'address': address
+				},
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {					
+					if(response.result != ""){
+						$('#divValidateAddress').css('display', '');
+						$('#divValidateAddress').html(response.result);	
+					}
+				},
+				error: function(xhr, status, error) {					
+					console.error("Error:", error);
+				}
+			});			
+		}			
+
 
 	</script>
 

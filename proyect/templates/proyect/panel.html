@@ -240,7 +240,7 @@
 																		<div class="row g-8">
 																			<!--begin::Col-->
 																			<div class="col-lg-10">
-																				<label class="fs-6 form-label fw-bolder text-dark">State</label>
+																				<label class="fs-6 form-label fw-bolder text-dark">Status</label>
 																				<!--begin::Select-->
 																				<select class="form-select form-select-solid" data-kt-select2="false" name="state">
 																					<option value="0"></option>
@@ -291,37 +291,72 @@
 
 															<!--begin: Datatable-->
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
-																<thead class="border-bottom border-gray-200 fs-6 fw-bolder bg-lighten">
+																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
 																	<tr class="fw-bolder text-muted">															
 																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
-																		<th title="Field #2">Customer name</th>
-																		<th title="Field #3">Decorator</th>
-																		<th title="Field #4">Date creation</th>
-																		<th title="Field #5">N° elements</th>
-																		<th title="Field #6">State</th>
-																		<th title="Field #7"></th>
+																		<th title="Field #2">Client</th>
+																		<th title="Field #3" class="text-center">Decorator</th>
+																		<th title="Field #4">Start date</th>
+																		<th title="Field #5">Ant</th>
+																		<th title="Field #5">Description</th>
+																		<th title="Field #6">Status</th>
+																		<th class="min-w-100px text-end">Actions</th>
 																		
 																	</tr>
 																</thead>
 																<tbody>
 																	{% for proyect in proyects_data %}
 																	<tr>														
-																	<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
-																	<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>{{ proyect.customerName }}</a> <span class='text-muted fw-bold d-block'>{{ proyect.email }}</span></td>
-																	<td></td>																	
-																	<td class="text-muted">{{ proyect.creationDate  }}</td>
-																	<td class="text-center text-muted">0</td>
+																		<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block fs-9'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
+																		<td class="text-center text-muted fs-8">{{ proyect.customerName }}</td>
+																		<td class="text-center text-muted fs-8">{{ proyect.decorators }}</td>
+																		<td class="text-center text-muted fs-8">{{ proyect.creationDate }}</td>
+																		<td class="text-center text-muted fs-8">{{ proyect.difference }}</td>
+																		<td class="text-center text-muted fs-8"></td>
 
-																	{% if proyect.state_id == 1 %}
-																		<td><span class="badge badge-light-success">{{ proyect.state }}</span></td>
-																	{% elif proyect.state_id == 2 %}
-																		<td><span class="badge badge-light-primary">{{ proyect.state }}</span></td>
-																	{% else %}
-																		<td><span class="badge badge-light">{{ proyect.state }}</span></td>
-																	d{% endif %}																
+																		{% if proyect.state_id == 1 %}
+																			<td class="fs-8"><span class="badge badge-light-success">{{ proyect.state }}</span></td>
+																		{% elif proyect.state_id == 2 %}
+																			<td class="fs-8"><span class="badge badge-light-primary">{{ proyect.state }}</span></td>
+																		{% else %}
+																			<td class="fs-8"><span class="badge badge-light">{{ proyect.state }}</span></td>
+																		{% endif %}
 
-
-																	<td class='text-end'><a href='#'class='btn btn-sm btn-icon btn-bg-light btn-active-color-primary'><span class='svg-icon svg-icon-2'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><rect opacity='0.5' x='18' y='13' width='13' height='2' rx='1' transform='rotate(-180 18 13)' fill='black' /> <path d='M15.4343 12.5657L11.25 16.75C10.8358 17.1642 10.8358 17.8358 11.25 18.25C11.6642 18.6642 12.3358 18.6642 12.75 18.25L18.2929 12.7071C18.6834 12.3166 18.6834 11.6834 18.2929 11.2929L12.75 5.75C12.3358 5.33579 11.6642 5.33579 11.25 5.75C10.8358 6.16421 10.8358 6.83579 11.25 7.25L15.4343 11.4343C15.7467 11.7467 15.7467 12.2533 15.4343 12.5657Z' fill='black' /></svg></span></a></td>
+																		<td class='text-center text-end fs-8'>
+																			<div class="d-flex justify-content-end flex-shrink-0">
+																				<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" >
+																					<!--begin::Svg Icon | path: icons/duotune/general/gen019.svg-->
+																					<span class="svg-icon svg-icon-3" title="View">
+																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="View">
+																							<path d="M17.5 11H6.5C4 11 2 9 2 6.5C2 4 4 2 6.5 2H17.5C20 2 22 4 22 6.5C22 9 20 11 17.5 11ZM15 6.5C15 7.9 16.1 9 17.5 9C18.9 9 20 7.9 20 6.5C20 5.1 18.9 4 17.5 4C16.1 4 15 5.1 15 6.5Z" fill="black" />
+																							<path opacity="0.3" d="M17.5 22H6.5C4 22 2 20 2 17.5C2 15 4 13 6.5 13H17.5C20 13 22 15 22 17.5C22 20 20 22 17.5 22ZM4 17.5C4 18.9 5.1 20 6.5 20C7.9 20 9 18.9 9 17.5C9 16.1 7.9 15 6.5 15C5.1 15 4 16.1 4 17.5Z" fill="black" />
+																						</svg>
+																					</span>
+																					<!--end::Svg Icon-->
+																				</a>
+																				<a href="{% url 'view_url' proyect_id=proyect.id %}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+																					<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
+																					<span class="svg-icon svg-icon-3" title="Edit">
+																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																							<path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" />
+																							<path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" />
+																						</svg>
+																					</span>
+																					<!--end::Svg Icon-->
+																				</a>
+																				<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																					<span class="svg-icon svg-icon-3" title="Delete">
+																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																							<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+																							<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+																							<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+																						</svg>
+																					</span>
+																					<!--end::Svg Icon-->
+																				</a>
+																			</div>
+																		</td>
 																	</tr>
 																	{% endfor %}														
 																															
@@ -1028,7 +1063,7 @@
                     // Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
                     response.proyects.forEach(function(proyecto) {
                         var row = '<tr>';
-                        row += "<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>" + proyecto.name + "</a> <span class='text-muted fw-bold d-block'>" + proyecto.email + "</span></td>";
+                        row += "<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>" + proyecto.customerName + "</a> <span class='text-muted fw-bold d-block'>" + proyecto.email + "</span></td>";
                         row += '<td class="text-muted">' + proyecto.address + '</td>';
 						row += '<td class="text-muted">' + (proyecto.date).slice(0,10) + '</td>';
                         row += '<td></td>';
@@ -1107,7 +1142,8 @@
             cargarProyectos();
 			cargarCalendario();
 
-			var table = $('#kt_datatable').DataTable({				
+			var table = $('#kt_datatable').DataTable({		
+				"order": [[3, 'desc']] 
 			});
 
 			$('#globalSearch').on('keyup change', function() {

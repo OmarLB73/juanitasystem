@@ -23,7 +23,6 @@ var KTProjectSettings = {
                         message.style.display = 'none'; // Oculta los mensajes de error
                       });
 
-
                     e.preventDefault(),
                         t.validate().then((function (t) {                            
                             "Valid" == t ?                            

@@ -45916,9 +45916,9 @@ code:not([class*=language-]) {
 }
 
 .table.gy-6 td,
-.table.gy-6 th {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem
+.table.gy-6 th {/* AJUSTE */
+    padding-top: 1rem; /*1.5rem*/
+    padding-bottom: 1rem /*1.5rem*/
 }
 
 .table.gx-6 td,
