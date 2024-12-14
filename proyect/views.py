@@ -9,7 +9,7 @@ from django.db.models import Q # permite realizar consultas complejas
 from django.urls import reverse #evita doble envio de formulario
 
 
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Catalog #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -191,6 +191,7 @@ def proyect_view(request, proyect_id):
     category = Category.objects.all().order_by('name')
     subcategory = Subcategory.objects.all().order_by('name')
     place = Place.objects.all().order_by('name')
+    catalog = Catalog.objects.all().order_by('name')
         
     try:
         decorators = Decorator.objects.filter(proyects = proyect).order_by('name')
@@ -208,7 +209,8 @@ def proyect_view(request, proyect_id):
                                                 'events':events,
                                                 'categories':category,
                                                 'subcategories':subcategory,
-                                                'places': place})  
+                                                'places': place,
+                                                'catalogs': catalog})  
 
 @login_required
 def grafics_view(request):

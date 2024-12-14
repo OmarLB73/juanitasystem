@@ -189,3 +189,18 @@ class Place(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.name}'
+    
+
+class Catalog(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='catalogs/', blank=True, null=True)  # Nuevo campo de imagen    
+    creation_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='catalog_creation_set')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+    modification_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='catalog_modification_set')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.name}'
+

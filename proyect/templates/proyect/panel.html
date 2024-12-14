@@ -292,10 +292,10 @@
 															<!--begin: Datatable-->
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
 																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
-																	<tr class="fw-bolder text-muted">															
+																	<tr>															
 																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
 																		<th title="Field #2">Client</th>
-																		<th title="Field #3" class="text-center">Decorator</th>
+																		<th title="Field #3">Decorator</th>
 																		<th title="Field #4">Start date</th>
 																		<th title="Field #5">Ant</th>
 																		<th title="Field #5">Description</th>
@@ -308,10 +308,10 @@
 																	{% for proyect in proyects_data %}
 																	<tr>														
 																		<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block fs-9'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
-																		<td class="text-center text-muted fs-8">{{ proyect.customerName }}</td>
-																		<td class="text-center text-muted fs-8">{{ proyect.decorators }}</td>
-																		<td class="text-center text-muted fs-8">{{ proyect.creationDate }}</td>
-																		<td class="text-center text-muted fs-8">{{ proyect.difference }}</td>
+																		<td class="text-start text-muted fs-8">{{ proyect.customerName }}</td>
+																		<td class="text-start text-muted fs-8">{{ proyect.decorators }}</td>
+																		<td class="text-start text-muted fs-8">{{ proyect.creationDate }}</td>
+																		<td class="text-start text-muted fs-8">{{ proyect.difference }}</td>
 																		<td class="text-center text-muted fs-8"></td>
 
 																		{% if proyect.state_id == 1 %}

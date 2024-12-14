@@ -23,6 +23,12 @@ from django.urls import path, include
 
 from django.contrib.auth import views as auth_views
 
+#Se agrega para controlar las imagenes en desarrollo/produccion
+from django.conf import settings
+from django.conf.urls.static import static
+###############################################
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),    
     path('user/', include('user.urls')),  # Esto incluye las vistas de la app user
@@ -33,3 +39,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='user/login/', permanent=True)),
 
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

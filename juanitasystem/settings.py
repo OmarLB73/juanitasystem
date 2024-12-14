@@ -139,6 +139,9 @@ LOGIN_REDIRECT_URL = '/user/login/'    # Redirige al inicio después de un login
 LOGIN_URL = '/user/login/'   # Redirigir al login si no está autenticado
 
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 ########## DESPLIEGUE ##########
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
