@@ -357,7 +357,8 @@
 												<div class="fs-7 fw-bold mt-2 mb-3">Responsible</div>
 											</div>
 											<div class="col-xl-6">
-												<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">
+												<select class="
+												" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">
 														<option value="0">-</option>
 													{% for responsible in responsibles %}
 														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>

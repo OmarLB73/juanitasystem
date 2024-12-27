@@ -13,7 +13,30 @@
 	<!-- <link href="{% static 'css/fullcalendar/fullcalendar.bundle.css' %}" rel="stylesheet" type="text/css" /> -->
 	<link href="{% static 'css/plugins.bundle.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/style.bundle.css' %}" rel="stylesheet" type="text/css" />
+
+
+	<!-- blueimp Gallery styles -->
+	<link href="{% static 'css/fileupload/blueimp-gallery.min.css' %}" rel="stylesheet" type="text/css" />
+	<!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+	<link href="{% static 'css/fileupload/jquery.fileupload.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/fileupload/jquery.fileupload-ui.css' %}" rel="stylesheet" type="text/css" />
 	<!--end::Global Stylesheets Bundle-->
+
+	<style>
+		.preview {
+			width: 200px;
+			height: 200px;
+			object-fit: cover;
+			margin-top: 20px;
+			margin-right: 10px;
+		}
+		.image-container {
+			display: flex;
+			flex-wrap: wrap;
+		}															
+
+	</style>
+
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -208,10 +231,8 @@
 									<nav>
 										<div class="nav nav-tabs" id="nav-tab" role="tablist">
 
-
-											<button class="nav-link active" id="nav-profile-tab" data-bs-toggle="tab"
-												data-bs-target="#nav-profile" type="button" role="tab"
-												aria-controls="nav-profile" aria-selected="true">
+											<button class="nav-link active" id="nav-newItem-tab" data-bs-toggle="tab"
+												data-bs-target="#nav-newItem" type="button" role="tab" aria-controls="nav-newItem" aria-selected="true">
 												<span class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
@@ -232,10 +253,35 @@
 														<!--end::Svg Icon-->
 													</span>
 												</span>
-												<span class="nav-text font-weight-bold">Elements</span></button>
-											<button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
-												data-bs-target="#nav-contact" type="button" role="tab"
-												aria-controls="nav-contact" aria-selected="false"><span
+												<span class="nav-text font-weight-bold">Add item</span></button>
+
+											<button class="nav-link" id="nav-items-tab" data-bs-toggle="tab"
+												data-bs-target="#nav-items" type="button" role="tab" aria-controls="nav-items" aria-selected="true">
+												<span class="nav-icon mr-2">
+													<span class="svg-icon mr-3">
+														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+														<svg xmlns="http://www.w3.org/2000/svg"
+															xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+															height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none"
+																fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24" />
+																<path
+																	d="M11,20 L11,17 C11,16.4477153 11.4477153,16 12,16 C12.5522847,16 13,16.4477153 13,17 L13,20 L15.5,20 C15.7761424,20 16,20.2238576 16,20.5 C16,20.7761424 15.7761424,21 15.5,21 L8.5,21 C8.22385763,21 8,20.7761424 8,20.5 C8,20.2238576 8.22385763,20 8.5,20 L11,20 Z"
+																	fill="#000000" opacity="0.3" />
+																<path
+																	d="M3,5 L21,5 C21.5522847,5 22,5.44771525 22,6 L22,16 C22,16.5522847 21.5522847,17 21,17 L3,17 C2.44771525,17 2,16.5522847 2,16 L2,6 C2,5.44771525 2.44771525,5 3,5 Z M4.5,8 C4.22385763,8 4,8.22385763 4,8.5 C4,8.77614237 4.22385763,9 4.5,9 L13.5,9 C13.7761424,9 14,8.77614237 14,8.5 C14,8.22385763 13.7761424,8 13.5,8 L4.5,8 Z M4.5,10 C4.22385763,10 4,10.2238576 4,10.5 C4,10.7761424 4.22385763,11 4.5,11 L7.5,11 C7.77614237,11 8,10.7761424 8,10.5 C8,10.2238576 7.77614237,10 7.5,10 L4.5,10 Z"
+																	fill="#000000" />
+															</g>
+														</svg>
+														<!--end::Svg Icon-->
+													</span>
+												</span>
+												<span class="nav-text font-weight-bold">Items</span></button>
+											
+											<button class="nav-link" id="nav-notes-tab" data-bs-toggle="tab"
+												data-bs-target="#nav-notes" type="button" role="tab"
+												aria-controls="nav-notes" aria-selected="false"><span
 													class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/General/Notification2.svg-->
@@ -260,369 +306,192 @@
 									</nav>
 									<div class="card-body">
 										<div class="tab-content" id="nav-tabContent">
-											<div class="tab-pane active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+											<div class="tab-pane active" id="nav-newItem" role="tabpanel" aria-labelledby="nav-newItem-tab">
 
-												<div class="card-body">
-
-													<!--begin::Row-->
-													<div class="row">
-														<!--begin::Col-->
-														<div class="col-lg-6">
-
-															<div class="row mb-6">
-
-																<div class="col-xl-2">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Category:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-6">
-																	<!--begin::Input-->
-
-																	<select id="category" class="form-select form-select-solid"
-																		data-kt-select2="false" data-placeholder="Select"
-																		data-allow-clear="true" name="category">
-																		{% for category in categories %}
-																		<option value="{{ category.id }}">{{ category.name }}
-																		</option>
-																		{% endfor %}
-																	</select>
-
-																	<!--end::Input-->
-																</div>
-																<!--end::Col-->
-
-															</div>
-
-															<div class="row mb-6">
-
-																<!--begin::Col-->
-																<div class="col-xl-2">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Sub Category:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-6">
-																	<!--begin::Input-->
-																
-																	<select id="subcategory"
-																		class="form-select form-select-solid"
-																		data-kt-select2="false" data-placeholder="Select"
-																		data-allow-clear="true" name="subcategory">
-																		{% for subcategory in subcategories %}
-																		<option value="{{ subcategory.id }}">{{ subcategory.name}}</option>
-																		{% endfor %}
-																	</select>
-																
-																	<!--end::Input-->
-																</div>
-																<!--end::Col-->
-
-															</div>
-
-															<div class="row mb-6">
-
-
-																	<!--begin::Col-->
-																<div class="col-xl-2">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Place:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-6">
-																	<!--begin::Input-->
-
-																	<select id="category" class="form-select form-select-solid"
-																		data-kt-select2="false" data-placeholder="Select"
-																		data-allow-clear="true" name="category">
-																		{% for place in places %}
-																		<option value="{{ place.id }}">{{ place.name }}</option>
-																		{% endfor %}
-																	</select>
-
-																	<!--end::Input-->
-																</div>
-																<!--end::Col-->
-															</div>
-
-															<div class="row mb-6">
-																<!--begin::Col-->
-																<div class="col-xl-2">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-10 fv-row">
-																	<textarea id="textareaDescProyect" name="proyectDescription"
-																		class="form-control form-control-solid h-100px"
-																		maxlength="2000"></textarea>
-																	<right><button id="btnDesProyect"
-																			style="border: none; background: transparent;"
-																			type="button"><img
-																				src="{% static 'images/microphone.svg' %}"
-																				alt="Microphone" width="20"
-																				height="20"></button></right>
-																</div>
-																<!--begin::Col-->
-															</div>
-														</div>
-
-														<!--begin::Col-->
-														<div class="col-lg-6">
-															
-															<div class="row mb-6">
-																<div class="col-xl-4">
-
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3" for="email">NO
-																			Lining</label>
-																	</div>
-		
-																	<br />
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3"
-																			for="email">Lining</label>
-																	</div>
-		
-																	<br />
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3"
-																			for="email">Lining+Interlining</label>
-																	</div>
-		
-																	<br />
-		
-		
-																</div>
-		
-																<div class="col-xl-4">
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3" for="email">BLK
-																			OUT</label>
-																	</div>
-		
-																	<br />
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3"
-																			for="email">Other</label>
-																	</div>
-		
-																	<br />
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3" for="email">No
-																			Valance o Cornice</label>
-																	</div>
-		
-																	<br />
-		
-																</div>
-		
-																<div class="col-xl-4">
-		
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3"
-																			for="email">Valance</label>
-																	</div>
-		
-																	<br />
-		
-																	<div
-																		class="form-check form-check-custom form-check-solid me-9">
-																		<input class="form-check-input" type="checkbox" value=""
-																			id="allDay" />
-																		<label class="form-check-label ms-3"
-																			for="email">Cornice</label>
-																	</div>
-		
-																</div>
-
-															</div>
-														</div>
-
-													</div>
-
-													<button type="submit" class="btn btn-primary" id="clonarDiv">Add image</button>
-
-													<div class="separator separator-dashed mt-4 mb-6"></div>
-
-							
-													<div class="row">
+												
+												
+												<form id="formItem" class="form" method="POST" enctype="multipart/form-data">
+													<div class=""> <!--  class="card-body" -->
 														
-														<div id="divImage" class="row mb-6">
-
-															<div class="col-xl-2">
-																<div class="col-lg-8">																	
-																	<!--begin::Image input-->
-																	<div class="image-input image-input-outline" data-kt-image-input="true" style="background-image: url(static/images/avatars/blank.png)">
-																		<!--begin::Preview existing avatar-->
-																		<div class="image-input-wrapper w-200px h-200px" style="background-image: url(static/images/avatars/150-26.jpg)"></div>
-																		<!--end::Preview existing avatar-->
-																		<!--begin::Label-->
-																		<label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Select imagen">
-																			<i class="bi bi-pencil-fill fs-7"></i>
-																			<!--begin::Inputs-->
-																			<input type="file" name="avatar" accept=".png, .jpg, .jpeg" />
-																			<input type="hidden" name="avatar_remove" />
-																			<!--end::Inputs-->
-																		</label>
-																		<!--end::Label-->
-																		<!--begin::Cancel-->
-																		<span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel">
-																			<i class="bi bi-x fs-2"></i>
-																		</span>
-																		<!--end::Cancel-->
-																		<!--begin::Remove-->
-																		<span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove">
-																			<i class="bi bi-x fs-2"></i>
-																		</span>
-																		<!--end::Remove-->
+														<div class="card-title fs-4 fw-bolder">Item:</div>
+									
+														<!--begin::Row-->
+														<div class="row">
+															<!--begin::Col-->
+																														
+																<div class="col-lg-6">
+	
+																	<div class="row mb-6">
+	
+																		<div class="col-xl-2">
+																			<div class="fs-7 fw-bold mt-2 mb-3">Category:</div>
+																		</div>
+																		<!--end::Col-->
+																		<!--begin::Col-->
+																		<div class="col-xl-6 fv-row">
+																			<!--begin::Input-->
+	
+																			<select id="selectCategory" class="form-select form-select-solid" name="category">
+																				<option value="">---</option>
+																				{% for category in categories %}
+																				<option value="{{ category.id }}">{{ category.name }}</option>
+																				{% endfor %}
+																			</select>
+	
+																			<!--end::Input-->
+																		</div>
+																		<!--end::Col-->
+	
 																	</div>
-																	<!--end::Image input-->
-																	<!--begin::Hint-->
-																	<div class="form-text">Allowed file types: png, jpg, jpeg.</div>
-																	<!--end::Hint-->
+	
+																	<div class="row mb-6">
+	
+																		<!--begin::Col-->
+																		<div class="col-xl-2">
+																			<div class="fs-7 fw-bold mt-2 mb-3">Sub Category:</div>
+																		</div>
+																		<!--end::Col-->
+																		<!--begin::Col-->
+																		<div class="col-xl-6 fv-row">
+																			<!--begin::Input-->
+																		
+																			<select id="selectSubcategory" class="form-select form-select-solid"
+																				data-kt-select2="false" data-placeholder="Select"
+																				data-allow-clear="true" name="subcategory">
+																				<option value="">---</option>
+																			</select>
+																		
+																			<!--end::Input-->
+																		</div>
+																		<!--end::Col-->
+	
+																	</div>
+	
+																	<div class="row mb-6">
+	
+																		<!--begin::Col-->
+																		<div class="col-xl-2">
+																			<div class="fs-7 fw-bold mt-2 mb-3">Place:</div>
+																		</div>
+																		<!--end::Col-->
+																		<!--begin::Col-->
+																		<div class="col-xl-6 fv-row">
+																			<!--begin::Input-->
+	
+																			<select id="selectPlace" class="form-select form-select-solid"
+																				data-kt-select2="false" data-placeholder="Select"
+																				data-allow-clear="true" name="place">
+																				<option value="">---</option>
+																				{% for place in places %}
+																				<option value="{{ place.id }}">{{ place.name }}</option>
+																				{% endfor %}
+																			</select>
+	
+																			<!--end::Input-->
+																		</div>
+																		<!--end::Col-->
+																	</div>
+	
+																	<div class="row mb-6">
+	
+																		<!--begin::Col-->
+																		<div class="col-xl-2">
+																			<div class="fs-7 fw-bold mt-2 mb-3">QTY:</div>
+																		</div>
+																		<!--end::Col-->
+	
+																		<div class="col-xl-6 fv-row">
+																			<input id="inputQty" type="text" class="form-control form-control-solid" name="qty" value="" style="width: 80px;"/>
+																		</div>
+	
+																	</div>
+	
+																	<div class="row mb-6">
+																		<!--begin::Col-->
+																		<div class="col-xl-2">
+																			<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>
+																		</div>
+																		<!--end::Col-->
+																		<!--begin::Col-->
+																		<div class="col-xl-9 fv-row">
+																			<textarea id="textareaNotes" name="notes"
+																				class="form-control form-control-solid h-100px"
+																				maxlength="2000"></textarea>																	
+																		</div>
+																		<!--begin::Col-->
+																	</div>
+																			
+																</div>
+																	
+															<!--begin::Col-->
+															<div id="divAttributes" class="col-lg-6">
+
+															</div>
+
+														</div>
+
+														<div class="card-title fs-4 fw-bolder">Add images <i class="fas fa-cloud-upload-alt"></i></div><div class="card-title fs-8 fw-bolder">(jpeg, png, bmp)</div>
+
+														<div id="divImg_1" class="row">
+															
+															<div class="col-lg-4">
+
+																<div class="row mb-2">
+																	
+																	<div id="previewContainer_1" class="image-container"></div>
+																	<input id="inputImg_1" type="file" name="inputImg_1" class="form-control form-control" onchange="previewImages(event, 1)" required>															
 
 																</div>
 
 															</div>
+															
+															<div id="divImgNotes_1" class="col-lg-8" style="display: none;">
 
-
-															<div class="col-xl-10">
-																<!--begin::Col-->
-																<div class="col-xl-2">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Comments:</div>
+																<div class="row mb-6">
+																																		
+																	<div class="col-xl-11 fv-row">
+																		<div class="fs-7 fw-bold mt-2 mb-3">Description:</div>
+																		<textarea id="txtImgNotes_1" name="txtImgNotes_1" class="form-control form-control-solid h-150px" maxlength="2000"></textarea>																	
+																	</div>																	
 																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-8 fv-row">
-																	<textarea id="textareaDescProyect" name="proyectDescription"
-																		class="form-control form-control-solid h-150px"
-																		maxlength="2000"></textarea>
-																	<right><button id="btnDesProyect"
-																			style="border: none; background: transparent;"
-																			type="button"><img
-																				src="{% static 'images/microphone.svg' %}"
-																				alt="Microphone" width="20"
-																				height="20"></button></right>
-																</div>
-																<!--begin::Col-->
-
-
 
 															</div>
 														</div>
-																																																									
-													</div>
+														
+														<br/>
 
-													<button type="submit" class="btn btn-primary" id="clonarMaterial">Add material</button>
-
-													<div class="separator separator-dashed mt-4 mb-6"></div>
-
-													<div class="row">
-														<!--begin::Col-->
-														<div id="divCatalog" class="col-lg-12">
-
-															<div class="row mb-6">
-																<div class="col-xl-1">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Material:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																
-																	<!--begin::Input-->
-																<div class="col-xl-3">
-																	<select id="category" class="form-select form-select-solid"
-																		data-kt-select2="false" data-placeholder="Select"
-																		data-allow-clear="true" name="category">
-																		{% for catalog in catalogs %}
-																		<option value="{{ catalog.id }}">{{ catalog.name }}
-																		</option>
-																		{% endfor %}
-																	</select>
-																	</div>
-
-																<div class="col-xl-2">
-
-																	<div class="image-input image-input-outline" data-kt-image-input="true">
-																		<!--begin::Preview existing avatar-->
-																		<div class="image-input-wrapper w-200px h-200px" style="background-image: url(../media/catalogs/drapery.jpg)"></div>
-																	</div>
-
-																</div>
-
-
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xl-1">
-																	<div class="fs-7 fw-bold mt-2 mb-3">Comments:</div>
-																</div>
-																<!--end::Col-->
-																<!--begin::Col-->
-																<div class="col-xxl-5">
-																	<textarea id="textareaDescProyect" name="proyectDescription"
-																		class="form-control form-control-solid h-150px"
-																		maxlength="2000"></textarea>
-																	<right><button id="btnDesProyect"
-																			style="border: none; background: transparent;"
-																			type="button"><img
-																				src="{% static 'images/microphone.svg' %}"
-																				alt="Microphone" width="20"
-																				height="20"></button></right>
-																</div>
-																<!--begin::Col-->
-
-																
-															</div>
-																																										
+														<input id="proyect_id" name="proyect_id" type="hidden" value="{{ proyect.id }}" readonly/>
+														
+														<div class="card-footer d-flex justify-content-end py-6 px-9">
+															<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
+															<button type="submit" class="btn btn-primary" id="submitItem">Save</button>
 														</div>
-													
-													</div>
-													
-													
-													
-													
-													<div class="separator separator-dashed mt-4 mb-6"></div>
 
-													<div class="card-footer d-flex justify-content-end py-6 px-9">
-
-														<button type="submit" class="btn btn-primary"
-															id="kt_project_settings_submit">Save</button>
 													</div>
+	
+												</form>
+																																											 
+											</div>
+
+											<div class="tab-pane fade" id="nav-items" role="tabpanel" aria-labelledby="nav-items-tab">
+
+												<div>
+
+													<div id="messageSave">
+
+													</div>
+
+													<div id="itemsDetails">
+														{{ itemsHtml|safe }}
+													</div>													
 
 												</div>
 
 											</div>
-											<div class="tab-pane fade" id="nav-contact" role="tabpanel"
-												aria-labelledby="nav-contact-tab">
+											
+											<div class="tab-pane fade" id="nav-notes" role="tabpanel" aria-labelledby="nav-notes-tab">
 
-												<div class="card-body">
+												<div>
 													<div class="row mb-8">
 														<!--begin::Col-->
 														<div class="col-xl-1">
@@ -646,9 +515,8 @@
 
 													<!--begin::Card footer-->
 													<div class="card-footer d-flex justify-content-end py-6 px-9">
-
-														<button type="submit" class="btn btn-primary"
-															id="kt_project_settings_submit">Save</button>
+														
+														<button type="submit" class="btn btn-primary">Save</button>
 													</div>
 													<!--end::Card footer-->
 
@@ -784,6 +652,7 @@
 
 
 											</div>
+
 										</div>
 									</div>
 									<!--end::Body-->
@@ -796,8 +665,8 @@
 					</div>
 					<!--end::Entry-->
 
-
-					<!--end::Content-->
+				</div>
+					<!--end::Content-->					
 					<!--begin::Footer-->
 					{% include 'footer.html' %}
 					<!--end::Footer-->
@@ -835,23 +704,266 @@
 
 		<script src="{% static 'js/plugins.bundle.js' %}"></script>
 		<script src="{% static 'js/scripts.bundle.js' %}"></script>
-		<script src="{% static 'js/settings.js' %}"></script>
-		<script src="{% static 'js/jquery.mask.min.js' %}"></script>
-		<script src="{% static 'js/dropzonejs.js' %}"></script>
-		<!-- <script src="{% static 'js/fullcalendar/fullcalendar.bundle.js' %}"></script> -->
+		<script src="{% static 'js/settingsView.js' %}"></script>
+		<script src="{% static 'js/jquery.mask.min.js' %}"></script>		
+		
+
+		<script>
+			function previewImages(event, id) {
+
+				div = 'previewContainer_' + String(id)
+				divNotes = '#divImgNotes_' + String(id)
+				inputImg = '#inputImg_' + String(id)
+
+				const previewContainer = document.getElementById(div);
+				previewContainer.innerHTML = ''; // Limpiar las imágenes previas
+
+				const files = event.target.files;
+
+				// Crear una vista previa para cada imagen seleccionada
+				for (const file of files) {
+					const reader = new FileReader();
+					
+					reader.onload = function(e) {
+						const img = document.createElement('img');
+						img.src = e.target.result;
+						img.classList.add('preview');
+						img.name = 'images';
+						previewContainer.appendChild(img);
+						$(divNotes).css('display', '');
+						$(inputImg).css('display', 'none');
+						newImagesDiv(id);
+
+					};
+					
+					reader.readAsDataURL(file);
+				}
+			}
+
+
+			function newImagesDiv(id){
+
+				newId = id + 1;
+				divNotes = '#divImg_' + String(id)
+				html = '<br/><div id="divImg_' + String(newId) + '" class="row"><div class="col-lg-4"><div class="row mb-2"><div id="previewContainer_' + String(newId) + '" class="image-container"></div>';
+				html +=	'<input id="inputImg_' + String(newId) + '" type="file" name="inputImg_' + String(newId) + '" class="form-control form-control" onchange="previewImages(event, ' + String(newId) + ')" required></div></div>';
+				html += '<div id="divImgNotes_' + String(newId) + '" class="col-lg-8" style="display: none;"><div class="row mb-6">';
+				html += '<div class="col-xl-11 fv-row"><div class="fs-7 fw-bold mt-2 mb-3">Description:</div>';
+				html += '<textarea id="txtImgNotes_' + String(newId) + '" name="txtImgNotes_' + String(newId) + '" class="form-control form-control-solid h-150px" maxlength="2000"></textarea></div></div></div></div>';
+
+				$(divNotes).after(html);
+
+			}
+
+
+		</script>
+
+
+		
+		
+		<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
+		<!-- <script src="{% static 'js/fileupload/jquery.ui.widget.js' %}"></script> -->
+		<!-- The Templates plugin is included to render the upload/download listings -->
+		<!-- <script src="{% static 'js/fileupload/tmpl.min.js' %}"></script> -->
+		<!-- The Load Image plugin is included for the preview images and image resizing functionality -->
+		<!-- <script src="{% static 'js/fileupload/load-image.all.min.js' %}"></script> -->
+		<!-- The Canvas to Blob plugin is included for image resizing functionality -->
+		<!-- <script src="{% static 'js/fileupload/canvas-to-blob.min.js' %}"></script> -->
+		<!-- blueimp Gallery script -->
+		<!-- <script src="{% static 'js/fileupload/jquery.blueimp-gallery.min.js' %}"></script> -->
+		<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+		<!-- <script src="{% static 'js/fileupload/jquery.iframe-transport.js' %}"></script> -->
+		<!-- The basic File Upload plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload.js' %}"></script> -->
+		<!-- The File Upload processing plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-process.js' %}"></script> -->
+		<!-- The File Upload image preview & resize plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-image.js' %}"></script> -->
+		<!-- The File Upload audio preview plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-audio.js' %}"></script> -->
+		<!-- The File Upload video preview plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-video.js' %}"></script> -->
+		<!-- The File Upload validation plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-validate.js' %}"></script> -->
+		<!-- The File Upload user interface plugin -->
+		<!-- <script src="{% static 'js/fileupload/jquery.fileupload-ui.js' %}"></script> -->
+
+		<!-- <script src="{% static 'js/fileupload/demo.js' %}"></script> -->
+
+
+
+
 
 
 		<script>
 
-			$('#clonarDiv').click(function() {
-            	var clon = $('#divImage').clone(); // Clonamos el div
-            	$('#divImage').after(clon); // Insertamos el clon después del div original
-        	});
+			var div = document.getElementById('kt_activities_toggle');
+			div.parentNode.remove();	
 
-			$('#clonarMaterial').click(function() {
-            	var clon = $('#divCatalog').clone(); // Clonamos el div
-            	$('#divCatalog').after(clon); // Insertamos el clon después del div original
-        	});
+			$(document).ready(function () {
+
+				$("#inputQty").mask('0000'); // Formato de número 4 digitos	
+				
+				
+
+
+			});
+
+			$('#selectCategory').change(function() {				
+                loadSubcategory();
+				loadAttributes();
+            });
+
+
+			
+			function loadSubcategory(){	
+				var selectValue = $("#selectCategory").val();			
+								
+				if(selectValue != "" ) {				
+
+					$.ajax({
+						url: "{% url 'getSelectSubcategory_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {
+							'categorySelect': selectValue  // El valor que se envía al servidor
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							$('#selectSubcategory').html(response.result);
+						},
+						error: function(xhr, status, error) {
+							console.error("Error server: " + error, event.error);							
+						}
+					});				
+					
+				}
+
+			}
+
+
+			function loadAttributes(){	
+				var selectValue = $("#selectCategory").val();			
+								
+				if(selectValue != "" ) {				
+
+					$.ajax({
+						url: "{% url 'getSelectAttribute_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {
+							'categorySelect': selectValue  // El valor que se envía al servidor
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							$('#divAttributes').html(response.result);
+						},
+						error: function(xhr, status, error) {
+							console.error("Error server: " + error, event.error);							
+						}
+					});				
+					
+				}
+
+			}
+
+
+			function loadItems(){
+				var selectValue = $("#proyect_id").val();			
+								
+				if(selectValue != "" ) {				
+
+					$.ajax({
+						url: "{% url 'getSelectItems_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {
+							'proyect_id': selectValue  // El valor que se envía al servidor
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							$('#itemsDetails').html(response.result);
+						},
+						error: function(xhr, status, error) {
+							console.error("Error server: " + error, event.error);							
+						}
+					});				
+					
+				}
+			}
+			
+
+			function del(i){
+
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'This action will delete the item. Do you want to continue?',
+					icon: 'warning',
+					showCancelButton: true,  // Muestra el botón de cancelación
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// Si el usuario confirma, se ejecuta la acción AJAX
+						$.ajax({
+							url: "{% url 'deleteItem_url' %}",  // La URL que manejará la consulta AJAX
+							method: 'POST',
+							data: {
+								'i': i  // El valor que se envía al servidor
+							},
+							beforeSend: function(xhr, settings) {
+								// Añadir el token CSRF en las cabeceras
+								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+							},
+							success: function(response) {
+								// Rellena los campos con los datos obtenidos de la respuesta
+								if(response.result == "1"){
+									loadItems();
+
+									Swal.fire({
+										title: 'Deleted!',
+										text: 'The item has been successfully deleted.',
+										icon: 'info',
+										confirmButtonText: 'Ok.'
+									});
+								}
+
+								
+							},
+							error: function(xhr, status, error) {																
+								Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+
+							}
+						});	
+					}
+				});
+			}
+
+
+
+			// $('#clonarDiv').click(function() {
+            // 	var clon = $('#divImage').clone(); // Clonamos el div
+            // 	$('#divImage').after(clon); // Insertamos el clon después del div original
+        	// });
+
+			// $('#clonarMaterial').click(function() {
+            // 	var clon = $('#divCatalog').clone(); // Clonamos el div
+            // 	$('#divCatalog').after(clon); // Insertamos el clon después del div original
+        	// });
 
 		</script>
 

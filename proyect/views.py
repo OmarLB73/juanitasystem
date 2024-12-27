@@ -8,8 +8,18 @@ from django.contrib.auth.decorators import login_required #para controlar las se
 from django.db.models import Q # permite realizar consultas complejas
 from django.urls import reverse #evita doble envio de formulario
 
+# from django.core.files.storage import FileSystemStorage #para las imagenes
 
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Catalog #Aquí importamos a los modelos que necesitamos
+from PIL import Image #Para validar el tipo de imagen
+from django.core.exceptions import ValidationError #Para manejar excepciones
+
+
+
+
+
+
+
+from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -155,9 +165,11 @@ def proyect_new(request):
                     decorator.proyects.add(proyect)
 
 
-                Event.objects.create( type_event_id=1,                                        
-                                        proyect_id=proyect_id, 
-                                        user=request.user)
+                # Event.objects.create( type_event_id=1,                                        
+                #                         proyect_id=proyect_id, 
+                #                         user=request.user)
+                
+                saveEvent(request, 1, proyect_id, None)
         
                 return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
 
@@ -188,10 +200,8 @@ def proyect_view(request, proyect_id):
     
     proyect = Proyect.objects.get(id = proyect_id) #obtiene solo un resultado
     customer = proyect.customer
-    category = Category.objects.all().order_by('name')
-    subcategory = Subcategory.objects.all().order_by('name')
-    place = Place.objects.all().order_by('name')
-    catalog = Catalog.objects.all().order_by('name')
+    category = Category.objects.all().order_by('name')    
+    place = Place.objects.all().order_by('name')    
         
     try:
         decorators = Decorator.objects.filter(proyects = proyect).order_by('name')
@@ -200,17 +210,18 @@ def proyect_view(request, proyect_id):
     except Decorator.DoesNotExist:
         decorators = None
 
-    except Event.DoesNotExist:        
+    except Event.DoesNotExist:
         events = None
+
+    itemsHtml = funct_data_items(proyect_id)
                         
     return render(request, 'proyect/view.html',{'proyect': proyect,
                                                 'customer': customer,
                                                 'decorators': decorators,
                                                 'events':events,
-                                                'categories':category,
-                                                'subcategories':subcategory,
+                                                'categories':category,                                                
                                                 'places': place,
-                                                'catalogs': catalog})  
+                                                'itemsHtml': itemsHtml})  
 
 @login_required
 def grafics_view(request):
@@ -353,9 +364,9 @@ def getAddress(request):
 
 
 
-############################
-### Combos dependientes  ###
-############################
+###############################
+### Elementos dependientes  ###
+###############################
 
 @login_required
 def selectAscociate(request):
@@ -377,9 +388,60 @@ def selectAscociate(request):
     return JsonResponse({'result': decoratorsHTML})
 
 
-############################
-######### Funciones ########
-############################
+@login_required
+def selectSubcategory(request):
+    #Consulta las subcategorias desde la base de datos
+    selected_value = request.POST.get('categorySelect')    
+    subcategoryHTML = ''
+
+    try:
+        subcategories = Subcategory.objects.filter(category = Category.objects.get(id = selected_value)).order_by('name')
+       
+        for subcategory in subcategories:          
+            subcategoryHTML += '<option value=' + str(subcategory.id) + '>' + subcategory.name + '</option>'
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+                    
+    # Devolvemos la lista de ascociates como respuesta JSON
+    return JsonResponse({'result': subcategoryHTML})
+
+
+@login_required
+def selectAttibutes(request):
+    #Consulta las subcategorias desde la base de datos
+    selected_value = request.POST.get('categorySelect')    
+    attributeHTML = ''
+
+    try:
+
+        attributes = Category_Attribute.objects.filter(category = Category.objects.get(id = selected_value))
+        
+        for atribute in attributes:          
+            attributeHTML += '<div class="row mb-2">'
+            attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + atribute.attribute.name + ':</div></div>'
+            attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(atribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150"/></div></div>'
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+                    
+    # Devolvemos la lista de ascociates como respuesta JSON
+    return JsonResponse({'result': attributeHTML})
+
+
+@login_required
+def selectItems(request):
+    #Consulta los items desde la base de datos
+    selected_value = request.POST.get('proyect_id')        
+    itemsHTML = funct_data_items(selected_value)    
+                    
+    # Devolvemos la lista de ascociates como respuesta JSON
+    return JsonResponse({'result': itemsHTML})
+
+
+###################################
+## Funciones para obtener datos ###
+###################################
 
 def funct_data_proyect(filters):
 
@@ -485,7 +547,7 @@ def funct_data_customer(filters):
 
 
 def funct_data_event(filters):
-
+    
     event_data = []
 
     if filters is None:
@@ -493,15 +555,264 @@ def funct_data_event(filters):
     else:
         events = Event.objects.filter(filters)
 
-
     # Creamos una lista con los datos de cada proyecto
     for event in events:      
                                 
         event_data.append({
             'type_event_id': event.type_event_id,
             'description': event.description,
-            'user_id': event.user_id,
+            'user_id': event.user.id,
             'creation_date': event.creation_date
         })
     
     return event_data
+
+
+def funct_data_items(proyect_id):
+    
+    itemsHTML = ""
+
+    try:
+
+        items = Item.objects.filter(proyect = Proyect.objects.get(id=proyect_id)).order_by('id')
+        itemN = 0
+        
+        for item in items:
+
+            itemN+= 1
+
+            itemsHTML += '<div class="row">'
+            itemsHTML += '<div class="row">'
+            itemsHTML += '<div class="col-xl-2"><div class="fs-7 fw-bold mt-2 mb-3">Item n° <b>' + str(itemN) + '</b></div></div>'												
+            itemsHTML += '</div>'
+            
+            ## Celda 1 ##
+            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'
+            itemsHTML += '<table><tbody>'                
+            itemsHTML += '<tr><td><b>Category:</b> ' + item.category.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>QTY:</b> ' + str(item.qty) + '</td></tr>'
+            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
+            itemsHTML += '</tbody></table>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            #############
+
+            ## Celda 2 ##
+            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'
+            itemsHTML += '<table><tbody>'         
+
+            attributes = Item_Attribute.objects.filter(item = Item.objects.get(id=item.id))
+            for attribute in attributes:
+                itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
+
+            itemsHTML += '</tbody></table>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            #############
+
+
+            ## Celda 3 ##
+            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'
+            
+            itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
+            itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+            itemsHTML += '<a href="javascript:del(' + str(item.id) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+            itemsHTML += '</div>'        
+
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            #############
+
+
+
+            ## Celda 4 ##
+            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'
+            itemsHTML += '<table><tbody>'         
+
+            images = Item_Images.objects.filter(item = Item.objects.get(id=item.id))
+            for image in images:
+                itemsHTML += '<tr><td><div class="image-container"><img src="' + image.file.url + '" alt="' + image.name + '" class="preview"></div></td></tr>'
+
+            itemsHTML += '</tbody></table>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            #############
+
+
+
+
+            itemsHTML += '</div>'
+
+
+            itemsHTML += '<div class="separator separator-dashed mt-4 mb-6"></div>'
+
+    except ValueError:
+        messages.error('Server error. Please contact to administrator!')
+        
+    return itemsHTML
+
+
+
+
+###################################
+## Funciones para guardar datos ###
+###################################
+
+@login_required
+def saveEvent(request, type_event_id, proyect_id, description):
+
+    #1: Crear
+    #2: Agregar item
+
+
+    Event.objects.create(   type_event_id=type_event_id,                                        
+                            proyect_id=proyect_id, 
+                            description = description,
+                            user=request.user)
+    
+
+
+@login_required
+def saveItem(request):
+
+    item_id = 0
+
+    if request.method == 'POST':
+        proyect_id = request.POST.get('proyect_id')        
+        category_id = request.POST.get('category') 
+        subcategory_id = request.POST.get('subcategory')
+        place_id = request.POST.get('place')
+        qty = request.POST.get('qty')
+        notes = request.POST.get('notes')        
+            
+        try:
+            
+            item_save = Item.objects.create(proyect = Proyect.objects.get(id=proyect_id),
+                                            category = Category.objects.get(id=category_id),
+                                            subcategory = Subcategory.objects.get(id=subcategory_id),
+                                            place = Place.objects.get(id=place_id),
+                                            qty = qty,
+                                            notes = notes,
+                                            creation_user = request.user,
+                                            modification_user = request.user)
+            item_id = item_save.id
+
+            saveEvent(request, 2, proyect_id, None)
+
+
+            ################################### Se recorren los atributos ###################################
+            
+            data = request.POST
+
+            prefijo = "attribute_"
+
+            for key, value in data.items():
+                if key.startswith(prefijo) and value.strip() != "":
+                    try:
+
+                        attribute_id = int(key[len(prefijo):])
+
+                        Item_Attribute.objects.create(  item = Item.objects.get(id=item_id),
+                                                        attribute = Attribute.objects.get(id=attribute_id),
+                                                        notes = value)
+
+                    except ValueError:
+                        messages.error(request, 'Server error. Please contact to administrator!')
+
+
+            ################################### Se recorren las imagenes ###################################
+
+            files = request.FILES
+
+            prefijo = 'inputImg_'            
+
+            for key, value in files.items():
+                if key.startswith(prefijo) and (value.content_type == 'image/jpeg'):
+                    try:
+
+                        file = request.FILES.get(key)
+
+                        if validar_imagen_por_tipo(file):
+
+                            Item_Images.objects.create( item = Item.objects.get(id=item_id),
+                                                        file = file,
+                                                        name = value.name,
+                                                        notes = '')
+
+                    except ValueError:
+                        messages.error(request, 'Server error. Please contact to administrator!')
+
+
+        except ValueError:
+            messages.error(request, 'Server error. Please contact to administrator!')
+
+
+    return JsonResponse({'result': item_id})
+
+
+
+
+##################################
+## Funciones para borrar datos ###
+##################################
+
+@login_required
+def deleteItem(request):
+    item_id = request.POST.get('i') 
+    status = 0
+
+    try:
+        item = Item.objects.get(id = item_id)
+        item.delete()
+        status = 1
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
+
+
+
+
+
+##################################
+## Funciones para validar ###
+##################################
+
+
+def validar_imagen_por_tipo(value):
+
+    isfileValidate = False
+
+    try:
+        # Abrir la imagen usando PIL
+        imagen = Image.open(value)
+        # Obtener el tipo de imagen (por ejemplo: 'JPEG', 'PNG', 'GIF')
+        tipo_imagen = imagen.format.lower()
+        
+        # Tipos permitidos
+        tipos_permitidos = ['jpeg', 'png', 'gif', 'jpg', 'bmp']
+
+        if tipo_imagen in tipos_permitidos:            
+            isfileValidate = True
+
+    except IOError:
+        # raise ValidationError(f'El archivo debe ser una imagen de tipo: {", ".join(tipos_permitidos)}')
+        raise ValidationError("El archivo no es una imagen válida.")
+    
+    return isfileValidate

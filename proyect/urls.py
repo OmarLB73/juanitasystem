@@ -7,13 +7,18 @@ urlpatterns = [
     path('view/<int:proyect_id>/', views.proyect_view, name='view_url'), 
     path('grafics/', views.grafics_view, name='grafics_url'), 
 
-    
-    
-    path('getDataDecorator/', views.getDataDecorator, name='getDataDecorators_url'),
-    path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
+        
+    path('getDataDecorator/', views.getDataDecorator, name='getDataDecorators_url'),    
     path('getAddress/', views.getAddress, name='getAddress_url'),
 
+    path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
+    path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
+    path('selectAttibutes/', views.selectAttibutes, name='getSelectAttribute_url'),
+    path('selectItems/', views.selectItems, name='getSelectItems_url'),
+    
+    path('saveItem/', views.saveItem, name='saveItem_url'),
 
+    path('deleteItem/', views.deleteItem, name='deleteItem_url'),
 
 
     path('getDataCustomer/', views.getDataCustomer, name='getDataCustomer_url'),

@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+import os #Para el tema del archivo
+from django.utils import timezone #Para definir la ruta del archivo
+
+from django.db.models.signals import pre_delete #Para borrar imagenes fisicas antes del borrado de la base de datos
+from django.dispatch import receiver #Para borrar imagenes fisicas antes del borrado de la base de datos
 
 # Create your models here.
 
@@ -31,8 +36,8 @@ class Type(models.Model):
 
     #La clase Meta, ayuda a evitar usar prefijos de la aplicacion en la base de datos. 
     # Pero por un tema de orden, no la usaremos.
-    #class Meta:
-    #   db_table = 'Type'
+    # class Meta:
+    #    db_table = 'Type'
 
     #Esto sirve para el shell, retorna la estructura definida
 
@@ -173,7 +178,7 @@ class Event(models.Model):
     id = models.AutoField(primary_key=True)
     type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
     proyect_id  = models.IntegerField()
-    description = models.CharField(max_length=2000)    
+    description = models.CharField(max_length=2000, null=True)    
     user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='event_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -191,16 +196,102 @@ class Place(models.Model):
         return f'{self.id} - {self.name}'
     
 
-class Catalog(models.Model):
+class Attribute(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=150)
+    name = models.CharField(max_length=50)    
     description = models.TextField(blank=True, null=True)
-    imagen = models.ImageField(upload_to='catalogs/', blank=True, null=True)  # Nuevo campo de imagen    
-    creation_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='catalog_creation_set')
-    creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='catalog_modification_set')
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='attribute_creation_set')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='attribute_modification_set')
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f'{self.id} - {self.name}'
 
+
+class Category_Attribute(models.Model):
+    id = models.AutoField(primary_key=True)        
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='category_attribute_creation_set')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='category_attribute_modification_set')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.category.name} - {self.attribute.name}'
+
+
+class Item(models.Model):
+    id = models.AutoField(primary_key=True)
+    proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    qty = models.IntegerField(null=True)
+    notes = models.TextField(blank=True, null=True, max_length=2000)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='item_creation_set')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='item_modification_set')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.proyect.name} - {self.category.name} - {self.subcategory.name}'
+    
+
+class Item_Attribute(models.Model):
+    id = models.AutoField(primary_key=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)        
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)    
+    notes = models.CharField(blank=True, null=True, max_length=150)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='item_attribute_creation_set')
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='item_attribute_modification_set')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+def get_file_path_img(instance, filename):
+    # Crear subcarpetas con el ID del objeto
+    year = instance.creation_date.year
+    month = instance.creation_date.month
+    proyect_id = instance.item.proyect.id
+    return os.path.join('images', str(year), str(month), str(proyect_id), filename)
+    
+
+class Item_Images(models.Model):
+    id = models.AutoField(primary_key=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=get_file_path_img, blank=True, null=True)  # Nuevo campo de imagen
+    name = models.CharField(blank=True, null=True, max_length=150)
+    notes = models.TextField(blank=True, null=True)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+
+    def save(self, *args, **kwargs):
+        # Si es la primera vez que se guarda el objeto, el ID aún no está disponible
+        if not self.id:
+            super().save(*args, **kwargs)  # Guarda primero para asignar el ID
+        else:
+            super().save(*args, **kwargs)  # Luego guarda con el ID correctamente asignado
+
+
+    def __str__(self):
+        return f'{self.id} - {self.item.id} - {self.imagen}'
+
+
+
+
+
+
+@receiver(pre_delete, sender=Item_Images)
+def eliminar_imagen(sender, instance, **kwargs):
+    if instance.file:
+        imagen_path = instance.file.path
+        if os.path.isfile(imagen_path):
+            os.remove(imagen_path)
