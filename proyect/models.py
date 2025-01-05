@@ -25,6 +25,12 @@ EVENTOS = [
         (2, 'Comment'),
     ]
 
+IMAGE_TYPE = [
+        (1, 'Image'),
+        (2, 'Material'),
+        (3, 'Comment'),
+    ]
+
 class Type(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
@@ -101,7 +107,7 @@ class Proyect(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True, default=0)
     state = models.ForeignKey(State, on_delete=models.CASCADE)    
-    date = models.CharField(max_length=50)        
+    date = models.CharField(max_length=50)
     description = models.CharField(max_length=2000, null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='proyect_creation_set')
@@ -230,8 +236,11 @@ class Item(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
-    qty = models.IntegerField(null=True)
+    qty = models.TextField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
+    date_proposed = models.DateTimeField(null=True)
+    date_end = models.DateTimeField(null=True)   
+    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True, default=0)    
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='item_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
@@ -272,6 +281,7 @@ class Item_Images(models.Model):
     name = models.CharField(blank=True, null=True, max_length=150)
     notes = models.TextField(blank=True, null=True)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
+    type = models.IntegerField(choices=IMAGE_TYPE,  default=1)
 
     def save(self, *args, **kwargs):
         # Si es la primera vez que se guarda el objeto, el ID aún no está disponible
@@ -282,7 +292,8 @@ class Item_Images(models.Model):
 
 
     def __str__(self):
-        return f'{self.id} - {self.item.id} - {self.imagen}'
+        return f'{self.id} - {self.item.id} - {self.name}'
+    
 
 
 

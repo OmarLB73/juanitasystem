@@ -120,7 +120,7 @@
 										</div>
 										<!--end::Row-->
 
-										<!--begin::Row Decorators-->
+										<!--begin::Decorators-->
 										<div class="row mb-8">
 
 											<!--begin::Col-->
@@ -132,7 +132,7 @@
 											<div class="col-xl-3 divDecorator" style="display: none;">
 												<!--begin::Input-->
 
-												<select id="selectDecorator" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="decorator" multiple>																									
+												<select id="selectDecorator" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="decorator" multiple>
 													{% for decorator in decorators %}
 														<option value="{{ decorator.id }}">{{ decorator.name }}</option>
 													{% endfor %}
@@ -146,6 +146,11 @@
 												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_decorator_data">View decorator data</a>
 											</div>
 											<!--end::Col-->
+
+										</div>
+										
+										<!--begin::Ascociate-->
+										<div class="row mb-8">
 											
 											<!--begin::Col-->
 											<div class="col-xl-1 divDecorator" style="display: none;">
@@ -169,10 +174,9 @@
 											</div>
 											<!--end::Col-->
 
-
 										</div>
 
-										<!--begin::Row Direccion-->
+										<!--begin::Direccion-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
@@ -183,10 +187,20 @@
 											<div class="col-xl-6 fv-row">
 												<input id="inputAddress" type="text" class="form-control form-control-solid" name="address" value="" maxlength="2000" />												
 											</div>
-											<!--end::Col-->											
+											<!--end::Col-->	
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row">
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
+											</div>
+											<!--end::Col-->	
+											
+										</div>																			
+										
+										<!--begin::Apartment-->
+										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Apartment</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">Apt-ste-floor</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -197,7 +211,7 @@
 					
 										</div>
 
-										<!--begin::Row Direccion-->
+										<!--begin::City-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
@@ -205,10 +219,15 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-3 fv-row">
+											<div class="col-xl-2 fv-row">
 												<input id="inputCity" type="text" class="form-control form-control-solid" name="city" value="" maxlength="150"/>												
 											</div>
-											<!--end::Col-->								
+											<!--end::Col-->	
+											
+										</div>
+
+										<!--begin::State-->
+										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">State</div>
@@ -218,7 +237,12 @@
 											<div class="col-xl-2 fv-row">
 												<input id="inputState" type="text" class="form-control form-control-solid" name="state" value="" maxlength="150"/>										
 											</div>
-											<!--end::Col-->											
+											<!--end::Col-->	
+											
+										</div>
+
+										<!--begin::Zip Code-->
+										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">ZIP code</div>
@@ -229,14 +253,16 @@
 												<input id="inputZipcode" type="text" class="form-control form-control-solid" name="zipcode" value="" maxlength="50"/>										
 											</div>
 											<!--end::Col-->
-											<!--begin::Col-->
-											<div class="col-xl-2 fv-row">
-												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
-											</div>
-											<!--end::Col-->								
+																		
 										</div>
 
-										<!--begin::Row Address descripcion-->
+										<div class="row mb-8">
+											<div id="divValidateAddress" style="display: none;" class="alert-dismissible">
+										
+											</div>
+										</div>
+
+										<!--begin::Address notes-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
@@ -252,7 +278,7 @@
 										</div>
 										<!--end::Row-->
 										
-										<!--begin::Row nombre-->
+										<!--begin:: Client-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
@@ -264,6 +290,11 @@
 												<input id="inputCustomer" type="text" class="form-control form-control-solid" name="customerName" value="" maxlength="150"/>
 											</div>
 											<!--begin::Col-->
+
+										</div>
+
+										<!--begin::Phone-->
+										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">Phone</div>
@@ -284,7 +315,7 @@
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
-											<div class="col-xl-6 fv-row">
+											<div class="col-xl-4 fv-row">
 												<input id="inputEmail" type="text" class="form-control form-control-solid" name="email" value="" maxlength="100"/>
 											</div>
 											<!--begin::Col-->											
@@ -306,10 +337,8 @@
 										</div>
 										<!--end::Row-->
 
-										<div class="separator separator-dashed mt-4 mb-6"></div>																																											
-
 										<!--begin::Row Fecha-->
-										<div class="row mb-8">
+										<div class="row mb-8" style="display: none;">
 											<!--begin::Col-->
 											<div class="col-xl-1">
 												<div class="fs-7 fw-bold mt-2 mb-3">Next Stape</div>
@@ -349,24 +378,6 @@
 											</div>
 											<!--begin::Col-->
 										</div>
-										<!--end::Row-->
-
-										<!-- begin::Row Resposable-->
-										<!-- <div class="row mb-8">
-											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Responsible</div>
-											</div>
-											<div class="col-xl-6">
-												<select class="
-												" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsible">
-														<option value="0">-</option>
-													{% for responsible in responsibles %}
-														<option value="{{ responsible.id }}" {% if responsible.id == responsible_select.id %}selected{% endif %}>{{ responsible.name }}</option>
-													{% endfor %}
-												</select>
-											</div>
-										</div> -->
-										<!--end::Row -->
 
 										<!--begin::Row Descripcion-->
 										<div class="row mb-8">
@@ -382,13 +393,7 @@
 											</div>
 											<!--begin::Col-->
 										</div>
-										<!--end::Row-->
-
-										<div class="row mb-8">
-											<div id="divValidateAddress" style="display: none;">
-										
-											</div>
-										</div>									
+										<!--end::Row-->																			
 										
 									</div>																		
 									<!--end::Card body-->		
@@ -418,7 +423,7 @@
 				<!--begin::Modal Street-->
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<!--begin::Container-->
-					<div id="kt_content_container" class="container-xxl">												
+					<div id="kt_content_container" class="container-xxl">
 						<!--begin::Modal - Select Location-->
 						<div class="modal fade" id="modal_select_location" tabindex="-1" >
 							<!--begin::Modal dialog-->
@@ -543,19 +548,31 @@
 					
 					
 										</style>
-										<div class="row mb-12">																																																					
-												<div class="col-xl-4 fv-row">																			
-													<input id="direccion" type="text" placeholder="Search adress.." class="form-control form-control-solid">
-												</div>
-											
-											
-											<div class="col-xl-2 fv-row"><input id="ciudad" type="text" placeholder="City" class="form-control form-control-solid" readonly></div>
-											<div class="col-xl-2 fv-row"><input id="estado" type="text" placeholder="State" class="form-control form-control-solid" readonly></div>
-											<div class="col-xl-2 fv-row"><input id="zip_code" type="text" placeholder="Zip Code" class="form-control form-control-solid" readonly></div>
-										</div>
 
-										<div id="map"></div>
-										<div id="street-view" style="display:none"></div>
+										<div class="row mb-6">
+											<div class="col-lg-4">
+												<label class="fs-6 form-label fw-bolder text-dark">Address</label>																	
+												<input id="direccion" type="text" placeholder="Search.." class="form-control form-control-solid">
+											</div>
+										
+										
+											<div class="col-lg-3">
+												<label class="fs-6 form-label fw-bolder text-dark">City</label>	
+												<input id="ciudad" type="text" placeholder="" class="form-control form-control-solid" readonly>
+											</div>
+
+											<div class="col-lg-2">
+												<label class="fs-6 form-label fw-bolder text-dark">State</label>
+												<input id="estado" type="text" placeholder="" class="form-control form-control-solid" readonly>
+											</div>
+
+											<div class="col-lg-2">
+												<label class="fs-6 form-label fw-bolder text-dark">Zip Code</label>
+												<input id="zip_code" type="text" placeholder="" class="form-control form-control-solid" readonly>
+											</div>
+										</div>
+										<div id="map" class="row mb-6"></div>
+										<div id="street-view" style="display:none" class="row mb-6"></div>
 
 										<script>
 											let map; // Variable global para el mapa
@@ -685,6 +702,7 @@
 											});
 
 										</script>							
+																				
 										
 									</div>
 									<!--end::Modal body-->
@@ -788,7 +806,8 @@
 					<!--end::Container-->
 				</div>
 				<!--end::Modal Street-->	
-							
+				
+				<input id="proyectExist" value="" type="hidden">
 				
 				<!--end::Content-->
 				<!--begin::Footer-->
@@ -855,6 +874,7 @@
 				$('#inputCity').val($('#ciudad').val());
 				$('#inputState').val($('#estado').val());
 				$('#inputZipcode').val($('#zip_code').val());
+				validateAddress();
             });
 
 			$('#selectType').change(function() {
@@ -871,6 +891,26 @@
             });
 
 			$('#inputAddress').change(function() {
+                validateAddress();
+            });
+
+			$('#inputApartment').change(function() {
+                validateAddress();
+            });
+
+			$('#inputApartment').change(function() {
+                validateAddress();
+            });
+
+			$('#inputCity').change(function() {
+                validateAddress();
+            });
+
+			$('#inputState').change(function() {
+                validateAddress();
+            });
+
+			$('#inputZipcode').change(function() {
                 validateAddress();
             });
 
@@ -977,7 +1017,7 @@
 			}
 			var selectedValuesStr = selectValue.join(',');
 
-			if(selectValue != "" ) {				
+			if(selectValue != "" ) {
 
 				$.ajax({
 					url: "{% url 'getDataDecorators_url' %}",  // La URL que manejará la consulta AJAX
@@ -1043,6 +1083,10 @@
 		function validateAddress(){	
 
 			var address = $("#inputAddress").val();
+			var city = $("#inputCity").val();
+			var state = $("#inputState").val();
+			var zipcode = $("#inputZipcode").val();
+			var apartment = $("#inputApartment").val();
 			$('#divValidateAddress').css('display', 'none');
 			$('#divValidateAddress').html("");
 			
@@ -1050,7 +1094,11 @@
 				url: "{% url 'getAddress_url' %}",  // La URL que manejará la consulta AJAX
 				method: 'POST',
 				data: {
-					'address': address
+					'address': address,
+					'city': city,
+					'state': state,
+					'zipcode': zipcode,
+					'apartment': apartment
 				},
 				beforeSend: function(xhr, settings) {
 					// Añadir el token CSRF en las cabeceras
@@ -1060,6 +1108,7 @@
 					if(response.result != ""){
 						$('#divValidateAddress').css('display', '');
 						$('#divValidateAddress').html(response.result);	
+						$('#proyectExist').val(response.msg);
 					}
 				},
 				error: function(xhr, status, error) {					

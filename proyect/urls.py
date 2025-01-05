@@ -19,6 +19,9 @@ urlpatterns = [
     path('saveItem/', views.saveItem, name='saveItem_url'),
 
     path('deleteItem/', views.deleteItem, name='deleteItem_url'),
+    path('deleteProyect/', views.deleteProyect, name='deleteProyect_url'),
+
+    path('updateStatus/', views.updateStatus, name='updateStatus_url'),
 
 
     path('getDataCustomer/', views.getDataCustomer, name='getDataCustomer_url'),

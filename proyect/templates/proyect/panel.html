@@ -127,42 +127,28 @@
 												<!--begin::Form-->
 												<form method="POST">
 													{% csrf_token %}
-										
-														<!--begin::Card body-->
-														<div class="card-body">
-															<!--begin::Compact form-->
-															<div class="d-flex align-items-center">
-																<!--begin::Input group-->
-																<div class="position-relative w-md-400px me-md-2">
-																	<!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
-																	<span class="svg-icon svg-icon-3 svg-icon-gray-500 position-absolute top-50 translate-middle ms-6">
-																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																			<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black" />
-																			<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black" />
-																		</svg>
-																	</span>
-																	<!--end::Svg Icon-->
-																	<input id="globalSearch" type="text" class="form-control form-control-solid ps-10" name="search" value="" placeholder="Search" />
-																</div>
-																<!--end::Input group-->
-																<!--begin:Action-->
-																<div class="d-flex align-items-center">														
-																	<a id="kt_horizontal_search_advanced_link" class="btn btn-link" data-bs-toggle="collapse" href="#kt_advanced_search_form">Advanced Search</a>
-																</div>
-																<!--end:Action-->
-															</div>
-															<!--end::Compact form-->
-															<!--begin::Advance form-->
-															<div class="collapse" id="kt_advanced_search_form">
-																<!--begin::Separator-->
-																<div class="separator separator-dashed mt-9 mb-6"></div>
-																<!--end::Separator-->
-																<!--begin::Row-->
-																<div class="row g-10">
-																	<!--begin::Col-->
-																	<div class="col-xxl-3">
-																		<!--begin::Col-->
-																		<div class="col-lg-6">
+													<!--begin::Card body-->
+													<div class="card-body">
+														<!--begin::Compact form-->
+														<div class="d-flex align-items-center">
+															<!--begin::Input group-->
+															
+															<!--end::Input group-->
+															<!--begin:Action-->
+															<!-- <div class="d-flex align-items-center">														
+																<a id="kt_horizontal_search_advanced_link" class="btn btn-link" data-bs-toggle="collapse" href="#kt_advanced_search_form">Advanced Search</a>
+															</div> -->
+															<!--end:Action-->
+														</div>
+														<!--end::Compact form-->
+														<!--begin::Advance form-->
+														<div class="collapse_" id="kt_advanced_search_form">
+																														
+															<div class="row mb-6">
+															
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																	<div class="row">       
+																		<div class="col-xl-12">
 																			<label class="fs-6 form-label fw-bolder text-dark">Date from</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
@@ -185,11 +171,11 @@
 																			</div>
 																		</div>
 																	</div>
-																	<!--end::Col-->
-																	<!--begin::Col-->
-																	<div class="col-xxl-3">
-																		<!--begin::Col-->
-																		<div class="col-lg-6">
+																</div>
+
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																	<div class="row">
+																		<div class="col-xl-12">
 																			<label class="fs-6 form-label fw-bolder text-dark">Date until</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
@@ -212,73 +198,78 @@
 																			</div>
 																		</div>
 																	</div>
-																	<!--end::Col-->
-																	<!--begin::Col-->
-																	<div class="col-xxl-3">
-																		<!--begin::Row-->
-																		<div class="row g-8">
-																			<!--begin::Col-->
-																			<div class="col-lg-10">
-																				<label class="fs-6 form-label fw-bolder text-dark">Type of proyect</label>
-																				<!--begin::Select-->
-																				<select class="form-select form-select-solid" data-kt-select2="false" name="type">
-																					<option value="0"></option>
-																					{% for type in types %}
-																					<option value="{{ type.id }}" {% if type.id == type_id  %}selected{% endif %}>{{ type.name }}</option>
-																					{% endfor %}
-																				</select>
-																				<!--end::Select-->
-																			</div>
-																			<!--end::Col-->
-																		</div>
-																		<!--end::Row-->
-																	</div>
-																	<!--end::Col-->
-																	<!--begin::Col-->
-																	<div class="col-xxl-3">
-																		<!--begin::Row-->
-																		<div class="row g-8">
-																			<!--begin::Col-->
-																			<div class="col-lg-10">
-																				<label class="fs-6 form-label fw-bolder text-dark">Status</label>
-																				<!--begin::Select-->
-																				<select class="form-select form-select-solid" data-kt-select2="false" name="state">
-																					<option value="0"></option>
-																					{% for state in states %}
-																					<option value="{{ state.id }}" {% if state.id == state_id %}selected{% endif %}>{{ state.name }}</option>
-																					{% endfor %}
-																				</select>
-																				<!--end::Select-->
-																			</div>
-																			<!--end::Col-->
-																		</div>
-																		<!--end::Row-->
-																	</div>
-																	<!--end::Col-->
-																	<!--begin::Col-->
-																	<div class="col-xxl-3">
-																		<!--begin::Row-->
-																		<div class="row g-8">
-																			<!--begin::Col-->
-																			<div class="col-lg-10">
-																				<button type="submit" id="kt_modal_add_customer_submit" class="btn btn-primary">
-																					<span class="indicator-label">Search</span>
-																					<span class="indicator-progress">Please wait...
-																					<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-																				</button>
-																			</div>
-																			<!--end::Col-->
-																		</div>
-																		<!--end::Row-->
-																	</div>
-																	<!--end::Col-->
 																</div>
-																<!--end::Row-->
+
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																	<div class="row">
+																		<div class="col-xl-12">
+																			<label class="fs-6 form-label fw-bolder text-dark">Type of proyect</label>
+																			<!--begin::Select-->
+																			<select class="form-select form-select-solid" data-kt-select2="false" name="type">
+																				<option value="0"></option>
+																				{% for type in types %}
+																				<option value="{{ type.id }}" {% if type.id == type_id  %}selected{% endif %}>{{ type.name }}</option>
+																				{% endfor %}
+																			</select>
+																			<!--end::Select-->
+																		</div>
+																	</div>
+																</div>
+
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																	<div class="row">
+																		<div class="col-xl-12">
+																			<label class="fs-6 form-label fw-bolder text-dark">Status</label>
+																			<!--begin::Select-->
+																			<select class="form-select form-select-solid" data-kt-select2="false" name="state">
+																				<option value="0"></option>
+																				{% for state in states %}
+																				<option value="{{ state.id }}" {% if state.id == state_id %}selected{% endif %}>{{ state.name }}</option>
+																				{% endfor %}
+																			</select>
+																			<!--end::Select-->
+																		</div>
+																	</div>
+																</div>
+
 															</div>
-															<!--end::Advance form-->
+
+															<div class="row">
+
+																<div class="col-lg-11" style="border:1px solid white; border-width:1px;">
+																	
+																	<div class="position-relative w-md-400px me-md-2">
+																		<!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
+																		<span class="svg-icon svg-icon-3 svg-icon-gray-500 position-absolute top-50 translate-middle ms-6">
+																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																				<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black" />
+																				<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black" />
+																			</svg>
+																		</span>
+																		<!--end::Svg Icon-->
+																		<input id="globalSearch" type="text" class="form-control form-control-solid ps-10" name="search" value="" placeholder="Filter" />
+																	</div>
+
+																</div>
+
+																<div class="col-lg-1" style="border:1px solid white; border-width:1px;">
+																	<button type="submit" id="kt_modal_add_customer_submit" class="btn btn-primary">
+																		<span class="indicator-label">Search</span>
+																		<span class="indicator-progress">Please wait...
+																		<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+																	</button>
+
+																</div>
+
+
+															</div>
+															
+															<div class="separator separator-dashed mt-9 mb-6"></div>
+												
 														</div>
-														<!--end::Card body-->
-									
+														<!--end::Advance form-->
+													</div>
+													<!--end::Card body-->																			
 												</form>
 												<!--end::Form-->
 
@@ -292,26 +283,29 @@
 															<!--begin: Datatable-->
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
 																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
-																	<tr>															
-																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
-																		<th title="Field #2">Client</th>
+																	<tr>																																	
 																		<th title="Field #3">Decorator</th>
+																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
+																		<th title="Field #2">Client</th>																		
 																		<th title="Field #4">Start date</th>
 																		<th title="Field #5">Ant</th>
 																		<th title="Field #5">Description</th>
-																		<th title="Field #6">Status</th>
+																		<th title="Field #6">Qty WO</th>
+																		<th title="Field #7">Status</th>
 																		<th class="min-w-100px text-end">Actions</th>
 																		
 																	</tr>
 																</thead>
 																<tbody>
 																	{% for proyect in proyects_data %}
-																	<tr>														
-																		<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block fs-9'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
+																	<tr>
+																		<td class="text-start text-muted fs-8">{{ proyect.decorators }}</td>														
+																		<td><a href="{% url 'view_url' proyect_id=proyect.id %}" class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a> <span class='text-muted fw-bold d-block fs-9'>{{ proyect.city }}, {{ proyect.state_u }}, {{ proyect.zipcode }}, {{ proyect.apartment }}</span></td>
 																		<td class="text-start text-muted fs-8">{{ proyect.customerName }}</td>
-																		<td class="text-start text-muted fs-8">{{ proyect.decorators }}</td>
+																		
 																		<td class="text-start text-muted fs-8">{{ proyect.creationDate }}</td>
 																		<td class="text-start text-muted fs-8">{{ proyect.difference }}</td>
+																		<td class="text-center text-muted fs-8"></td>
 																		<td class="text-center text-muted fs-8"></td>
 
 																		{% if proyect.state_id == 1 %}
@@ -344,7 +338,7 @@
 																					</span>
 																					<!--end::Svg Icon-->
 																				</a>
-																				<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+																				<a href="javascript:del_p({{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-3" title="Delete">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -421,7 +415,7 @@
 							<br />
 
 							<!--begin::Row (Clientes)-->
-							<div class="row g-5 g-xxl-8">
+							<div class="row g-5 g-xxl-8" style="display:none">
 								<!--begin::Col-->
 								<div class="col-xxl-12">
 									<!--begin::Tables Widget 5-->
@@ -1152,6 +1146,60 @@
 
         });
 
+
+		function del_p(i){
+						
+			Swal.fire({
+				title: 'Are you sure?',
+				text: 'This action will delete the proyect for ever. Do you want to continue?',
+				icon: 'warning',
+				showCancelButton: true,  // Muestra el botón de cancelación
+				confirmButtonText: 'Yes',
+				cancelButtonText: 'Cancel'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					// Si el usuario confirma, se ejecuta la acción AJAX
+					$.ajax({
+						url: "{% url 'deleteProyect_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {
+							'i': i  // El valor que se envía al servidor
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							var csrftoken = $('[name=csrfmiddlewaretoken]').val();
+        					// Agregar el token CSRF al encabezado de la solicitud AJAX
+        					xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							if(response.result == "1"){											
+								Swal.fire({
+									title: 'Deleted!',
+									text: 'The proyect has been successfully deleted.',
+									icon: 'info',
+									confirmButtonText: 'Ok.'
+								}).then((result) => {
+									if (result.isConfirmed) {
+										$("#kt_modal_add_customer_submit").click();
+									}
+								});
+							}																
+						},
+						error: function(xhr, status, error) {																
+							Swal.fire({
+									title: 'Error server!',
+									text: error,
+									icon: 'error',
+									confirmButtonText: 'Ok.'
+								});
+			
+						}
+					});	
+				}
+			});
+		}
 
 
 	</script>

@@ -34,9 +34,28 @@ var KTProjectSettings = {
                                     confirmButtonText: 'Yes',
                                     cancelButtonText: 'Cancel'
                                 }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        // Si el usuario confirma, enviar el formulario
-                                        $('#kt_project_settings_form')[0].submit(); // Enviar el formulario manualmente
+                                    if (result.isConfirmed) {                                                                                
+                                        // Si el usuario confirma, enviar el formulario                                        
+                                        var exist = $('#proyectExist').val();
+
+                                        if(exist != ""){
+                                        
+                                            swal.fire({
+                                                text: "The address already exists! Please review the projects.",
+                                                icon: "error",
+                                                buttonsStyling: !1,
+                                                confirmButtonText: "Ok!",
+                                                customClass: { confirmButton: "btn fw-bold btn-light-primary" }
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    $('html, body').animate({ scrollTop: 0 }, 'fast');
+                                                }
+                                            });
+                                        }
+                                        else{
+                                            $('#kt_project_settings_form')[0].submit(); // Enviar el formulario manualmente
+                                        }                                        
+                                        
                                     } else {
                                         // Si el usuario cancela, no hacer nada
                                         console.log('Form not sent');

@@ -201,11 +201,16 @@ def proyect_view(request, proyect_id):
     proyect = Proyect.objects.get(id = proyect_id) #obtiene solo un resultado
     customer = proyect.customer
     category = Category.objects.all().order_by('name')    
-    place = Place.objects.all().order_by('name')    
+    place = Place.objects.all().order_by('name')
+
+    state_new_name = ''
         
     try:
         decorators = Decorator.objects.filter(proyects = proyect).order_by('name')
         events = Event.objects.filter(proyect_id = proyect_id).order_by('creation_date')
+        state_new = State.objects.get(id = (proyect.state.id + 1))
+
+        state_new_name = state_new.name
 
     except Decorator.DoesNotExist:
         decorators = None
@@ -213,7 +218,11 @@ def proyect_view(request, proyect_id):
     except Event.DoesNotExist:
         events = None
 
+    except State.DoesNotExist:
+        state_new_name = ''
+
     itemsHtml = funct_data_items(proyect_id)
+    advance = retornarAdvance(proyect.state.id)
                         
     return render(request, 'proyect/view.html',{'proyect': proyect,
                                                 'customer': customer,
@@ -221,7 +230,9 @@ def proyect_view(request, proyect_id):
                                                 'events':events,
                                                 'categories':category,                                                
                                                 'places': place,
-                                                'itemsHtml': itemsHtml})  
+                                                'itemsHtml': itemsHtml,
+                                                'state_new': state_new_name,
+                                                'advance':advance})  
 
 @login_required
 def grafics_view(request):
@@ -317,16 +328,21 @@ def getDataDecorator(request):
 @login_required
 def getAddress(request):
 
-    condiciones = Q()
+    condicionesCustomer = Q()    
+    customer_data = []    
 
     if request.method == 'POST':       
 
-        address = request.POST.get('address')        
+        address = str(request.POST.get('address')).strip()
+        city = str(request.POST.get('city')).strip()
+        state = str(request.POST.get('state')).strip()
+        zipcode = str(request.POST.get('zipcode')).strip()
+        apartment = str(request.POST.get('apartment')).strip()
 
-        if address != '':            
-            condiciones &= Q(address = address)        
+        if address.strip() != '' and len(address) >= 3:
+            condicionesCustomer = Q(address__icontains = address) or Q(city__icontains = city) or Q(state__icontains = state) or Q(state__icontains = state) or Q(zipcode__icontains = zipcode) or Q(apartment__icontains = apartment)
+            customer_data = funct_data_customer(condicionesCustomer, 1)
 
-    customer_data = funct_data_customer(condiciones) 
     messageHtml = ""
     
     if len(customer_data) > 0:
@@ -337,30 +353,40 @@ def getAddress(request):
         messageHtml += '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-6 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
         messageHtml += '<th title="Field #1">Client</th>'
         messageHtml += '<th title="Field #2">Address</th>'
-        messageHtml += '<th title="Field #3">Apartment</th>'
+        messageHtml += '<th title="Field #3">Apt-ste-floor</th>'
         messageHtml += '<th title="Field #4">City</th>'
         messageHtml += '<th title="Field #5">State</th>'
         messageHtml += '<th title="Field #6">ZIP code</th>'
         messageHtml += '<th title="Field #7"></th>'
+        messageHtml += '<th title="Field #8"></th>'
         messageHtml += '</tr></thead><tbody>'
 
-        for customer in customer_data:          
-            messageHtml += '<tr>'
-            messageHtml += '<td>' + customer['customerName'] + '</td>'
-            messageHtml += '<td>' + customer['address'] + '</td>'
-            messageHtml += '<td>' + customer['apartment'] + '</td>'
-            messageHtml += '<td>' + customer['city'] + '</td>'
-            messageHtml += '<td>' + customer['state_u'] + '</td>'
-            messageHtml += '<td>' + customer['zipcode'] + '</td>'
-            messageHtml += '<td><a href="../view/' + customer['id_proyect'] + '" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a></td>'
-            messageHtml += '</tr>'
+        msg = ''
+                    
+        for customer in customer_data:
+
+            if customer['id_proyect'] != '':
+
+                if address == str(customer['address']).strip() and city == str(customer['city']).strip() and state == str(customer['state_u']).strip() and zipcode == str(customer['zipcode']).strip() and apartment == str(customer['apartment']).strip():
+                    msg = '<span class="badge badge-light-danger fw-bold me-1">Exists!</span>'
+
+                messageHtml += '<tr>'
+                messageHtml += '<td>' + customer['customerName'] + '</td>'
+                messageHtml += '<td>' + customer['address'] + '</td>'
+                messageHtml += '<td>' + str(customer['apartment']) + '</td>'
+                messageHtml += '<td>' + str(customer['city']) + '</td>'
+                messageHtml += '<td>' + str(customer['state_u']) + '</td>'
+                messageHtml += '<td>' + str(customer['zipcode']) + '</td>'
+                messageHtml += '<td>' + msg + '</td>'
+                messageHtml += '<td><a href="../view/' + customer['id_proyect'] + '" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a></td>'
+                messageHtml += '</tr>'
     
         messageHtml += '</tbody></table>'
         messageHtml += ''
     
     
     # Devolvemos la lista de proyectos como respuesta JSON
-    return JsonResponse({'result': messageHtml})
+    return JsonResponse({'result': messageHtml, 'msg': msg})
 
 
 
@@ -420,7 +446,7 @@ def selectAttibutes(request):
         for atribute in attributes:          
             attributeHTML += '<div class="row mb-2">'
             attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + atribute.attribute.name + ':</div></div>'
-            attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(atribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150"/></div></div>'
+            attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(atribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + atribute.attribute.description + '"/></div></div>'
 
     except ValueError:
         messages.error(request, 'Server error. Please contact to administrator!')
@@ -510,14 +536,14 @@ def funct_data_proyect(filters):
     return proyects_data
     
 
-def funct_data_customer(filters):
+def funct_data_customer(filtersCustomer, caso):
 
     customer_data = []
 
-    if filters is None:
+    if filtersCustomer is None:
         customers = Customer.objects.all()
     else:
-        customers = Customer.objects.filter(filters)
+        customers = Customer.objects.filter(filtersCustomer)
 
     # Creamos una lista con los datos de cada proyecto
     for customer in customers:      
@@ -525,23 +551,25 @@ def funct_data_customer(filters):
         proyects = Proyect.objects.filter(customer = customer)
         proyectId = ''
 
-        for proyect in proyects:              
+        for proyect in proyects:
             proyectId = str(proyect.id)
-                
-        customer_data.append({
-            'id': customer.id,
-            'customerName': customer.name,
-            'address': customer.address,
-            'city': customer.city,
-            'state_u': customer.state,
-            'zipcode': customer.zipcode,
-            'apartment': customer.apartment,                        
-            'email': customer.email,
-            'phone': customer.phone,
-            'customerDescription': customer.description,
-            'customerNotes': customer.notes,
-            'id_proyect': proyectId,
-        })
+
+        if (caso == 1 and proyectId != '') or caso == 2:
+
+            customer_data.append({
+                'id': customer.id,
+                'customerName': customer.name,
+                'address': customer.address,
+                'city': customer.city,
+                'state_u': customer.state,
+                'zipcode': customer.zipcode,
+                'apartment': customer.apartment,                        
+                'email': customer.email,
+                'phone': customer.phone,
+                'customerDescription': customer.description,
+                'customerNotes': customer.notes,
+                'id_proyect': proyectId,
+            })
     
     return customer_data
 
@@ -579,14 +607,23 @@ def funct_data_items(proyect_id):
         
         for item in items:
 
+            fecha_prupuesta = ''
+
+            try:
+                if item.date_proposed:
+                    fecha_prupuesta = item.date_proposed.strftime('%Y/%m/%d')
+            
+            except ValueError:
+                messages.error('Server error. Date not exist!')
+
             itemN+= 1
 
-            itemsHTML += '<div class="row">'
+            itemsHTML += '<div class="row itemCount">'
             itemsHTML += '<div class="row">'
             itemsHTML += '<div class="col-xl-2"><div class="fs-7 fw-bold mt-2 mb-3">Item n° <b>' + str(itemN) + '</b></div></div>'												
             itemsHTML += '</div>'
             
-            ## Celda 1 ##
+            ## Celda 1 (cabecera) ##
             itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
@@ -594,7 +631,8 @@ def funct_data_items(proyect_id):
             itemsHTML += '<tr><td><b>Category:</b> ' + item.category.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>QTY:</b> ' + str(item.qty) + '</td></tr>'
+            itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
+            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_prupuesta + '</td></tr>'
             itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
             itemsHTML += '</tbody></table>'
             itemsHTML += '</div>'
@@ -602,7 +640,7 @@ def funct_data_items(proyect_id):
             itemsHTML += '</div>'
             #############
 
-            ## Celda 2 ##
+            ## Celda 2 (atributos) ##
             itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
@@ -619,7 +657,7 @@ def funct_data_items(proyect_id):
             #############
 
 
-            ## Celda 3 ##
+            ## Celda 3 (acciones) ##
             itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
@@ -636,23 +674,61 @@ def funct_data_items(proyect_id):
 
 
 
-            ## Celda 4 ##
-            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            ## Celda 4 (imagenes) ##
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
-            itemsHTML += '<table><tbody>'         
+            
+            itemsHTML += '<section class="grid-gallery-section">'
+            
+            itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
+            itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
+            itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
+            itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
+            itemsHTML += '</div>'
+            
+            itemsHTML += '<div class="grid-gallery">'
+            itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
 
             images = Item_Images.objects.filter(item = Item.objects.get(id=item.id))
             for image in images:
-                itemsHTML += '<tr><td><div class="image-container"><img src="' + image.file.url + '" alt="' + image.name + '" class="preview"></div></td></tr>'
 
-            itemsHTML += '</tbody></table>'
+                type_imp = ''
+                
+                if image.type == 1:
+                    type_imp = 'Image'
+
+                elif image.type == 2:
+                    type_imp = 'Material'
+
+                itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                itemsHTML += '<div class="gallery-image-area">'
+                itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
+                itemsHTML += '<div class="gallery-overly">'
+                
+                itemsHTML += '<div class="image-details">'                                
+                itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
+                itemsHTML += '</div>'
+                
+                itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
+                itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                itemsHTML += '</a>'
+
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+                # itemsHTML += '<tr><td><div class="image-container"><img src="" alt="' + image.name + '" class="preview"></div></td><td>' + image.notes + '</td></tr>'
+
+            itemsHTML += '</div>'
+            itemsHTML += '</section>'
+
+
             itemsHTML += '</div>'
             itemsHTML += '</div>'
             itemsHTML += '</div>'
+            
             #############
-
-
 
 
             itemsHTML += '</div>'
@@ -685,7 +761,6 @@ def saveEvent(request, type_event_id, proyect_id, description):
                             user=request.user)
     
 
-
 @login_required
 def saveItem(request):
 
@@ -697,7 +772,8 @@ def saveItem(request):
         subcategory_id = request.POST.get('subcategory')
         place_id = request.POST.get('place')
         qty = request.POST.get('qty')
-        notes = request.POST.get('notes')        
+        notes = request.POST.get('notes')
+        date_proposed = request.POST.get('date_proposed')
             
         try:
             
@@ -707,6 +783,7 @@ def saveItem(request):
                                             place = Place.objects.get(id=place_id),
                                             qty = qty,
                                             notes = notes,
+                                            date_proposed = date_proposed,
                                             creation_user = request.user,
                                             modification_user = request.user)
             item_id = item_save.id
@@ -745,13 +822,29 @@ def saveItem(request):
                     try:
 
                         file = request.FILES.get(key)
+                        notes = ''
+                        try:
+
+                            id = int(key[len(prefijo):])
+                            notes = data.get('txtImgNotes_' + str(id))
+
+                            type_num = 1
+                            type_str = data.get('chkImgType_' + str(id))
+
+                            if type_str == 'on':
+                                type_num = 2
+
+
+                        except:                            
+                            messages.error(request, 'Text images not found!')
 
                         if validar_imagen_por_tipo(file):
 
                             Item_Images.objects.create( item = Item.objects.get(id=item_id),
                                                         file = file,
                                                         name = value.name,
-                                                        notes = '')
+                                                        type = type_num,
+                                                        notes = notes)
 
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
@@ -787,7 +880,45 @@ def deleteItem(request):
     return JsonResponse({'result': status})
 
 
+@login_required
+def deleteProyect(request):
+    proyect_id = request.POST.get('i') 
+    status = 0
 
+    try:
+        proyect = Proyect.objects.get(id = proyect_id)
+        proyect.delete()
+        status = 1
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
+
+
+
+##################################
+## Funciones para actualizar datos ###
+##################################
+
+@login_required
+def updateStatus(request):
+    proyect_id = request.POST.get('i') 
+    status = 0
+
+    try:
+        proyect = Proyect.objects.get(id = proyect_id)
+        proyect.state = State.objects.get(id = (proyect.state.id + 1))
+        proyect.save()
+        
+        status = 1
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
 
 
 ##################################
@@ -796,6 +927,7 @@ def deleteItem(request):
 
 
 def validar_imagen_por_tipo(value):
+
 
     isfileValidate = False
 
@@ -806,7 +938,7 @@ def validar_imagen_por_tipo(value):
         tipo_imagen = imagen.format.lower()
         
         # Tipos permitidos
-        tipos_permitidos = ['jpeg', 'png', 'gif', 'jpg', 'bmp']
+        tipos_permitidos = ['jpeg', 'png', 'gif', 'jpg', 'bmp','mpo']
 
         if tipo_imagen in tipos_permitidos:            
             isfileValidate = True
@@ -816,3 +948,21 @@ def validar_imagen_por_tipo(value):
         raise ValidationError("El archivo no es una imagen válida.")
     
     return isfileValidate
+
+
+##################################
+## Funciones varias ###
+##################################
+
+
+def retornarAdvance(value):
+
+    adv = 0
+
+    if(value == 1):
+        adv = 10
+
+    elif(value == 2):
+        adv = 25
+
+    return adv

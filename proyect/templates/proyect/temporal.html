@@ -1,50 +1,167 @@
-<form id="fileupload" action="../../../media/cache/" method="POST" enctype="multipart/form-data">
-    <!-- Redirect browsers with JavaScript disabled to the origin page -->
-    <!-- <noscript><input type="hidden" name="redirect" value="../media/"/></noscript> -->
-    <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
-    <div class="row fileupload-buttonbar">
-        <div class="col-lg-7">
-            <!-- The fileinput-button span is used to style the file input field as button -->
-            <span class="btn btn-success fileinput-button">
-            <i class="glyphicon glyphicon-plus"></i>
-            <span>Add files...</span>
-            <input type="file" name="files[]" multiple />
-            </span>
-            
-            <button type="submit" class="btn btn-primary start">
-            <i class="glyphicon glyphicon-upload"></i>
-            <span>Start upload</span>
-            </button>
-            
-            <button type="reset" class="btn btn-warning cancel">
-            <i class="glyphicon glyphicon-ban-circle"></i>
-            <span>Cancel upload</span>
-            </button>
-            
-            <button type="button" class="btn btn-danger delete">
-            <i class="glyphicon glyphicon-trash"></i>
-            <span>Delete selected</span>
-            </button>
-            
-            <input type="checkbox" class="toggle" />
-            <!-- The global file processing state -->
-            <span class="fileupload-process"></span>
-        </div>
-        <!-- The global progress state -->
-        <div class="col-lg-5 fileupload-progress fade">
-            <!-- The global progress bar -->
-            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
-            </div>
-            <!-- The extended global progress state -->
-            <div class="progress-extended">&nbsp;</div>
-        </div>
+<section class="grid-gallery-section">
+    <!-- Gallery Filters -->
+    <h4>Images</h4>
+
+    <div id="gallery-filters" class="gallery-button-group">
+        <button class="filter-button is-checked" data-filter="*">ALL WORKS</button>
+          <button class="filter-button" data-filter=".images">IMAGES</button>
+          <button class="filter-button" data-filter=".material">MATERIAL</button>														  
     </div>
-        <!-- The table listing the files available for upload/download -->
-    <table role="presentation" class="table table-striped">
-        <tbody class="files">
+    <!-- Gallery Filters -->
+  
+      <div class="grid-gallery" style="position: relative; height: 3136.13px;">
+    
+        <div class="gallery-grid-sizer"></div>
+        
+        <!-- Single gallery item -->														  
+        <div class="gallery-grid-item images">
+            <div class="gallery-image-area">
+                <img src="/media/images/2024/12/28/cogines.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">Image</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2024/12/28/cogines.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>												  
+        
+        <!-- Single gallery item -->
+        <div class="gallery-grid-item material">
+            <div class="gallery-image-area">
+                <img src="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">Material</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
 
+        <!-- Single gallery item -->														  
+        <div class="gallery-grid-item images">
+            <div class="gallery-image-area">
+                <img src="/media/images/2024/12/28/cogines.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2024/12/28/cogines.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>												  
+        
+        <!-- Single gallery item -->
+        <div class="gallery-grid-item material">
+            <div class="gallery-image-area">
+                <img src="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        </tbody>
-    </table>
-</form>
+        <!-- Single gallery item -->														  
+        <div class="gallery-grid-item images">
+            <div class="gallery-image-area">
+                <img src="/media/images/2024/12/28/cogines.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2024/12/28/cogines.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>												  
+        
+        <!-- Single gallery item -->
+        <div class="gallery-grid-item material">
+            <div class="gallery-image-area">
+                <img src="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single gallery item -->														  
+        <div class="gallery-grid-item images">
+            <div class="gallery-image-area">
+                <img src="/media/images/2024/12/28/cogines.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2024/12/28/cogines.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>												  
+        
+        <!-- Single gallery item -->
+        <div class="gallery-grid-item material">
+            <div class="gallery-image-area">
+                <img src="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single gallery item -->														  
+        <div class="gallery-grid-item images">
+            <div class="gallery-image-area">
+                <img src="/media/images/2024/12/28/cogines.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2024/12/28/cogines.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>												  
+        
+        <!-- Single gallery item -->
+        <div class="gallery-grid-item material">
+            <div class="gallery-image-area">
+                <img src="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" class="grid-thumbnail-image" alt="">
+                <div class="gallery-overly">
+                    <div class="image-details">
+                        <span class="image-title">What an image!</span>
+                    </div>
+                    <a class="grid-image-zoom" href="/media/images/2025/1/28/387097_1_6303ba4473279_-_copia.jpg" data-fancybox-group="grid-gallery">	
+                        <div class="gallery-zoom-icon"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+                                                                                            
+  </div>
+</section>
