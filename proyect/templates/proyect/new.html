@@ -176,6 +176,16 @@
 
 										</div>
 
+										<div class="row mb-8">
+
+											<!--begin::Col-->
+											<div class="col-xl-2 fv-row">
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Search address on Google Maps</a>
+											</div>
+											<!--end::Col-->	
+
+										</div>
+
 										<!--begin::Direccion-->
 										<div class="row mb-8">
 											<!--begin::Col-->
@@ -188,11 +198,7 @@
 												<input id="inputAddress" type="text" class="form-control form-control-solid" name="address" value="" maxlength="2000" />												
 											</div>
 											<!--end::Col-->	
-											<!--begin::Col-->
-											<div class="col-xl-2 fv-row">
-												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Use Google Maps</a>
-											</div>
-											<!--end::Col-->	
+											
 											
 										</div>																			
 										
@@ -571,6 +577,14 @@
 												<input id="zip_code" type="text" placeholder="" class="form-control form-control-solid" readonly>
 											</div>
 										</div>
+										<!--begin::Modal footer-->
+										<div class="modal-footer d-flex justify-content-end">
+											<a href="#" class="btn btn-active-light me-5" data-bs-dismiss="modal">Cancel</a>
+											<button type="button" id="copy" class="btn btn-primary" data-bs-dismiss="modal">Copy</button>
+										</div>
+										<!--end::Modal footer-->
+
+
 										<div id="map" class="row mb-6"></div>
 										<div id="street-view" style="display:none" class="row mb-6"></div>
 
@@ -706,12 +720,7 @@
 										
 									</div>
 									<!--end::Modal body-->
-									<!--begin::Modal footer-->
-									<div class="modal-footer d-flex justify-content-end">
-										<a href="#" class="btn btn-active-light me-5" data-bs-dismiss="modal">Cancel</a>
-										<button type="button" id="copy" class="btn btn-primary" data-bs-dismiss="modal">Copy</button>
-									</div>
-									<!--end::Modal footer-->
+									
 								</div>
 								<!--end::Modal content-->
 							</div>

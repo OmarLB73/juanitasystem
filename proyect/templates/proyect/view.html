@@ -117,13 +117,13 @@
 												<div class="mr-3">
 													<!--begin::Name-->
 													<h3>{{ customer.address}}
-														{% if customer.apartment != '' %}
+														{% if customer.apartment != None and customer.apartment != "" %}
 														, {{ customer.apartment }} {% endif %}
-														{% if customer.city != '' %}
+														{% if customer.city != None and customer.city != "" %}
 														, {{ customer.city }} {% endif %}
-														{% if customer.state != '' %}
+														{% if customer.state != None and customer.state != "" %}
 														, {{ customer.state }} {% endif %}
-														{% if customer.zipcode != '' %}
+														{% if customer.zipcode != None and customer.zipcode != "" %}
 														, {{ customer.zipcode }} {% endif %}
 													</h3>
 													<!--end::Name-->
@@ -140,7 +140,19 @@
 															<!--end::Svg Icon-->
 															{{ customer.name}}
 														</a>
-														
+																																										
+														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary me-5 mb-2">
+															<!--begin::Svg Icon | path: icons/duotune/general/gen018.svg-->
+															<span class="svg-icon svg-icon-4 me-1">
+																<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																	<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black"></path>
+																	<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black"></path>
+																</svg>
+															</span>
+															<!--end::Svg Icon-->
+															{{ customer.phone}}
+														</a>
+
 														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary mb-2">
 															<!--begin::Svg Icon | path: icons/duotune/communication/com011.svg-->
 															<span class="svg-icon svg-icon-4 me-1">
@@ -153,24 +165,12 @@
 															{{ customer.email}}
 														</a>
 														
-														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary me-5 mb-2">
-															<!--begin::Svg Icon | path: icons/duotune/general/gen018.svg-->
-															<span class="svg-icon svg-icon-4 me-1">
-																<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																	<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black"></path>
-																	<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black"></path>
-																</svg>
-															</span>
-															<!--end::Svg Icon-->
-															{{ customer.phone}}
-														</a>
-														
 													</div>
 													<!--end::Contacts-->
 												</div>
 												<div class="my-lg-0 my-1">
 													{% if state_new != '' %}
-													<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-info font-weight-bolder text-uppercase">{{ state_new }}</a>
+													<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-info font-weight-bolder text-uppercase">SAVE</a>
 
 													{% endif %}
 												</div>
@@ -178,20 +178,74 @@
 											<!--end: Title-->
 											<!--begin: Content-->
 											<div class="d-flex align-items-center flex-wrap justify-content-between">
-												<div
-													class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
-													{{ customer.description}}</div>
+												<div class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
+													
+													{% if customer.description != '' %}
+													<span class="svg-icon mr-3">
+														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+															</g>
+														</svg>
+														<!--end::Svg Icon-->
+													</span>
+													{{ customer.description}} <br/> {% endif %}
+													{% if customer.notes != None %}
+													<span class="svg-icon mr-3">
+														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+															</g>
+														</svg>
+														<!--end::Svg Icon-->
+													</span>
+													{{ customer.notes}} <br/> {% endif %}
+													{% if proyect.description != None %}
+													<span class="svg-icon mr-3">
+														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+															</g>
+														</svg>
+														<!--end::Svg Icon-->
+													</span>
+													{{ proyect.description}} {% endif %}
+
+
+												</div>
 
 												<div
 													class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
 													<div>
-														<div class="font-weight-bold mb-2">Create Date</div>
-														<span
-															class="btn btn-sm btn-text btn-light-primary text-uppercase font-weight-bold">{{proyect.creation_date}}</span>
-													</div>
-													<div class="">
-														<!-- <div class="font-weight-bold mb-2">Due Date</div>
-														<span class="btn btn-sm btn-text btn-light-danger text-uppercase font-weight-bold">23 Dec, 2024</span> -->
+														<div class="font-weight-bold mb-2"><b>State</b></div>														
+															{% if proyect.state_id == 1 %}
+															<span class="btn btn-sm btn-text btn-light-success text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 2 %}
+															<span class="btn btn-sm btn-text btn-light-primary text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 3 %}
+															<span class="btn btn-sm btn-text btn-light-warning text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 4 %}
+															<span class="btn btn-sm btn-text btn-light-success text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 5 %}
+															<span class="btn btn-sm btn-text btn-light-info text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 6 %}
+															<span class="btn btn-sm btn-text btn-light-light text-uppercase font-weight-bold">
+															{% elif proyect.state_id == 7 %}
+															<span class="btn btn-sm btn-text btn-light-danger text-uppercase font-weight-bold">
+															{% else %}
+															<span class="btn btn-sm btn-text btn-light-white text-uppercase font-weight-bold">
+															{% endif %}
+															
+															{{proyect.state.name}}</span>
 													</div>
 												</div>
 
@@ -199,13 +253,13 @@
 
 													<div
 														class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
-														<span class="font-weight-bold"><b>State</b></span>
+														<span class="font-weight-bold"><b>Advance</b></span>
 														<div class="progress progress-xs mt-2 mb-2">
 															<div class="progress-bar bg-success" role="progressbar"
 																style="width: 25%" aria-valuenow="50" aria-valuemin="0"
 																aria-valuemax="100"></div>
 														</div>
-														<span class="font-weight-bolder text-dark">{{ proyect.state.name}}</span>
+														<!-- <span class="font-weight-bolder text-dark">{{ proyect.state.name}}</span> -->
 													</div>
 												</div>
 											</div>
@@ -228,89 +282,83 @@
 									<nav>
 										<div class="nav nav-tabs" id="nav-tab" role="tablist">
 
-											<button class="nav-link active" id="nav-newItem-tab" data-bs-toggle="tab"
-												data-bs-target="#nav-newItem" type="button" role="tab" aria-controls="nav-newItem" aria-selected="true">
+											<button class="nav-link active" id="nav-newItem-tab" data-bs-toggle="tab" data-bs-target="#nav-newItem" type="button" role="tab" aria-controls="nav-newItem" aria-selected="true" {% if proyect.state_id != 1 %} style="display:none" {% endif %}>
 												<span class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg"
-															xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-															height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none"
-																fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24" />
-																<path
-																	d="M11,20 L11,17 C11,16.4477153 11.4477153,16 12,16 C12.5522847,16 13,16.4477153 13,17 L13,20 L15.5,20 C15.7761424,20 16,20.2238576 16,20.5 C16,20.7761424 15.7761424,21 15.5,21 L8.5,21 C8.22385763,21 8,20.7761424 8,20.5 C8,20.2238576 8.22385763,20 8.5,20 L11,20 Z"
-																	fill="#000000" opacity="0.3" />
-																<path
-																	d="M3,5 L21,5 C21.5522847,5 22,5.44771525 22,6 L22,16 C22,16.5522847 21.5522847,17 21,17 L3,17 C2.44771525,17 2,16.5522847 2,16 L2,6 C2,5.44771525 2.44771525,5 3,5 Z M4.5,8 C4.22385763,8 4,8.22385763 4,8.5 C4,8.77614237 4.22385763,9 4.5,9 L13.5,9 C13.7761424,9 14,8.77614237 14,8.5 C14,8.22385763 13.7761424,8 13.5,8 L4.5,8 Z M4.5,10 C4.22385763,10 4,10.2238576 4,10.5 C4,10.7761424 4.22385763,11 4.5,11 L7.5,11 C7.77614237,11 8,10.7761424 8,10.5 C8,10.2238576 7.77614237,10 7.5,10 L4.5,10 Z"
-																	fill="#000000" />
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M12.4644661,14.5355339 L9.46446609,14.5355339 C8.91218134,14.5355339 8.46446609,14.9832492 8.46446609,15.5355339 C8.46446609,16.0878187 8.91218134,16.5355339 9.46446609,16.5355339 L12.4644661,16.5355339 L12.4644661,17.5355339 C12.4644661,18.6401034 11.5690356,19.5355339 10.4644661,19.5355339 L6.46446609,19.5355339 C5.35989659,19.5355339 4.46446609,18.6401034 4.46446609,17.5355339 L4.46446609,13.5355339 C4.46446609,12.4309644 5.35989659,11.5355339 6.46446609,11.5355339 L10.4644661,11.5355339 C11.5690356,11.5355339 12.4644661,12.4309644 12.4644661,13.5355339 L12.4644661,14.5355339 Z" fill="#000000" opacity="0.3" transform="translate(8.464466, 15.535534) rotate(-45.000000) translate(-8.464466, -15.535534) "/>
+																<path d="M11.5355339,9.46446609 L14.5355339,9.46446609 C15.0878187,9.46446609 15.5355339,9.01675084 15.5355339,8.46446609 C15.5355339,7.91218134 15.0878187,7.46446609 14.5355339,7.46446609 L11.5355339,7.46446609 L11.5355339,6.46446609 C11.5355339,5.35989659 12.4309644,4.46446609 13.5355339,4.46446609 L17.5355339,4.46446609 C18.6401034,4.46446609 19.5355339,5.35989659 19.5355339,6.46446609 L19.5355339,10.4644661 C19.5355339,11.5690356 18.6401034,12.4644661 17.5355339,12.4644661 L13.5355339,12.4644661 C12.4309644,12.4644661 11.5355339,11.5690356 11.5355339,10.4644661 L11.5355339,9.46446609 Z" fill="#000000" transform="translate(15.535534, 8.464466) rotate(-45.000000) translate(-15.535534, -8.464466) "/>
 															</g>
 														</svg>
 														<!--end::Svg Icon-->
 													</span>
 												</span>
-												<span class="nav-text font-weight-bold">Add item</span></button>
+												<span class="nav-text font-weight-bold">Add item</span>
+											</button>
 
-											<button class="nav-link" id="nav-items-tab" data-bs-toggle="tab"
-												data-bs-target="#nav-items" type="button" role="tab" aria-controls="nav-items" aria-selected="true" onclick="showImgs()">
+											<button class="nav-link" id="nav-items-tab" data-bs-toggle="tab" data-bs-target="#nav-items" type="button" role="tab" aria-controls="nav-items" aria-selected="true" onclick="showImgs()">
 												<span class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg"
-															xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-															height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none"
-																fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24" />
-																<path
-																	d="M11,20 L11,17 C11,16.4477153 11.4477153,16 12,16 C12.5522847,16 13,16.4477153 13,17 L13,20 L15.5,20 C15.7761424,20 16,20.2238576 16,20.5 C16,20.7761424 15.7761424,21 15.5,21 L8.5,21 C8.22385763,21 8,20.7761424 8,20.5 C8,20.2238576 8.22385763,20 8.5,20 L11,20 Z"
-																	fill="#000000" opacity="0.3" />
-																<path
-																	d="M3,5 L21,5 C21.5522847,5 22,5.44771525 22,6 L22,16 C22,16.5522847 21.5522847,17 21,17 L3,17 C2.44771525,17 2,16.5522847 2,16 L2,6 C2,5.44771525 2.44771525,5 3,5 Z M4.5,8 C4.22385763,8 4,8.22385763 4,8.5 C4,8.77614237 4.22385763,9 4.5,9 L13.5,9 C13.7761424,9 14,8.77614237 14,8.5 C14,8.22385763 13.7761424,8 13.5,8 L4.5,8 Z M4.5,10 C4.22385763,10 4,10.2238576 4,10.5 C4,10.7761424 4.22385763,11 4.5,11 L7.5,11 C7.77614237,11 8,10.7761424 8,10.5 C8,10.2238576 7.77614237,10 7.5,10 L4.5,10 Z"
-																	fill="#000000" />
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M10.5,5 L19.5,5 C20.3284271,5 21,5.67157288 21,6.5 C21,7.32842712 20.3284271,8 19.5,8 L10.5,8 C9.67157288,8 9,7.32842712 9,6.5 C9,5.67157288 9.67157288,5 10.5,5 Z M10.5,10 L19.5,10 C20.3284271,10 21,10.6715729 21,11.5 C21,12.3284271 20.3284271,13 19.5,13 L10.5,13 C9.67157288,13 9,12.3284271 9,11.5 C9,10.6715729 9.67157288,10 10.5,10 Z M10.5,15 L19.5,15 C20.3284271,15 21,15.6715729 21,16.5 C21,17.3284271 20.3284271,18 19.5,18 L10.5,18 C9.67157288,18 9,17.3284271 9,16.5 C9,15.6715729 9.67157288,15 10.5,15 Z" fill="#000000"/>
+																<path d="M5.5,8 C4.67157288,8 4,7.32842712 4,6.5 C4,5.67157288 4.67157288,5 5.5,5 C6.32842712,5 7,5.67157288 7,6.5 C7,7.32842712 6.32842712,8 5.5,8 Z M5.5,13 C4.67157288,13 4,12.3284271 4,11.5 C4,10.6715729 4.67157288,10 5.5,10 C6.32842712,10 7,10.6715729 7,11.5 C7,12.3284271 6.32842712,13 5.5,13 Z M5.5,18 C4.67157288,18 4,17.3284271 4,16.5 C4,15.6715729 4.67157288,15 5.5,15 C6.32842712,15 7,15.6715729 7,16.5 C7,17.3284271 6.32842712,18 5.5,18 Z" fill="#000000" opacity="0.3"/>
 															</g>
 														</svg>
 														<!--end::Svg Icon-->
 													</span>
 												</span>
-												<span class="nav-text font-weight-bold">Items</span></button>
+												<span class="nav-text font-weight-bold">Items</span>
+											</button>
+
+											<button class="nav-link" id="nav-decorators-tab" data-bs-toggle="tab" data-bs-target="#nav-decorators" type="button" role="tab" aria-controls="nav-decorators" aria-selected="true">
+												<span class="nav-icon mr-2">
+													<span class="svg-icon mr-3">
+														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<polygon points="0 0 24 0 24 24 0 24"/>
+																<path d="M12,11 C9.790861,11 8,9.209139 8,7 C8,4.790861 9.790861,3 12,3 C14.209139,3 16,4.790861 16,7 C16,9.209139 14.209139,11 12,11 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+																<path d="M3.00065168,20.1992055 C3.38825852,15.4265159 7.26191235,13 11.9833413,13 C16.7712164,13 20.7048837,15.2931929 20.9979143,20.2 C21.0095879,20.3954741 20.9979143,21 20.2466999,21 C16.541124,21 11.0347247,21 3.72750223,21 C3.47671215,21 2.97953825,20.45918 3.00065168,20.1992055 Z" fill="#000000" fill-rule="nonzero"/>
+															</g>
+														</svg>
+														<!--end::Svg Icon-->
+													</span>
+												</span>
+												<span class="nav-text font-weight-bold">Decorators</span>
+											</button>
 											
-											<button class="nav-link" id="nav-notes-tab" data-bs-toggle="tab"
-												data-bs-target="#nav-notes" type="button" role="tab"
-												aria-controls="nav-notes" aria-selected="false"><span
-													class="nav-icon mr-2">
+											<button class="nav-link" id="nav-notes-tab" data-bs-toggle="tab" data-bs-target="#nav-notes" type="button" role="tab" aria-controls="nav-notes" aria-selected="false"><span class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/General/Notification2.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg"
-															xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-															height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none"
-																fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24" />
-																<path
-																	d="M13.2070325,4 C13.0721672,4.47683179 13,4.97998812 13,5.5 C13,8.53756612 15.4624339,11 18.5,11 C19.0200119,11 19.5231682,10.9278328 20,10.7929675 L20,17 C20,18.6568542 18.6568542,20 17,20 L7,20 C5.34314575,20 4,18.6568542 4,17 L4,7 C4,5.34314575 5.34314575,4 7,4 L13.2070325,4 Z"
-																	fill="#000000" />
-																<circle fill="#000000" opacity="0.3" cx="18.5" cy="5.5"
-																	r="2.5" />
+														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1"> 
+															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																<rect x="0" y="0" width="24" height="24"/>
+																<path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "/>
+																<rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"/>
 															</g>
 														</svg>
 														<!--end::Svg Icon-->
 													</span>
 												</span>
-												<span class="nav-text font-weight-bold">Notes</span></button>
+												<span class="nav-text font-weight-bold">Notes</span>
+											</button>											
+
 										</div>
 									</nav>
 									<div class="card-body">
 										<div class="tab-content" id="nav-tabContent">
-											<div class="tab-pane active" id="nav-newItem" role="tabpanel" aria-labelledby="nav-newItem-tab">
-
-												
-												
+											<div {% if proyect.state_id != 1 %} class="tab-pane fade" {% else %} class="tab-pane active" {% endif %} id="nav-newItem" role="tabpanel" aria-labelledby="nav-newItem-tab" {% if proyect.state_id != 1 %} style="display:none" {% endif %}>
+																								
 												<form id="formItem" class="form" method="POST" enctype="multipart/form-data">
 													<div class=""> <!--  class="card-body" -->
 														
-														<div class="card-title fs-4 fw-bolder">Item:</div>
+														<div class="card-title fs-6 fw-bolder">Item:</div>
 									
 														<!--begin::Row-->
 														<div class="row">
@@ -528,9 +576,11 @@
 																																											 
 											</div>
 
-											<div class="tab-pane fade" id="nav-items" role="tabpanel" aria-labelledby="nav-items-tab">
+											<div {% if proyect.state_id != 1 %} class="tab-pane active" {% else %} class="tab-pane fade" {% endif %} id="nav-items" role="tabpanel">
 
 												<div>
+
+													<div class="card-title fs-6 fw-bolder">Items list:</div>
 
 													<div id="messageSave">
 
@@ -543,8 +593,22 @@
 												</div>
 
 											</div>
+
+											<div class="tab-pane fade" id="nav-decorators" role="tabpanel" >
+
+												<div>
+													<div class="card-title fs-6 fw-bolder">Decorators:</div>
+													{{ decoratorsHTML|safe }}
+
+													<br/>
+
+													<div class="card-title fs-6 fw-bolder">Ascociates:</div>
+													{{ ascociatesHTML|safe }}
+												</div>
+
+											</div>
 											
-											<div class="tab-pane fade" id="nav-notes" role="tabpanel" aria-labelledby="nav-notes-tab">
+											<div class="tab-pane fade" id="nav-notes" role="tabpanel" >
 
 												<div>
 													<div class="row mb-8">
@@ -1050,6 +1114,7 @@
 
 
 			function showImgs(){
+							
 				$('.showImg').each(function() {					
 					$(this).click();
 				});
@@ -1059,9 +1124,10 @@
 			function state(i){
 
 				var state = document.querySelector('#aState').textContent;
+				var state = "next";
 				Swal.fire({
 					title: 'Are you sure?',
-					text: 'Do you want to advance to "' + state + '" status?',
+					text: 'Do you want to advance to ' + state + ' status?',
 					icon: 'warning',
 					showCancelButton: true,  // Muestra el botón de cancelación
 					confirmButtonText: 'Yes',
@@ -1112,7 +1178,6 @@
 					}
 				});
 				}
-
 
 		</script>
 

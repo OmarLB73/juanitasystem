@@ -200,6 +200,8 @@ def proyect_view(request, proyect_id):
     
     proyect = Proyect.objects.get(id = proyect_id) #obtiene solo un resultado
     customer = proyect.customer
+    decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1)
+    ascociates = Decorator.objects.filter(proyects = proyect, is_supervisor = 0)
     category = Category.objects.all().order_by('name')    
     place = Place.objects.all().order_by('name')
 
@@ -223,6 +225,11 @@ def proyect_view(request, proyect_id):
 
     itemsHtml = funct_data_items(proyect_id)
     advance = retornarAdvance(proyect.state.id)
+
+    decoratorsHTML = funct_table_decorators(decorators)
+    ascociatesHTML = funct_table_decorators(ascociates)
+
+
                         
     return render(request, 'proyect/view.html',{'proyect': proyect,
                                                 'customer': customer,
@@ -232,7 +239,9 @@ def proyect_view(request, proyect_id):
                                                 'places': place,
                                                 'itemsHtml': itemsHtml,
                                                 'state_new': state_new_name,
-                                                'advance':advance})  
+                                                'advance':advance,
+                                                'decoratorsHTML': decoratorsHTML,
+                                                'ascociatesHTML': ascociatesHTML,})  
 
 @login_required
 def grafics_view(request):
@@ -290,36 +299,11 @@ def getDataDecorator(request):
     selected_values = selected_values_str.split(',')
     selected_values = [int(id_value) for id_value in selected_values]
      
-    print("Valores recibidos: ", selected_values)
+    # print("Valores recibidos: ", selected_values)
 
     decorators = Decorator.objects.filter(id__in =selected_values)    
         
-    # Creamos una lista con los datos de cada proyecto
-    decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-6 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
-    decoratorsHTML += '<th title="Field #1">Name</th>'
-    decoratorsHTML += '<th title="Field #2">Email</th>'
-    decoratorsHTML += '<th title="Field #3">Phone</th>'
-    decoratorsHTML += '<th title="Field #4">Address</th>'
-    decoratorsHTML += '<th title="Field #5">Apartment</th>'
-    decoratorsHTML += '<th title="Field #6">City</th>'
-    decoratorsHTML += '<th title="Field #7">State</th>'
-    decoratorsHTML += '<th title="Field #8">Zipcode</th>'
-    
-    decoratorsHTML += '</tr></thead><tbody>'
-
-    for decorator in decorators:  
-        decoratorsHTML += '<tr>'
-        decoratorsHTML += '<td>' + decorator.name + '</td>'
-        decoratorsHTML += '<td>' + decorator.email + '</td>'
-        decoratorsHTML += '<td>' + decorator.phone + '</td>'
-        decoratorsHTML += '<td>' + decorator.address + '</td>'
-        decoratorsHTML += '<td>' + decorator.apartment + '</td>'
-        decoratorsHTML += '<td>' + decorator.city + '</td>'
-        decoratorsHTML += '<td>' + decorator.state + '</td>'
-        decoratorsHTML += '<td>' + decorator.zipcode + '</td>'        
-        decoratorsHTML += '</tr>'
-    
-    decoratorsHTML += '</tbody></table>'
+    decoratorsHTML = funct_table_decorators(decorators)
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'result': decoratorsHTML})
@@ -681,11 +665,11 @@ def funct_data_items(proyect_id):
             
             itemsHTML += '<section class="grid-gallery-section">'
             
-            itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
-            itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
-            itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
-            itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
-            itemsHTML += '</div>'
+            # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
+            # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
+            # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
+            # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
+            # itemsHTML += '</div>'
             
             itemsHTML += '<div class="grid-gallery">'
             itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
@@ -702,7 +686,7 @@ def funct_data_items(proyect_id):
                     type_imp = 'Material'
 
                 itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                itemsHTML += '<div class="gallery-image-area">'
+                itemsHTML += '<div class="gallery-image-area" style="width:80%">'
                 itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
                 itemsHTML += '<div class="gallery-overly">'
                 
@@ -740,8 +724,6 @@ def funct_data_items(proyect_id):
         messages.error('Server error. Please contact to administrator!')
         
     return itemsHTML
-
-
 
 
 ###################################
@@ -966,3 +948,40 @@ def retornarAdvance(value):
         adv = 25
 
     return adv
+
+
+def funct_table_decorators(decorators):
+    
+    # Creamos una lista con los datos de cada proyecto
+
+    decoratorsHTML = ''
+
+    if len(decorators) > 0:
+
+        decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
+        decoratorsHTML += '<th title="Field #1">Name</th>'
+        decoratorsHTML += '<th title="Field #2">Email</th>'
+        decoratorsHTML += '<th title="Field #3">Phone</th>'
+        decoratorsHTML += '<th title="Field #4">Address</th>'
+        decoratorsHTML += '<th title="Field #5">Apt-ste-floor</th>'
+        decoratorsHTML += '<th title="Field #6">City</th>'
+        decoratorsHTML += '<th title="Field #7">State</th>'
+        decoratorsHTML += '<th title="Field #8">Zipcode</th>'
+        
+        decoratorsHTML += '</tr></thead><tbody>'
+
+        for decorator in decorators:  
+            decoratorsHTML += '<tr>'
+            decoratorsHTML += '<td class="text-start fs-7">' + decorator.name + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.email + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.phone + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.address + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.apartment + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.city + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.state + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.zipcode + '</td>'        
+            decoratorsHTML += '</tr>'
+        
+        decoratorsHTML += '</tbody></table>'
+
+    return decoratorsHTML
