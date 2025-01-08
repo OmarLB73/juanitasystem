@@ -199,16 +199,15 @@ def proyect_new(request):
 def proyect_view(request, proyect_id):
     
     proyect = Proyect.objects.get(id = proyect_id) #obtiene solo un resultado
-    customer = proyect.customer
-    decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1)
-    ascociates = Decorator.objects.filter(proyects = proyect, is_supervisor = 0)
-    category = Category.objects.all().order_by('name')    
+    customer = proyect.customer    
+    category = Category.objects.all().order_by('order','name')
     place = Place.objects.all().order_by('name')
 
     state_new_name = ''
         
     try:
-        decorators = Decorator.objects.filter(proyects = proyect).order_by('name')
+        decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
+        ascociates = Decorator.objects.filter(proyects = proyect, is_supervisor = 2).order_by('name')
         events = Event.objects.filter(proyect_id = proyect_id).order_by('creation_date')
         state_new = State.objects.get(id = (proyect.state.id + 1))
 
@@ -216,6 +215,7 @@ def proyect_view(request, proyect_id):
 
     except Decorator.DoesNotExist:
         decorators = None
+        ascociates = None
 
     except Event.DoesNotExist:
         events = None
@@ -242,6 +242,7 @@ def proyect_view(request, proyect_id):
                                                 'advance':advance,
                                                 'decoratorsHTML': decoratorsHTML,
                                                 'ascociatesHTML': ascociatesHTML,})  
+
 
 @login_required
 def grafics_view(request):
@@ -401,11 +402,11 @@ def selectAscociate(request):
 @login_required
 def selectSubcategory(request):
     #Consulta las subcategorias desde la base de datos
-    selected_value = request.POST.get('categorySelect')    
+    selected_value = request.POST.get('categorySelect')
     subcategoryHTML = ''
 
     try:
-        subcategories = Subcategory.objects.filter(category = Category.objects.get(id = selected_value)).order_by('name')
+        subcategories = Subcategory.objects.filter(category = Category.objects.get(id = selected_value)).order_by('order','name')
        
         for subcategory in subcategories:          
             subcategoryHTML += '<option value=' + str(subcategory.id) + '>' + subcategory.name + '</option>'
@@ -425,7 +426,7 @@ def selectAttibutes(request):
 
     try:
 
-        attributes = Category_Attribute.objects.filter(category = Category.objects.get(id = selected_value))
+        attributes = Category_Attribute.objects.filter(category = Category.objects.get(id = selected_value)).order_by('order','attribute')
         
         for atribute in attributes:          
             attributeHTML += '<div class="row mb-2">'
@@ -586,7 +587,9 @@ def funct_data_items(proyect_id):
 
     try:
 
-        items = Item.objects.filter(proyect = Proyect.objects.get(id=proyect_id)).order_by('id')
+        proyect = Proyect.objects.get(id=proyect_id)
+
+        items = Item.objects.filter(proyect = proyect).order_by('id')
         itemN = 0
         
         for item in items:
@@ -643,23 +646,38 @@ def funct_data_items(proyect_id):
 
             ## Celda 3 (acciones) ##
             itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="row">'
             itemsHTML += '<div class="col-xl-12">'
-            
-            itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
-            itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
-            itemsHTML += '<a href="javascript:del(' + str(item.id) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-            itemsHTML += '</div>'        
 
+            if proyect.state.id == 1:
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
+                itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+                itemsHTML += '<a href="javascript:del(' + str(item.id) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+                itemsHTML += '</div>'
+
+
+            if proyect.state.id == 2:
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
+                itemsHTML += '<div class="col-xl-11 fv-row text-end">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+                itemsHTML += '<textarea id="" name="" class="form-control form-control-solid h-80px" maxlength="2000"></textarea><br/>'
+                itemsHTML += '<input id="" type="file" name="" class="form-control form-control" required>'
+                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-4" id="submitItem">Save</button>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+            
             itemsHTML += '</div>'
-            itemsHTML += '</div>'
+            itemsHTML += '</div>'                        
             itemsHTML += '</div>'
             #############
 
 
 
             ## Celda 4 (imagenes) ##
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="col-lg-10" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
             

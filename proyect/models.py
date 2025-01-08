@@ -48,7 +48,7 @@ class Type(models.Model):
     #Esto sirve para el shell, retorna la estructura definida
 
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.name}'
     
 
 class Responsible(models.Model):
@@ -63,7 +63,7 @@ class Responsible(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name} - {self.email}'
+        return f'(ID:{self.id}) - {self.name} - {self.email}'
 
 
 class Customer(models.Model):
@@ -85,7 +85,7 @@ class Customer(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name} - {self.email}'
+        return f'(ID:{self.id}) - {self.name} - {self.email}'
     
 
 class State(models.Model):
@@ -98,7 +98,7 @@ class State(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.name}'
 
 
 class Proyect(models.Model):
@@ -116,26 +116,28 @@ class Proyect(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.customer.address} - {self.customer.name} - {self.date}'
+        return f'(ID:{self.id}) - {self.customer.address} - {self.customer.name} - {self.date}'
 
 
 class Category(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
+    order = models.IntegerField(default=1)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.CharField(max_length=50, default='admin')    
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
     modification_user = models.CharField(max_length=50, default='admin')
-    modification_date = models.DateTimeField(auto_now=True, null=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)    
 
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.order} - {self.name} '
     
 
 class Subcategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)   
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.CharField(max_length=50, default='admin')    
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
@@ -143,7 +145,7 @@ class Subcategory(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.category.name} - {self.order} - {self.name}'
     
 
 class Decorator(models.Model):
@@ -177,7 +179,7 @@ class Decorator(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name} - {self.email}'
+        return f'(ID:{self.id}) - {self.name} - {self.email}'
     
 
 class Event(models.Model):
@@ -199,35 +201,49 @@ class Place(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.name}'
     
+  
 
 class Attribute(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)        
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='attribute_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
     modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='attribute_modification_set')
     modification_date = models.DateTimeField(auto_now=True, null=True)
-
+   
     def __str__(self):
-        return f'{self.id} - {self.name}'
+        return f'(ID:{self.id}) - {self.name}'
 
+
+def get_file_path_img_att(instance, filename):
+    # Crear subcarpetas con el ID del objeto    
+    return os.path.join('attributes', filename)
 
 class Category_Attribute(models.Model):
     id = models.AutoField(primary_key=True)        
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
+    file = models.ImageField(upload_to=get_file_path_img_att, blank=True, null=True)  # Nuevo campo de imagen
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='category_attribute_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)    
     modification_user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='category_attribute_modification_set')
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
+    def save(self, *args, **kwargs):
+        # Si es la primera vez que se guarda el objeto, el ID aún no está disponible
+        if not self.id:
+            super().save(*args, **kwargs)  # Guarda primero para asignar el ID
+        else:
+            super().save(*args, **kwargs)  # Luego guarda con el ID correctamente asignado
+
     def __str__(self):
-        return f'{self.id} - {self.category.name} - {self.attribute.name}'
+        return f'(ID:{self.id}) - {self.category.name} - {self.order} - {self.attribute.name} - {self.file}'
 
 
 class Item(models.Model):
@@ -248,7 +264,7 @@ class Item(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.proyect.name} - {self.category.name} - {self.subcategory.name}'
+        return f'{self.id} - {self.proyect.id} - {self.category.name} - {self.subcategory.name}'
     
 
 class Item_Attribute(models.Model):
