@@ -23,6 +23,10 @@ EVENTOS = [
         (0, 'Other'),
         (1, 'Create event'),
         (2, 'Comment'),
+        (3, 'Create item'),
+        (4, 'Delete item'),
+        (5, 'Upload file/comment'),        
+        (6, 'Change state'),
     ]
 
 IMAGE_TYPE = [
@@ -109,6 +113,7 @@ class Proyect(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE)    
     date = models.CharField(max_length=50)
     description = models.CharField(max_length=2000, null=True)
+    code = models.CharField(max_length=50, null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     creation_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=0, related_name='proyect_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -146,7 +151,23 @@ class Subcategory(models.Model):
 
     def __str__(self):
         return f'(ID:{self.id}) - {self.category.name} - {self.order} - {self.name}'
-    
+
+
+class Group(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)   
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    creation_user = models.CharField(max_length=50, default='admin')    
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    modification_user = models.CharField(max_length=50, default='admin')
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f'(ID:{self.id}) - {self.category.name} - {self.subcategory.name} - {self.order} - {self.name}'
+
 
 class Decorator(models.Model):
     id = models.AutoField(primary_key=True)
@@ -185,7 +206,7 @@ class Decorator(models.Model):
 class Event(models.Model):
     id = models.AutoField(primary_key=True)
     type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
-    proyect_id  = models.IntegerField()
+    proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=2000, null=True)    
     user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='event_creation_set')
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -251,6 +272,7 @@ class Item(models.Model):
     proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     qty = models.TextField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
@@ -264,7 +286,7 @@ class Item(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.proyect.id} - {self.category.name} - {self.subcategory.name}'
+        return f'{self.id} - {self.proyect.id} - {self.category.name} - {self.subcategory.name} - {self.group.name}'
     
 
 class Item_Attribute(models.Model):
@@ -310,9 +332,6 @@ class Item_Images(models.Model):
     def __str__(self):
         return f'{self.id} - {self.item.id} - {self.name}'
     
-
-
-
 
 
 

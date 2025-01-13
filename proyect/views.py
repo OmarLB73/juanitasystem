@@ -13,13 +13,14 @@ from django.urls import reverse #evita doble envio de formulario
 from PIL import Image #Para validar el tipo de imagen
 from django.core.exceptions import ValidationError #Para manejar excepciones
 
+from django.utils import timezone #Para ver la hora correctamente.
 
 
 
 
 
 
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -107,23 +108,49 @@ def proyect_new(request):
             #         customer_save.save()
 
 
+        code = ""
+        if type_id == '1':
+            code = "&"
+        
+        if type_id == '2':
+            code = "#"
+
+
         #Se guarda los datos del cliente
         customer_id = 0
         try:
-            customer_save = Customer.objects.create(name=customer_name, 
-                                                    address=address,
-                                                    city=city,
-                                                    state=state,
-                                                    zipcode=zipcode,
-                                                    apartment=apartment,                                                    
-                                                    email=email,
-                                                    phone=phone,
-                                                    description=customer_description,
-                                                    notes=customer_notes,
-                                                    creation_user = request.user,
-                                                    modification_user = request.user
-                                                    )
+
+            #Se busca el cliente si existe (hasta ahora, solo por nombre)
+            customer = Customer.objects.filter(name=customer_name).first()
+
+            if customer == None:
+
+                customer_save = Customer.objects.create(name=customer_name, 
+                                                        address=address,
+                                                        city=city,
+                                                        state=state,
+                                                        zipcode=zipcode,
+                                                        apartment=apartment,                                                    
+                                                        email=email,
+                                                        phone=phone,
+                                                        description=customer_description,
+                                                        notes=customer_notes,
+                                                        creation_user = request.user,
+                                                        modification_user = request.user
+                                                        )
+                
+            
+            else:
+                customer_save = customer                
+
             customer_id = customer_save.id
+
+            #Iniciales del nombre, si es através de Cliente
+            if type_id == '1':
+                partes = customer_save.name.split()
+                code += ''.join([parte[0].upper() for parte in partes])
+
+
         except ValueError:
             messages.error(request, 'Server error. Please contact to administrator!')
             return render(request, 'proyect/new.html')
@@ -148,22 +175,31 @@ def proyect_new(request):
                                                         responsible=responsible,
                                                         state=State.objects.get(id=state_Id),
                                                         date=date, 
-                                                        description=proyect_description,
+                                                        description=proyect_description,                                                        
                                                         creation_user = request.user,
                                                         modification_user = request.user)
                 proyect_id = proyect_save.id
 
+                
 
                 for decorator_id in decorators_ids:
                     decorator = Decorator.objects.get(id = decorator_id)
-                    proyect = Proyect.objects.get(id = proyect_id)
-                    decorator.proyects.add(proyect)
+                    decorator.proyects.add(proyect_save)
+
+                    #Iniciales del nombre, si es através de Cliente
+                    if type_id == '2':
+                        partes = decorator.name.split()
+                        code += ''.join([parte[0].upper() for parte in partes])
 
                 for decorator_id in ascociate_ids:
                     decorator = Decorator.objects.get(id = decorator_id)
-                    proyect = Proyect.objects.get(id = proyect_id)
-                    decorator.proyects.add(proyect)
+                    decorator.proyects.add(proyect_save)
 
+
+                #Se actualiza el código, una vez que se obtiene el Id.                
+                code += f"_{proyect_id:03d}"
+                proyect_save.code =  code
+                proyect_save.save()
 
                 # Event.objects.create( type_event_id=1,                                        
                 #                         proyect_id=proyect_id, 
@@ -228,6 +264,8 @@ def proyect_view(request, proyect_id):
 
     decoratorsHTML = funct_table_decorators(decorators)
     ascociatesHTML = funct_table_decorators(ascociates)
+    notesHTML = funct_data_events(proyect_id)
+
 
 
                         
@@ -241,7 +279,8 @@ def proyect_view(request, proyect_id):
                                                 'state_new': state_new_name,
                                                 'advance':advance,
                                                 'decoratorsHTML': decoratorsHTML,
-                                                'ascociatesHTML': ascociatesHTML,})  
+                                                'ascociatesHTML': ascociatesHTML,
+                                                'notesHTML': notesHTML,})  
 
 
 @login_required
@@ -329,6 +368,8 @@ def getAddress(request):
             customer_data = funct_data_customer(condicionesCustomer, 1)
 
     messageHtml = ""
+
+    msg = ''
     
     if len(customer_data) > 0:
 
@@ -344,9 +385,7 @@ def getAddress(request):
         messageHtml += '<th title="Field #6">ZIP code</th>'
         messageHtml += '<th title="Field #7"></th>'
         messageHtml += '<th title="Field #8"></th>'
-        messageHtml += '</tr></thead><tbody>'
-
-        msg = ''
+        messageHtml += '</tr></thead><tbody>'        
                     
         for customer in customer_data:
 
@@ -419,6 +458,30 @@ def selectSubcategory(request):
 
 
 @login_required
+def selectGroup(request):
+    #Consulta las subcategorias desde la base de datos
+    category_value = request.POST.get('categorySelect')
+    subcategory_value = request.POST.get('subcategorySelect')
+    groupHTML = ''
+
+    if subcategory_value == '':
+        subcategory_value = 0
+
+    try:
+        groups = Group.objects.filter(category = Category.objects.get(id = category_value), subcategory = Subcategory.objects.get(id = subcategory_value)).order_by('order','name')
+       
+        for group in groups:          
+            groupHTML += '<option value=' + str(group.id) + '>' + group.name + '</option>'
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+                    
+    # Devolvemos la lista de ascociates como respuesta JSON
+    return JsonResponse({'result': groupHTML})
+
+
+
+@login_required
 def selectAttibutes(request):
     #Consulta las subcategorias desde la base de datos
     selected_value = request.POST.get('categorySelect')    
@@ -488,12 +551,14 @@ def funct_data_proyect(filters):
             parsed_date = '1900-01-01, 00:00'
         
         
-        decorators = Decorator.objects.filter(proyects = proyect).order_by('name')
+        decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
         decoratorsStr = ''
 
         for decorator in decorators:              
             decoratorsStr += decorator.name + ' '
 
+
+        qty_wo = Item.objects.filter(proyect = proyect).count()
 
         fecha_creacion = proyect.creation_date
         fecha_creacion = fecha_creacion.replace(tzinfo=None)
@@ -516,6 +581,7 @@ def funct_data_proyect(filters):
             'allDay': allDay,
             'difference': difference.days,
             'decorators': decoratorsStr,
+            'qty_wo': qty_wo,
         })
     
     return proyects_data
@@ -595,20 +661,33 @@ def funct_data_items(proyect_id):
         for item in items:
 
             fecha_prupuesta = ''
+            code = ''
+            group = ''
+            itemN+= 1
 
             try:
                 if item.date_proposed:
                     fecha_prupuesta = item.date_proposed.strftime('%Y/%m/%d')
+
+                if proyect.code:
+                    code = proyect.code + '-' + str(itemN)
+
+                else:
+                    code = str(itemN)
             
             except ValueError:
                 messages.error('Server error. Date not exist!')
-
-            itemN+= 1
+            
 
             itemsHTML += '<div class="row itemCount">'
             itemsHTML += '<div class="row">'
-            itemsHTML += '<div class="col-xl-2"><div class="fs-7 fw-bold mt-2 mb-3">Item n° <b>' + str(itemN) + '</b></div></div>'												
+            itemsHTML += '<div class="col-xl-2"><div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b></div></div>'												
             itemsHTML += '</div>'
+
+
+            if item.group:
+                group = item.group.name
+
             
             ## Celda 1 (cabecera) ##
             itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
@@ -617,6 +696,7 @@ def funct_data_items(proyect_id):
             itemsHTML += '<table><tbody>'                
             itemsHTML += '<tr><td><b>Category:</b> ' + item.category.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
             itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
             itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
             itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_prupuesta + '</td></tr>'
@@ -744,6 +824,87 @@ def funct_data_items(proyect_id):
     return itemsHTML
 
 
+def funct_data_events(proyect_id):
+    
+    notesHTML = ""
+    
+    try:
+
+        proyect = Proyect.objects.get(id=proyect_id)
+        events = Event.objects.filter(proyect = proyect).order_by('-id')        
+       									        
+        for event in events:
+
+            event_date = ''
+
+            notesHTML += '<div class="timeline-item">'
+
+            try:
+                if event.creation_date:
+                    event_date = timezone.localtime(event.creation_date)
+                    event_date = event_date.strftime('%Y/%m/%d %H:%M:%S')
+
+                if event.type_event_id == 1: #se crea proyecto
+                    notesHTML += '<div class="timeline-line w-40px"></div>'
+                    notesHTML += '<div class="timeline-icon symbol symbol-circle symbol-40px">'
+                    notesHTML += '<div class="symbol-label bg-light">'
+                    notesHTML += '<span class="svg-icon svg-icon-2 svg-icon-gray-500">'
+                    notesHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'  
+                    notesHTML += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"/><path d="M9.82829464,16.6565893 C7.02541569,15.7427556 5,13.1079084 5,10 C5,6.13400675 8.13400675,3 12,3 C15.8659932,3 19,6.13400675 19,10 C19,13.1079084 16.9745843,15.7427556 14.1717054,16.6565893 L12,21 L9.82829464,16.6565893 Z M12,12 C13.1045695,12 14,11.1045695 14,10 C14,8.8954305 13.1045695,8 12,8 C10.8954305,8 10,8.8954305 10,10 C10,11.1045695 10.8954305,12 12,12 Z" fill="#000000"/></g>'                  
+                    notesHTML += '</svg>'
+                    notesHTML += '</span>'
+                    notesHTML += '</div>'
+                    notesHTML += '</div>'
+
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'Project is created')
+
+                if event.type_event_id == 3: #se agrega item
+                    notesHTML += '<div class="timeline-line w-40px"></div>'
+                    notesHTML += '<div class="timeline-icon symbol symbol-circle symbol-40px">'
+                    notesHTML += '<div class="symbol-label bg-light">'
+                    notesHTML += '<span class="svg-icon svg-icon-2 svg-icon-gray-500">'
+                    notesHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'                    
+                    notesHTML += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"/>'
+                    notesHTML += '<path d="M3.5,21 L20.5,21 C21.3284271,21 22,20.3284271 22,19.5 L22,8.5 C22,7.67157288 21.3284271,7 20.5,7 L10,7 L7.43933983,4.43933983 C7.15803526,4.15803526 6.77650439,4 6.37867966,4 L3.5,4 C2.67157288,4 2,4.67157288 2,5.5 L2,19.5 C2,20.3284271 2.67157288,21 3.5,21 Z" fill="#000000" opacity="0.3"/>'
+                    notesHTML += '<path d="M8.54301601,14.4923287 L10.6661,14.4923287 L10.6661,16.5 C10.6661,16.7761424 10.8899576,17 11.1661,17 L12.33392,17 C12.6100624,17 12.83392,16.7761424 12.83392,16.5 L12.83392,14.4923287 L14.9570039,14.4923287 C15.2331463,14.4923287 15.4570039,14.2684711 15.4570039,13.9923287 C15.4570039,13.8681299 15.41078,13.7483766 15.3273331,13.6563877 L12.1203391,10.1211145 C11.934804,9.91658739 11.6185961,9.90119131 11.414069,10.0867264 C11.4020553,10.0976245 11.390579,10.1091008 11.3796809,10.1211145 L8.1726869,13.6563877 C7.98715181,13.8609148 8.00254789,14.1771227 8.20707501,14.3626578 C8.29906387,14.4461047 8.41881721,14.4923287 8.54301601,14.4923287 Z" fill="#000000"/>'
+                    notesHTML += '</g>'
+                    notesHTML += '</svg>'
+                    notesHTML += '</span>'
+                    notesHTML += '</div>'
+                    notesHTML += '</div>'
+
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been added')
+
+                if event.type_event_id == 4: #se borra item
+                    notesHTML += '<div class="timeline-line w-40px"></div>'
+                    notesHTML += '<div class="timeline-icon symbol symbol-circle symbol-40px">'
+                    notesHTML += '<div class="symbol-label bg-light">'
+                    notesHTML += '<span class="svg-icon svg-icon-2 svg-icon-gray-500">'
+                    notesHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                    notesHTML += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
+                    notesHTML += '<rect x="0" y="0" width="24" height="24"/>'
+                    notesHTML += '<path d="M3.5,21 L20.5,21 C21.3284271,21 22,20.3284271 22,19.5 L22,8.5 C22,7.67157288 21.3284271,7 20.5,7 L10,7 L7.43933983,4.43933983 C7.15803526,4.15803526 6.77650439,4 6.37867966,4 L3.5,4 C2.67157288,4 2,4.67157288 2,5.5 L2,19.5 C2,20.3284271 2.67157288,21 3.5,21 Z" fill="#000000" opacity="0.3"/>'
+                    notesHTML += '<path d="M10.5857864,14 L9.17157288,12.5857864 C8.78104858,12.1952621 8.78104858,11.5620972 9.17157288,11.1715729 C9.56209717,10.7810486 10.1952621,10.7810486 10.5857864,11.1715729 L12,12.5857864 L13.4142136,11.1715729 C13.8047379,10.7810486 14.4379028,10.7810486 14.8284271,11.1715729 C15.2189514,11.5620972 15.2189514,12.1952621 14.8284271,12.5857864 L13.4142136,14 L14.8284271,15.4142136 C15.2189514,15.8047379 15.2189514,16.4379028 14.8284271,16.8284271 C14.4379028,17.2189514 13.8047379,17.2189514 13.4142136,16.8284271 L12,15.4142136 L10.5857864,16.8284271 C10.1952621,17.2189514 9.56209717,17.2189514 9.17157288,16.8284271 C8.78104858,16.4379028 8.78104858,15.8047379 9.17157288,15.4142136 L10.5857864,14 Z" fill="#000000"/>'
+                    notesHTML += '</g>'                    
+                    notesHTML += '</svg>'
+                    notesHTML += '</span>'
+                    notesHTML += '</div>'
+                    notesHTML += '</div>'
+
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been deleted')
+
+            except ValueError:
+                messages.error('Server error. Date not exist!')
+
+            notesHTML += '</div>'            
+           
+
+    except ValueError:
+        messages.error('Server error. Please contact to administrator!')
+        
+    return notesHTML
+
+
 ###################################
 ## Funciones para guardar datos ###
 ###################################
@@ -751,14 +912,26 @@ def funct_data_items(proyect_id):
 @login_required
 def saveEvent(request, type_event_id, proyect_id, description):
 
-    #1: Crear
-    #2: Agregar item
+    # EVENTOS = [
+    #         (0, 'Other'),
+    #         (1, 'Create proyect'),
+    #         (2, 'Comment'),
+    #         (3, 'Create item'),
+    #         (4, 'Delete item'),
+    #         (5, 'Upload file/comment'),        
+    #         (6, 'Change state'),
+    #     ]
+    try:
 
+        proyect = Proyect.objects.get(id = proyect_id)
 
-    Event.objects.create(   type_event_id=type_event_id,                                        
-                            proyect_id=proyect_id, 
-                            description = description,
-                            user=request.user)
+        Event.objects.create(   type_event_id=type_event_id,                                        
+                                proyect=proyect, 
+                                description = description,
+                                user=request.user)
+        
+    except Proyect.DoesNotExist:        
+        messages.error('Server error. Please contact to administrator!')
     
 
 @login_required
@@ -770,6 +943,7 @@ def saveItem(request):
         proyect_id = request.POST.get('proyect_id')        
         category_id = request.POST.get('category') 
         subcategory_id = request.POST.get('subcategory')
+        group_id = request.POST.get('group')
         place_id = request.POST.get('place')
         qty = request.POST.get('qty')
         notes = request.POST.get('notes')
@@ -780,6 +954,7 @@ def saveItem(request):
             item_save = Item.objects.create(proyect = Proyect.objects.get(id=proyect_id),
                                             category = Category.objects.get(id=category_id),
                                             subcategory = Subcategory.objects.get(id=subcategory_id),
+                                            group = Group.objects.get(id=group_id),
                                             place = Place.objects.get(id=place_id),
                                             qty = qty,
                                             notes = notes,
@@ -788,7 +963,7 @@ def saveItem(request):
                                             modification_user = request.user)
             item_id = item_save.id
 
-            saveEvent(request, 2, proyect_id, None)
+            saveEvent(request, 3, proyect_id, None)
 
 
             ################################### Se recorren los atributos ###################################
@@ -818,7 +993,8 @@ def saveItem(request):
             prefijo = 'inputImg_'            
 
             for key, value in files.items():
-                if key.startswith(prefijo) and (value.content_type == 'image/jpeg'):
+                
+                if key.startswith(prefijo) and validateTypeFile(value.content_type):
                     try:
 
                         file = request.FILES.get(key)
@@ -835,17 +1011,35 @@ def saveItem(request):
                                 type_num = 2
 
 
+                            try:
+                                # Abrir la imagen usando PIL
+                                imagen = Image.open(file)
+
+                                if imagen:
+
+                                    Item_Images.objects.create( item = Item.objects.get(id=item_id),
+                                                                file = file,
+                                                                name = value.name,
+                                                                type = type_num,
+                                                                notes = notes)
+
+
+                            except OSError: #Guardarlo como archivo adjunto
+
+                                Item_Images.objects.create( item = Item.objects.get(id=item_id),
+                                                            file = file,
+                                                            name = value.name,
+                                                            type = type_num,
+                                                            notes = notes)
+
+
+                            except:
+                                messages.error(request, 'Text images not found!')        
+
+
                         except:                            
                             messages.error(request, 'Text images not found!')
-
-                        if validar_imagen_por_tipo(file):
-
-                            Item_Images.objects.create( item = Item.objects.get(id=item_id),
-                                                        file = file,
-                                                        name = value.name,
-                                                        type = type_num,
-                                                        notes = notes)
-
+                                                    
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
 
@@ -872,6 +1066,8 @@ def deleteItem(request):
         item = Item.objects.get(id = item_id)
         item.delete()
         status = 1
+
+        saveEvent(request, 4, item.proyect.id, None) ## Borrar item
 
     except ValueError:
         status = -1
@@ -926,21 +1122,15 @@ def updateStatus(request):
 ##################################
 
 
-def validar_imagen_por_tipo(value):
-
+def validateTypeFile(value):
 
     isfileValidate = False
 
-    try:
-        # Abrir la imagen usando PIL
-        imagen = Image.open(value)
-        # Obtener el tipo de imagen (por ejemplo: 'JPEG', 'PNG', 'GIF')
-        tipo_imagen = imagen.format.lower()
-        
+    try:                
         # Tipos permitidos
-        tipos_permitidos = ['jpeg', 'png', 'gif', 'jpg', 'bmp','mpo']
+        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf']
 
-        if tipo_imagen in tipos_permitidos:            
+        if value in tipos_permitidos:            
             isfileValidate = True
 
     except IOError:
@@ -1003,3 +1193,22 @@ def funct_table_decorators(decorators):
         decoratorsHTML += '</tbody></table>'
 
     return decoratorsHTML
+
+
+def timeline_body(date_str, name, email, description):
+    
+    timeline_cont = '<div class="timeline-content mb-10 mt-n1">'    
+    timeline_cont += '<div class="mb-5 pe-3">'
+    timeline_cont += '<div class="fs-6 fw-bold mb-2">' + description + '</div>'
+    timeline_cont += '<div class="d-flex align-items-center mt-1 fs-6">'
+    
+    timeline_cont += '<div class="text-muted me-2 fs-7">' + date_str + '</div>'    
+    timeline_cont += '<div class="symbol symbol-circle symbol-25px" data-bs-toggle="tooltip" data-bs-boundary="window" data-bs-placement="top" title="' + name + '">'    
+    timeline_cont += '<div class="text-primary fw-bolder me-1"> ' + email +'</div>'
+
+    timeline_cont += '</div>'
+    timeline_cont += '</div>'
+    timeline_cont += '</div>'
+    timeline_cont += '</div>'
+
+    return timeline_cont

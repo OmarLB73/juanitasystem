@@ -13,6 +13,7 @@ urlpatterns = [
 
     path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
     path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
+    path('selectGroup/', views.selectGroup, name='getSelectGroup_url'),
     path('selectAttibutes/', views.selectAttibutes, name='getSelectAttribute_url'),
     path('selectItems/', views.selectItems, name='getSelectItems_url'),
     

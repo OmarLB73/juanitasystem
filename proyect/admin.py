@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, Decorator, Place, Attribute, Category_Attribute
+from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, Decorator, Place, Attribute, Category_Attribute, Group
 
 class CategoryAdmin(admin.ModelAdmin):
     # Ordenar por el campo 'name' de forma ascendente (alfabéticamente)
@@ -13,6 +13,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class SubcategoryAdmin(admin.ModelAdmin):
     ordering = ['category', 'order', 'name']
+
+class GroupAdmin(admin.ModelAdmin):
+    ordering = ['category', 'subcategory', 'order', 'name']
 
 class AttributeAdmin(admin.ModelAdmin):
     ordering = ['name']
@@ -50,5 +53,5 @@ admin.site.register(Decorator, DecoratorAdmin)
 admin.site.register(Place, PlaceAdmin)
 admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(Category_Attribute, Category_AttributeAdmin)
-
+admin.site.register(Group, GroupAdmin)
 
