@@ -286,7 +286,13 @@ class Item(models.Model):
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f'{self.id} - {self.proyect.id} - {self.category.name} - {self.subcategory.name} - {self.group.name}'
+
+        group_name = ''
+
+        if self.group:
+            group_name = self.group.name
+
+        return f'{self.id} - {self.proyect.id} - {self.category.name} - {self.subcategory.name} - {group_name}'
     
 
 class Item_Attribute(models.Model):
