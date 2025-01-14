@@ -222,41 +222,39 @@
 
 
 												</div>
-
-												<div
-													class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
-													<div>
-														<div class="font-weight-bold mb-2"><b>State</b></div>														
-															{% if proyect.state_id == 1 %}
-															<span class="btn btn-sm btn-text btn-light-success text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 2 %}
-															<span class="btn btn-sm btn-text btn-light-primary text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 3 %}
-															<span class="btn btn-sm btn-text btn-light-warning text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 4 %}
-															<span class="btn btn-sm btn-text btn-light-success text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 5 %}
-															<span class="btn btn-sm btn-text btn-light-info text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 6 %}
-															<span class="btn btn-sm btn-text btn-light-light text-uppercase font-weight-bold">
-															{% elif proyect.state_id == 7 %}
-															<span class="btn btn-sm btn-text btn-light-danger text-uppercase font-weight-bold">
-															{% else %}
-															<span class="btn btn-sm btn-text btn-light-white text-uppercase font-weight-bold">
-															{% endif %}
-															
-															{{proyect.state.name}}</span>
-													</div>
-												</div>
-
+			
 												<div class="d-flex flex-wrap align-items-center py-2">
 
-													<div
-														class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
-														<span class="font-weight-bold"><b>Advance</b></span>
+													<div class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
+														<span class="font-weight-bold">
+															<b>State:</b>
+														</span>
+														
+														{% if proyect.state_id == 1 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														{% elif proyect.state_id == 2 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-primary col-lg-12">
+														{% elif proyect.state_id == 3 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-warning col-lg-12">
+														{% elif proyect.state_id == 4 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														{% elif proyect.state_id == 5 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-info col-lg-12">
+														{% elif proyect.state_id == 6 %}
+														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														{% elif proyect.state_id == 7 %}
+														<div class="fs-6 fw-bold mb-2 badge-danger-success col-lg-12">
+														{% else %}
+														<div class="fs-6 fw-bold mb-2 badge-white-success col-lg-12">
+														{% endif %}
+
+														{{proyect.state.name}}
+														</div>
+
+
 														<div class="progress progress-xs mt-2 mb-2">
 															<div class="progress-bar bg-success" role="progressbar"
-																style="width: 25%" aria-valuenow="50" aria-valuemin="0"
+																style="width: {{advance}}%" aria-valuenow="{{advance}}" aria-valuemin="0"
 																aria-valuemax="100"></div>
 														</div>
 														<!-- <span class="font-weight-bolder text-dark">{{ proyect.state.name}}</span> -->

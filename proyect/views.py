@@ -20,7 +20,7 @@ from django.utils import timezone #Para ver la hora correctamente.
 
 
 
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -197,7 +197,7 @@ def proyect_new(request):
 
 
                 #Se actualiza el código, una vez que se obtiene el Id.                
-                code += f"_{proyect_id:03d}"
+                code += f"{proyect_id:03d}"
                 proyect_save.code =  code
                 proyect_save.save()
 
@@ -755,8 +755,43 @@ def funct_data_items(proyect_id):
             #############
 
 
+            ## Celda 4 (archivos) ##
+            itemsHTML += '<div class="col-lg-10" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'
 
-            ## Celda 4 (imagenes) ##
+
+            itemsHTML += '<div class="row g-6 g-xl-9 mb-6 mb-xl-9">'
+																															                     		
+            files = Item_Files.objects.filter(item = Item.objects.get(id=item.id))
+            for file in files:
+            
+                
+                itemsHTML += '<div class="col-md-6 col-lg-4 col-xl-3">'
+                itemsHTML += '<div class="card h-100">'
+                itemsHTML += '<div class="card-body d-flex justify-content-center text-center flex-column p-8">'
+                itemsHTML += '<a href="' + file.file.url + '" class="text-gray-800 text-hover-primary d-flex flex-column">'                
+                itemsHTML += '<div class="symbol symbol-60px mb-5">'
+                itemsHTML += '<img src="/static/images/pdf.svg" alt="">'
+                itemsHTML += '</div>'
+                itemsHTML += '<div class="fs-5 fw-bolder mb-2">' + file.name + '</div>'
+                itemsHTML += '</a>'
+                itemsHTML += '<div class="fs-7 fw-bold text-gray-400">' + file.notes + '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+                itemsHTML += '</div>'
+                
+            itemsHTML += '</div>'
+            
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+
+            #############
+
+
+            ## Celda 5 (imagenes) ##
             itemsHTML += '<div class="col-lg-10" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
@@ -812,6 +847,8 @@ def funct_data_items(proyect_id):
             
             #############
 
+            
+
 
             itemsHTML += '</div>'
 
@@ -856,7 +893,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'Project is created')
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'Project is created', event.type_event_id)
 
                 if event.type_event_id == 3: #se agrega item
                     notesHTML += '<div class="timeline-line w-40px"></div>'
@@ -873,7 +910,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been added')
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been added', event.type_event_id)
 
                 if event.type_event_id == 4: #se borra item
                     notesHTML += '<div class="timeline-line w-40px"></div>'
@@ -891,7 +928,26 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been deleted')
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been deleted', event.type_event_id)
+
+
+                if event.type_event_id == 6: #se avanza status
+                    notesHTML += '<div class="timeline-line w-40px"></div>'
+                    notesHTML += '<div class="timeline-icon symbol symbol-circle symbol-40px">'
+                    notesHTML += '<div class="symbol-label bg-light">'
+                    notesHTML += '<span class="svg-icon svg-icon-2 svg-icon-gray-500">'
+                    notesHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                    notesHTML += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
+                    notesHTML += '<polygon points="0 0 24 0 24 24 0 24"/>'
+                    notesHTML += '<path d="M8.2928955,10.2071068 C7.90237121,9.81658249 7.90237121,9.18341751 8.2928955,8.79289322 C8.6834198,8.40236893 9.31658478,8.40236893 9.70710907,8.79289322 L15.7071091,14.7928932 C16.085688,15.1714722 16.0989336,15.7810586 15.7371564,16.1757246 L10.2371564,22.1757246 C9.86396402,22.5828436 9.23139665,22.6103465 8.82427766,22.2371541 C8.41715867,21.8639617 8.38965574,21.2313944 8.76284815,20.8242754 L13.6158645,15.5300757 L8.2928955,10.2071068 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000003, 15.500003) scale(-1, 1) rotate(-90.000000) translate(-12.000003, -15.500003) "/>'
+                    notesHTML += '<path d="M6.70710678,12.2071104 C6.31658249,12.5976347 5.68341751,12.5976347 5.29289322,12.2071104 C4.90236893,11.8165861 4.90236893,11.1834211 5.29289322,10.7928968 L11.2928932,4.79289682 C11.6714722,4.41431789 12.2810586,4.40107226 12.6757246,4.76284946 L18.6757246,10.2628495 C19.0828436,10.6360419 19.1103465,11.2686092 18.7371541,11.6757282 C18.3639617,12.0828472 17.7313944,12.1103502 17.3242754,11.7371577 L12.0300757,6.88414142 L6.70710678,12.2071104 Z" fill="#000000" fill-rule="nonzero" opacity="0.3" transform="translate(12.000003, 8.500003) scale(-1, 1) rotate(-360.000000) translate(-12.000003, -8.500003) "/>'
+                    notesHTML += '</g>'
+                    notesHTML += '</svg>'
+                    notesHTML += '</span>'
+                    notesHTML += '</div>'
+                    notesHTML += '</div>'
+
+                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, event.description, event.type_event_id)
 
             except ValueError:
                 messages.error('Server error. Date not exist!')
@@ -1026,7 +1082,7 @@ def saveItem(request):
 
                             except OSError: #Guardarlo como archivo adjunto
 
-                                Item_Images.objects.create( item = Item.objects.get(id=item_id),
+                                Item_Files.objects.create( item = Item.objects.get(id=item_id),
                                                             file = file,
                                                             name = value.name,
                                                             type = type_num,
@@ -1107,6 +1163,14 @@ def updateStatus(request):
         proyect = Proyect.objects.get(id = proyect_id)
         proyect.state = State.objects.get(id = (proyect.state.id + 1))
         proyect.save()
+
+        description = "Change to status:" + proyect.state.name
+
+        Event.objects.create(   type_event_id = 6,                                        
+                                proyect=proyect, 
+                                description = description,
+                                user=request.user)
+
         
         status = 1
 
@@ -1148,13 +1212,9 @@ def validateTypeFile(value):
 def retornarAdvance(value):
 
     adv = 0
-
-    if(value == 1):
-        adv = 10
-
-    elif(value == 2):
-        adv = 25
-
+    factor = 14.28
+    adv = value * factor
+    
     return adv
 
 
@@ -1195,11 +1255,18 @@ def funct_table_decorators(decorators):
     return decoratorsHTML
 
 
-def timeline_body(date_str, name, email, description):
+def timeline_body(date_str, name, email, description, stateId):
     
     timeline_cont = '<div class="timeline-content mb-10 mt-n1">'    
     timeline_cont += '<div class="mb-5 pe-3">'
-    timeline_cont += '<div class="fs-6 fw-bold mb-2">' + description + '</div>'
+    
+    if stateId == 1:
+        timeline_cont += '<div class="fs-6 fw-bold mb-2 badge-light-success">' + description + '</div>'
+    elif stateId == 6:
+        timeline_cont += '<div class="fs-6 fw-bold mb-2 badge-light-success">' + description + '</div>'
+    else:
+        timeline_cont += '<div class="fs-6 fw-bold mb-2">' + description + '</div>'
+        
     timeline_cont += '<div class="d-flex align-items-center mt-1 fs-6">'
     
     timeline_cont += '<div class="text-muted me-2 fs-7">' + date_str + '</div>'    

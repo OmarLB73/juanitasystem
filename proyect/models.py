@@ -244,6 +244,7 @@ def get_file_path_img_att(instance, filename):
     # Crear subcarpetas con el ID del objeto    
     return os.path.join('attributes', filename)
 
+
 class Category_Attribute(models.Model):
     id = models.AutoField(primary_key=True)        
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -337,7 +338,45 @@ class Item_Images(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.item.id} - {self.name}'
+
+
+def get_file_path_file(instance, filename):
+    # Crear subcarpetas con el ID del objeto
+    year = instance.creation_date.year
+    month = instance.creation_date.month
+    proyect_id = instance.item.proyect.id
+    return os.path.join('files', str(year), str(month), str(proyect_id), filename)
+
+
+class Item_Files(models.Model):
+    id = models.AutoField(primary_key=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=get_file_path_file, blank=True, null=True)  # Nuevo campo de archivo
+    name = models.CharField(blank=True, null=True, max_length=150)
+    notes = models.TextField(blank=True, null=True)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+    type = models.IntegerField(choices=IMAGE_TYPE,  default=1)
+
+    def save(self, *args, **kwargs):
+        # Si es la primera vez que se guarda el objeto, el ID aún no está disponible
+        if not self.id:
+            super().save(*args, **kwargs)  # Guarda primero para asignar el ID
+        else:
+            super().save(*args, **kwargs)  # Luego guarda con el ID correctamente asignado
+
+
+    def __str__(self):
+        return f'{self.id} - {self.item.id} - {self.name}'
     
+
+
+
+
+
+
+
+
+
 
 
 
