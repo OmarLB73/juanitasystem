@@ -54369,10 +54369,10 @@ body {
     padding: .5rem
 }
 
-@media (min-width:992px) {
+@media (min-width:992px) { /* AJUSTE */
     .toolbar-fixed .toolbar {
         height: var(--kt-toolbar-height);
-        position: fixed;
+        position: absolute; /*fixed*/
         top: 0;
         right: 0;
         left: 0;

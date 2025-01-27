@@ -20,7 +20,7 @@ from django.utils import timezone #Para ver la hora correctamente.
 
 
 
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files, Item_Comment_State, Item_Comment_State_Files #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -73,9 +73,8 @@ def proyect_new(request):
      
     if request.method == 'POST':
 
-        user_id = request.user.id
-        
         type_id = request.POST.get('type')
+
         decorators_ids = request.POST.getlist('decorator')
         ascociate_ids = request.POST.getlist('ascociate')
         
@@ -84,7 +83,7 @@ def proyect_new(request):
         state = request.POST.get('state')
         zipcode = request.POST.get('zipcode')
         apartment = request.POST.get('apartment')
-        
+            
         customer_description = request.POST.get('addressDescription')        
         customer_name = request.POST.get('customerName')
         customer_notes = request.POST.get('customerDescription')
@@ -92,143 +91,154 @@ def proyect_new(request):
         email = request.POST.get('email')
         phone = request.POST.get('phone')
 
-        date = request.POST.get('date')           
-        responsible_id = request.POST.get('responsible')        
+        date = request.POST.get('date')                         
         proyect_description = request.POST.get('proyectDescription')
-        
-        state_Id = 1 #Inicio
 
 
-            #    if Customer.objects.filter(id=customer_id).exists():
-            #         customer_save = Customer.objects.get(id=customer_id)
-            #         customer_save.name = customer_name
-            #         customer_save.email = email
-            #         customer_save.phone = phone
-            #         customer_save.description = customer_Description
-            #         customer_save.save()
+        #Se busca si existe el cliente
+        condicionesCustomer = Q()
+        condicionesCustomer = Q(address__icontains = address) & Q(city__icontains = city) & Q(state__icontains = state) & Q(zipcode__icontains = zipcode) & Q(apartment__icontains = apartment)
+        customer_data = funct_data_customer(condicionesCustomer, 1)
+
+        # Si la direccion no existe por si acaso
+        if len(customer_data) == 0:  
+
+            user_id = request.user.id
+            state_Id = 1 #Inicio
 
 
-        code = ""
-        if type_id == '1':
-            code = "&"
-        
-        if type_id == '2':
-            code = "#"
+                #    if Customer.objects.filter(id=customer_id).exists():
+                #         customer_save = Customer.objects.get(id=customer_id)
+                #         customer_save.name = customer_name
+                #         customer_save.email = email
+                #         customer_save.phone = phone
+                #         customer_save.description = customer_Description
+                #         customer_save.save()
 
 
-        #Se guarda los datos del cliente
-        customer_id = 0
-        try:
-
-            #Se busca el cliente si existe (hasta ahora, solo por nombre)
-            customer = Customer.objects.filter(name=customer_name).first()
-
-            if customer == None:
-
-                customer_save = Customer.objects.create(name=customer_name, 
-                                                        address=address,
-                                                        city=city,
-                                                        state=state,
-                                                        zipcode=zipcode,
-                                                        apartment=apartment,                                                    
-                                                        email=email,
-                                                        phone=phone,
-                                                        description=customer_description,
-                                                        notes=customer_notes,
-                                                        creation_user = request.user,
-                                                        modification_user = request.user
-                                                        )
-                
-            
-            else:
-                customer_save = customer                
-
-            customer_id = customer_save.id
-
-            #Iniciales del nombre, si es através de Cliente
+            code = ""
             if type_id == '1':
-                partes = customer_save.name.split()
-                code += ''.join([parte[0].upper() for parte in partes])
+                code = "&"
+            
+            if type_id == '2':
+                code = "#"
 
 
-        except ValueError:
-            messages.error(request, 'Server error. Please contact to administrator!')
+            #Se guarda los datos del cliente
+            customer_id = 0
+            try:
+
+                #Se busca el cliente si existe (hasta ahora, solo por nombre)
+                customer = Customer.objects.filter(name=customer_name, phone = phone).first()  # phone es muy importante en USA
+
+                if customer == None:
+
+                    customer_save = Customer.objects.create(name=customer_name, 
+                                                            address=address,
+                                                            city=city,
+                                                            state=state,
+                                                            zipcode=zipcode,
+                                                            apartment=apartment,                                                    
+                                                            email=email,
+                                                            phone=phone,
+                                                            description=customer_description,
+                                                            notes=customer_notes,
+                                                            created_by_user = request.user,
+                                                            modification_by_user = request.user
+                                                            )
+                    
+                
+                else:
+                    customer_save = customer                
+
+                customer_id = customer_save.id
+
+                #Iniciales del nombre, si es a través de Cliente
+                if type_id == '1':
+                    partes = customer_save.name.split()
+                    code += ''.join([parte[0].upper() for parte in partes])
+
+
+            except ValueError:
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return render(request, 'proyect/new.html')
+
+            
+            # #  Se intenta obtener el responsable 
+            # try:
+            #     # Intentamos obtener el objeto
+            #     responsible = Responsible.objects.get(id=responsible_id),
+            # except Responsible.DoesNotExist:
+            #     # Si no existe, devolvemos None (equivalente a null en otros lenguajes)
+            #     responsible = None
+
+
+            #Se guarda los datos del proyecto
+            proyect_id = 0        
+
+            try:
+                if int(type_id) and int(customer_id):
+                    proyect_save = Proyect.objects.create(  type=Type.objects.get(id=type_id), 
+                                                            customer=Customer.objects.get(id=customer_id), 
+                                                            # responsible=responsible,
+                                                            state=State.objects.get(id=state_Id),
+                                                            date=date, 
+                                                            description=proyect_description,                                                        
+                                                            created_by_user = request.user,
+                                                            modification_by_user = request.user)
+                    proyect_id = proyect_save.id
+
+                    
+
+                    for decorator_id in decorators_ids:
+                        decorator = Decorator.objects.get(id = decorator_id)
+                        decorator.proyects.add(proyect_save)
+
+                        #Iniciales del nombre, si es através de Cliente
+                        if type_id == '2':
+                            partes = decorator.name.split()
+                            code += ''.join([parte[0].upper() for parte in partes])
+
+                    for decorator_id in ascociate_ids:
+                        decorator = Decorator.objects.get(id = decorator_id)
+                        decorator.proyects.add(proyect_save)
+
+
+                    #Se actualiza el código, una vez que se obtiene el Id.                
+                    code += f"{proyect_id:03d}"
+                    proyect_save.code =  code
+                    proyect_save.save()
+
+                    # Event.objects.create( type_event_id=1,                                        
+                    #                         proyect_id=proyect_id, 
+                    #                         user=request.user)
+                    
+                    saveEvent(request, 1, proyect_id, None)
+            
+                    return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
+
+            except ValueError:        
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return render(request, 'proyect/new.html')
+
+        else:
+            messages.error(request, 'The address already exists! Please review the projects.')
             return render(request, 'proyect/new.html')
 
-        
-        #  Se intenta obtener el responsable 
-        try:
-            # Intentamos obtener el objeto
-            responsible = Responsible.objects.get(id=responsible_id),
-        except Responsible.DoesNotExist:
-            # Si no existe, devolvemos None (equivalente a null en otros lenguajes)
-            responsible = None
 
-
-        #Se guarda los datos del proyecto
-        proyect_id = 0        
-
-        try:
-            if int(type_id) and int(customer_id):
-                proyect_save = Proyect.objects.create(  type=Type.objects.get(id=type_id), 
-                                                        customer=Customer.objects.get(id=customer_id), 
-                                                        responsible=responsible,
-                                                        state=State.objects.get(id=state_Id),
-                                                        date=date, 
-                                                        description=proyect_description,                                                        
-                                                        creation_user = request.user,
-                                                        modification_user = request.user)
-                proyect_id = proyect_save.id
-
-                
-
-                for decorator_id in decorators_ids:
-                    decorator = Decorator.objects.get(id = decorator_id)
-                    decorator.proyects.add(proyect_save)
-
-                    #Iniciales del nombre, si es através de Cliente
-                    if type_id == '2':
-                        partes = decorator.name.split()
-                        code += ''.join([parte[0].upper() for parte in partes])
-
-                for decorator_id in ascociate_ids:
-                    decorator = Decorator.objects.get(id = decorator_id)
-                    decorator.proyects.add(proyect_save)
-
-
-                #Se actualiza el código, una vez que se obtiene el Id.                
-                code += f"{proyect_id:03d}"
-                proyect_save.code =  code
-                proyect_save.save()
-
-                # Event.objects.create( type_event_id=1,                                        
-                #                         proyect_id=proyect_id, 
-                #                         user=request.user)
-                
-                saveEvent(request, 1, proyect_id, None)
-        
-                return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
-
-        except ValueError:        
-            messages.error(request, 'Server error. Please contact to administrator!')
-            return render(request, 'proyect/new.html')
-                                      
     else:
 
         types = Type.objects.filter(status=1).order_by('id')
-        decorators = Decorator.objects.filter(is_supervisor=1).order_by('name')
-        responsibles = Responsible.objects.filter(status=1).order_by('name')
-
-
-        type_select = Type.objects.first()
-        responsable_select = -1
+        # customers = Customer.objects.filter(status=1).order_by('name')
+        decorators = Decorator.objects.filter(is_supervisor=1, status=1).order_by('name')
+        type_select = types.first()
 
         return render(request, 'proyect/new.html', 
                     {'types': types,
                     'type_select': type_select,
-                    'decorators': decorators,
-                    'responsibles': responsibles,
-                    'responsable_select': responsable_select,})
+                    'decorators': decorators
+                    # 'customers': customers,
+                    })
 
 
 @login_required
@@ -364,12 +374,12 @@ def getAddress(request):
         apartment = str(request.POST.get('apartment')).strip()
 
         if address.strip() != '' and len(address) >= 3:
-            condicionesCustomer = Q(address__icontains = address) or Q(city__icontains = city) or Q(state__icontains = state) or Q(state__icontains = state) or Q(zipcode__icontains = zipcode) or Q(apartment__icontains = apartment)
+            condicionesCustomer = Q(address__icontains = address) & (Q(city__icontains = city) | Q(state__icontains = state) | Q(zipcode__icontains = zipcode) | Q(apartment__icontains = apartment))
             customer_data = funct_data_customer(condicionesCustomer, 1)
 
     messageHtml = ""
-
-    msg = ''
+   
+    exist = ''
     
     if len(customer_data) > 0:
 
@@ -389,10 +399,12 @@ def getAddress(request):
                     
         for customer in customer_data:
 
+            msgExist = ''
             if customer['id_proyect'] != '':
 
                 if address == str(customer['address']).strip() and city == str(customer['city']).strip() and state == str(customer['state_u']).strip() and zipcode == str(customer['zipcode']).strip() and apartment == str(customer['apartment']).strip():
-                    msg = '<span class="badge badge-light-danger fw-bold me-1">Exists!</span>'
+                    msgExist = '<span class="badge badge-light-danger fw-bold me-1">Exists!</span>'
+                    exist = '1'
 
                 messageHtml += '<tr>'
                 messageHtml += '<td>' + customer['customerName'] + '</td>'
@@ -401,7 +413,7 @@ def getAddress(request):
                 messageHtml += '<td>' + str(customer['city']) + '</td>'
                 messageHtml += '<td>' + str(customer['state_u']) + '</td>'
                 messageHtml += '<td>' + str(customer['zipcode']) + '</td>'
-                messageHtml += '<td>' + msg + '</td>'
+                messageHtml += '<td>' + msgExist + '</td>'
                 messageHtml += '<td><a href="../view/' + customer['id_proyect'] + '" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a></td>'
                 messageHtml += '</tr>'
     
@@ -410,7 +422,7 @@ def getAddress(request):
     
     
     # Devolvemos la lista de proyectos como respuesta JSON
-    return JsonResponse({'result': messageHtml, 'msg': msg})
+    return JsonResponse({'result': messageHtml, 'msg': exist})
 
 
 
@@ -480,7 +492,6 @@ def selectGroup(request):
     return JsonResponse({'result': groupHTML})
 
 
-
 @login_required
 def selectAttibutes(request):
     #Consulta las subcategorias desde la base de datos
@@ -521,10 +532,10 @@ def funct_data_proyect(filters):
 
     proyects_data = []
 
-    if filters is None:
-        proyects = Proyect.objects.all().order_by('-id')
+    if filters:
+        proyects = Proyect.objects.filter(filters).order_by('-id')        
     else:
-        proyects = Proyect.objects.filter(filters).order_by('-id')
+        proyects = Proyect.objects.all().order_by('-id')
 
 
     # Creamos una lista con los datos de cada proyecto
@@ -533,23 +544,24 @@ def funct_data_proyect(filters):
 
     for proyect in proyects:
 
-        parsed_date = ''
+        # parsed_date = ''
         allDay = False
 
-        try:
-            if len(proyect.date) == 17:
-                parsed_date = proyect.date
-                parsed_date = str(datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"))
+        # try:
+        #     if len(proyect.date) == 17:
+        #         parsed_date = proyect.date
+        #         parsed_date = str(datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"))
             
-            elif len(proyect.date) == 10:            
-                allDay = True
-                parsed_date = str(datetime.strptime(proyect.date + ', 00:00', "%Y-%m-%d, %H:%M"))
-            else:
-                parsed_date = '1900-01-01, 00:00'    
+        #     elif len(proyect.date) == 10:            
+        #         allDay = True
+        #         parsed_date = str(datetime.strptime(proyect.date + ', 00:00', "%Y-%m-%d, %H:%M"))
+        #     else:
+        #         parsed_date = '1900-01-01, 00:00'    
                 
-        except ValueError:
-            parsed_date = '1900-01-01, 00:00'
+        # except ValueError:
+        #     parsed_date = '1900-01-01, 00:00'
         
+        #######################################
         
         decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
         decoratorsStr = ''
@@ -557,6 +569,21 @@ def funct_data_proyect(filters):
         for decorator in decorators:              
             decoratorsStr += decorator.name + ' '
 
+        #######################################
+
+        items = Item.objects.filter(proyect = proyect).order_by('category')
+        categoryList = []
+        categoryStr = ''
+        
+        for item in items:
+            if item.category.name not in categoryList:
+                categoryList.append(item.category.name)
+        
+        for category in categoryList:            
+            categoryStr += category + ','
+
+        categoryStr = categoryStr[:-1]
+        #######################################
 
         qty_wo = Item.objects.filter(proyect = proyect).count()
 
@@ -572,8 +599,7 @@ def funct_data_proyect(filters):
             'city': proyect.customer.city,
             'state_u': proyect.customer.state,
             'zipcode': proyect.customer.zipcode,
-            'apartment': proyect.customer.apartment,
-            'date': parsed_date,
+            'apartment': proyect.customer.apartment,            
             'creationDate': fecha_creacion.strftime("%Y-%m-%d"),
             'email': proyect.customer.email,
             'state_id': proyect.state.id,
@@ -582,6 +608,7 @@ def funct_data_proyect(filters):
             'difference': difference.days,
             'decorators': decoratorsStr,
             'qty_wo': qty_wo,
+            'categories': categoryStr,
         })
     
     return proyects_data
@@ -660,14 +687,14 @@ def funct_data_items(proyect_id):
         
         for item in items:
 
-            fecha_prupuesta = ''
+            fecha_propuesta = ''
             code = ''
             group = ''
             itemN+= 1
 
             try:
                 if item.date_proposed:
-                    fecha_prupuesta = item.date_proposed.strftime('%Y/%m/%d')
+                    fecha_propuesta = item.date_proposed.strftime('%Y/%m/%d')
 
                 if proyect.code:
                     code = proyect.code + '-' + str(itemN)
@@ -679,38 +706,42 @@ def funct_data_items(proyect_id):
                 messages.error('Server error. Date not exist!')
             
 
-            itemsHTML += '<div class="row itemCount">'
-            itemsHTML += '<div class="row">'
-            itemsHTML += '<div class="col-xl-2"><div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b></div></div>'												
-            itemsHTML += '</div>'
+            itemsHTML += '<div class="row itemCount" style="border: 1px solid #d7d9dc; border-radius: .475rem">'
 
+            itemsHTML += '<div class="col-lg-12">'
+            itemsHTML += '<div class="col-lg-8">'
+            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b>'
+            itemsHTML += '<div class="h-3px w-100 bg-primary col-lg-4">'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            
 
             if item.group:
                 group = item.group.name
 
             
-            ## Celda 1 (cabecera) ##
-            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<div class="row">'        
-            itemsHTML += '<div class="col-xl-12">'
+            itemsHTML += '<div class="col-lg-8" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row mb-6">'
+            # itemsHTML += '<div class="col-lg-12" style="border:1px solid yellow; border-width:1px;">'
+
+            ## Celda 1 (cabecera) ##                        
+            itemsHTML += '<div class="col-xl-6" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<table><tbody>'                
             itemsHTML += '<tr><td><b>Category:</b> ' + item.category.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
             itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
             itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
-            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_prupuesta + '</td></tr>'
+            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
             itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
             itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
+            itemsHTML += '</div>'          
             #############
 
-            ## Celda 2 (atributos) ##
-            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<div class="row">'        
-            itemsHTML += '<div class="col-xl-12">'
+            ## Celda 2 (atributos) ##                        
+            itemsHTML += '<div class="col-xl-6" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<table><tbody>'         
 
             attributes = Item_Attribute.objects.filter(item = Item.objects.get(id=item.id))
@@ -718,81 +749,51 @@ def funct_data_items(proyect_id):
                 itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
 
             itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
+            itemsHTML += '</div>'       
             #############
 
-
-            ## Celda 3 (acciones) ##
-            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<div class="row">'
-            itemsHTML += '<div class="col-xl-12">'
-
-            if proyect.state.id == 1:
-                                                        
-                itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
-                itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
-                itemsHTML += '<a href="javascript:del(' + str(item.id) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-                itemsHTML += '</div>'
-
-
-            if proyect.state.id == 2:
-                                                        
-                itemsHTML += '<div class="d-flex justify-content-end flex-shrink-0">'
-                itemsHTML += '<div class="col-xl-11 fv-row text-end">'
-                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
-                itemsHTML += '<textarea id="" name="" class="form-control form-control-solid h-80px" maxlength="2000"></textarea><br/>'
-                itemsHTML += '<input id="" type="file" name="" class="form-control form-control" required>'
-                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-4" id="submitItem">Save</button>'
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-
-            
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'                        
-            itemsHTML += '</div>'
-            #############
-
-
-            ## Celda 4 (archivos) ##
-            itemsHTML += '<div class="col-lg-10" style="border:1px solid white; border-width:1px;">'
+            ## Celda 3 (archivos) ##
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'            
             itemsHTML += '<div class="row">'        
-            itemsHTML += '<div class="col-xl-12">'
+            itemsHTML += '<div class="col-xl-12">'                        
 
-
-            itemsHTML += '<div class="row g-6 g-xl-9 mb-6 mb-xl-9">'
-																															                     		
             files = Item_Files.objects.filter(item = Item.objects.get(id=item.id))
-            for file in files:
-            
-                
-                itemsHTML += '<div class="col-md-6 col-lg-4 col-xl-3">'
-                itemsHTML += '<div class="card h-100">'
-                itemsHTML += '<div class="card-body d-flex justify-content-center text-center flex-column p-8">'
-                itemsHTML += '<a href="' + file.file.url + '" class="text-gray-800 text-hover-primary d-flex flex-column">'                
-                itemsHTML += '<div class="symbol symbol-60px mb-5">'
-                itemsHTML += '<img src="/static/images/pdf.svg" alt="">'
-                itemsHTML += '</div>'
-                itemsHTML += '<div class="fs-5 fw-bolder mb-2">' + file.name + '</div>'
-                itemsHTML += '</a>'
-                itemsHTML += '<div class="fs-7 fw-bold text-gray-400">' + file.notes + '</div>'
-                itemsHTML += '</div>'
+
+            if len(files) > 0:                
+                itemsHTML += '<div class="d-flex align-items-center border p-5">'
+                itemsHTML += '<ul class="text-start">'
+
+                for file in files:
+
+                    itemsHTML += '<li>'
+                                        
+                    if file.file.url[-4:] == '.pdf':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                    if file.file.url[-5:] == '.docx':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                    if file.file.url[-5:] == '.xlsx':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+                                                    
+                    itemsHTML += '<span>'
+                    itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary">' + file.name + '</a>'
+                    itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
+                    itemsHTML += '</<span>' 
+
+                    itemsHTML += '</li>'
+
+                itemsHTML += '</ul>'
                 itemsHTML += '</div>'
 
-                itemsHTML += '</div>'
-                
-            itemsHTML += '</div>'
-            
             itemsHTML += '</div>'
             itemsHTML += '</div>'
             itemsHTML += '</div>'
-
             #############
 
 
             ## Celda 5 (imagenes) ##
-            itemsHTML += '<div class="col-lg-10" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<div class="row">'        
             itemsHTML += '<div class="col-xl-12">'
             
@@ -847,13 +848,206 @@ def funct_data_items(proyect_id):
             
             #############
 
+
+            itemsHTML += '</div>' # Final row
+            itemsHTML += '</div>' # Final col
+
+
+
+            ## Celda 5 (acciones) ##
+            itemsHTML += '<div class="col-lg-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="row">'
+            itemsHTML += '<div class="col-xl-12">'
+
+            if proyect.state.id == 1:
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+                itemsHTML += '<a href="javascript:del(' + str(item.id) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+                itemsHTML += '</div>'
+
+
+            if proyect.state.id == 2:
+
+                itemTxt2 = ''                
+                itemCS = Item_Comment_State.objects.filter(item=item, state=proyect.state).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+
+                if itemCS:
+                    itemTxt2 = itemCS.notes
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+                itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+                itemsHTML += '<form id="formItem_' + str(item.id) + '" method="POST" enctype="multipart/form-data">'
+                itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt2 + '</textarea><br/>'
+                           
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>  <a href="" onClick="delImC(this, ' + str(file.id) + ', ' + str(itemCS.id) + ', ' + str(item.id) + ')"<i class="fa fa-trash"></i></a>'
+                    itemsHTML += "</ul>"
+               
+               
+                itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(item.id) + ')">Save</button>'
+                itemsHTML += '</form>'
+                itemsHTML += '<br/><div id="divItemMsg_' + str(item.id) + '" class="alert alert-success text-start p-2 mb-10" style="display:none">The data has been saved successfully.</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+
+            if proyect.state.id == 3:
+
+                itemTxt2 = ''
+                itemCS = Item_Comment_State.objects.filter(item=item, state=State.objects.get(id = 2)).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+
+                if itemCS:
+                    itemTxt2 = itemCS.notes
+
+                itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-75 py-5 px-5">'
+                itemsHTML += '<b>' + State.objects.get(id = 2).name + ':</b>' + itemTxt2
+                
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>'
+                    itemsHTML += "</ul>"
+
+                itemsHTML += '</div><br/><br/>'
+
+                ##################################################################################
+
+                itemTxt3 = ''                
+                itemCS = Item_Comment_State.objects.filter(item=item, state=proyect.state).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+
+                if itemCS:
+                    itemTxt3 = itemCS.notes
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+                itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+                itemsHTML += '<form id="formItem_' + str(item.id) + '" method="POST" enctype="multipart/form-data">'
+                itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt3 + '</textarea><br/>'
+                           
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>  <a href="" onClick="delImC(this, ' + str(file.id) + ', ' + str(itemCS.id) + ', ' + str(item.id) + ')"<i class="fa fa-trash"></i></a>'
+                    itemsHTML += "</ul>"
+               
+               
+                itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(item.id) + ')">Save</button>'
+                itemsHTML += '</form>'
+                itemsHTML += '<br/><div id="divItemMsg_' + str(item.id) + '" class="alert alert-success text-start p-2 mb-10" style="display:none">The data has been saved successfully.</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+
+            if proyect.state.id == 4:
+                
+                itemTxt2 = ''         
+                itemCS = Item_Comment_State.objects.filter(item=item, state=State.objects.get(id = 2)).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+                
+                if itemCS:
+                    itemTxt2 = itemCS.notes
+
+                itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-75 py-5 px-5">'
+                itemsHTML += '<b>' + State.objects.get(id = 2).name + ':</b>' + itemTxt2
+                
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>'
+                    itemsHTML += "</ul>"
+
+                itemsHTML += '</div><br/>'
+
+                itemTxt3 = ''
+                itemCS = Item_Comment_State.objects.filter(item=item, state=State.objects.get(id = 3)).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+                
+                if itemCS:
+                    itemTxt3 = itemCS.notes
+
+                itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-75 py-5 px-5">'
+                itemsHTML += '<b>' + State.objects.get(id = 3).name + ':</b>' + itemTxt3
+                
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>'
+                    itemsHTML += "</ul>"
+
+                itemsHTML += '</div><br/><br/>'
+
+                ##################################################################################
+
+                itemTxt4 = ''
+                
+                itemCS = Item_Comment_State.objects.filter(item=item, state=proyect.state).first()
+                itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+
+                if itemCS:
+                    itemTxt4 = itemCS.notes
+                                                        
+                itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+                itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+                itemsHTML += '<form id="formItem_' + str(item.id) + '" method="POST" enctype="multipart/form-data">'
+                itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt4 + '</textarea><br/>'
+                
+                itemsHTML += '<div class="col-xl-4 fv-row">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Proposed date:</div>'                
+                itemsHTML += '<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">'
+                itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                itemsHTML += '<path opacity="0.3" d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z" fill="black" />'
+                itemsHTML += '<path d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z" fill="black" />'
+                itemsHTML += '<path d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z" fill="black" />'
+                itemsHTML += '</svg>'
+                itemsHTML += '</span>'
+                itemsHTML += '<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="datepicker_' + str(item.id) + '" />'
+                itemsHTML += '</div><br/>'
+
+                           
+                if itemCSF:
+                    itemsHTML += '<ul class="text-start">'
+                    for file in itemCSF:
+                        #  itemsHTML += "<li><a href=" + file.file.url + " target='_blank'>" + file.name + "</a></li>"
+                         itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>  <a href="" onClick="delImC(this, ' + str(file.id) + ', ' + str(itemCS.id) + ', ' + str(item.id) + ')"<i class="fa fa-trash"></i></a>'
+                    itemsHTML += "</ul>"
+               
+               
+                itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(item.id) + ')">Save</button>'
+                itemsHTML += '</form>'
+                itemsHTML += '<br/><div id="divItemMsg_' + str(item.id) + '" class="alert alert-success text-start p-2 mb-10" style="display:none">The data has been saved successfully.</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+
+  
+                
+
+
+
+
             
-
-
             itemsHTML += '</div>'
+            itemsHTML += '</div>'                        
+            itemsHTML += '</div>'
+            #############
 
-
-            itemsHTML += '<div class="separator separator-dashed mt-4 mb-6"></div>'
+            itemsHTML += '</div><br/>' # Final
 
     except ValueError:
         messages.error('Server error. Please contact to administrator!')
@@ -1015,8 +1209,8 @@ def saveItem(request):
                                             qty = qty,
                                             notes = notes,
                                             date_proposed = date_proposed,
-                                            creation_user = request.user,
-                                            modification_user = request.user)
+                                            created_by_user = request.user,
+                                            modification_by_user = request.user)
             item_id = item_save.id
 
             saveEvent(request, 3, proyect_id, None)
@@ -1107,6 +1301,51 @@ def saveItem(request):
     return JsonResponse({'result': item_id})
 
 
+@login_required
+def saveItemComment(request):
+    
+    if request.method == 'POST':
+        proyect_id = request.POST.get('id1')
+        item_id = request.POST.get('id2')
+        notes = request.POST.get('notes')
+
+        proyect = Proyect.objects.get(id=proyect_id)
+        item = Item.objects.get(proyect = proyect, id=item_id)
+        
+        if item:
+
+            item_coment = Item_Comment_State.objects.filter(item=item, state=proyect.state).first()
+
+            if item_coment == None:
+
+                item_coment_save = Item_Comment_State.objects.create(   item = item,
+                                                                        state = proyect.state,
+                                                                        notes = notes,
+                                                                        created_by_user = request.user,
+                                                                        modification_by_user = request.user)
+            else:
+
+                item_coment_save = item_coment
+                item_coment_save.notes = notes
+                item_coment_save.modification_by_user = request.user
+                item_coment_save.save()
+
+            ################################### Se recorren los archivos ###################################
+
+            files = request.FILES.getlist('files[]')
+
+            for file in files:
+                
+                if validateTypeFile(file.content_type):
+                    try:
+                        
+                        Item_Comment_State_Files.objects.create(    item_comment_state = item_coment_save,
+                                                                        file = file,
+                                                                        name = file.name)
+                    except:                        
+                        messages.error(request, 'Server error. Please contact to administrator!')
+
+            return JsonResponse({'result': "OK"})
 
 
 ##################################
@@ -1149,6 +1388,31 @@ def deleteProyect(request):
     return JsonResponse({'result': status})
 
 
+@login_required
+def deleteItemCommentFile(request):
+    id = request.POST.get('i') 
+    item_cst_id = request.POST.get('t')
+    item_id = request.POST.get('e')
+    proyect_id = request.POST.get('p')
+    status = 0
+
+    try:
+        itemCS = Item_Comment_State.objects.get(id = item_cst_id)
+        itemCSF = Item_Comment_State_Files.objects.get(id = id, item_comment_state = itemCS)
+
+        if itemCSF.item_comment_state.item.proyect.id == int(proyect_id) and itemCSF.item_comment_state.item.id == int(item_id): #Si pertenece al proyecto, se borra
+            itemCSF.delete()        
+            status = 1
+        else:
+            status = 2
+
+        # saveEvent(request, 4, item.proyect.id, None) ## Borrar item
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
 
 ##################################
 ## Funciones para actualizar datos ###
@@ -1192,7 +1456,7 @@ def validateTypeFile(value):
 
     try:                
         # Tipos permitidos
-        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf']
+        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 
         if value in tipos_permitidos:            
             isfileValidate = True

@@ -149,7 +149,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">       
 																		<div class="col-xl-12">
-																			<label class="fs-6 form-label fw-bolder text-dark">Date from</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">Date from</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
 																				<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">
@@ -176,7 +176,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
-																			<label class="fs-6 form-label fw-bolder text-dark">Date until</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">Date until</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
 																				<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">
@@ -203,7 +203,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
-																			<label class="fs-6 form-label fw-bolder text-dark">Type of proyect</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">Type of proyect</label>
 																			<!--begin::Select-->
 																			<select class="form-select form-select-solid" data-kt-select2="false" name="type">
 																				<option value="0"></option>
@@ -219,7 +219,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
-																			<label class="fs-6 form-label fw-bolder text-dark">Status</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">Status</label>
 																			<!--begin::Select-->
 																			<select class="form-select form-select-solid" data-kt-select2="false" name="state">
 																				<option value="0"></option>
@@ -300,41 +300,41 @@
 																<tbody>
 																	{% for proyect in proyects_data %}
 																	<tr>
-																		<td class="text-start text-muted fs-8">{{ proyect.decorators }}</td>														
+																		<td class="text-start text fs-8">{{ proyect.decorators }}</td>														
 																		<td><a href="{% url 'view_url' proyect_id=proyect.id %}" class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a>
-																			<span class='text-muted fw-bold d-block fs-9'>
+																			<span class='text fw-bold d-block fs-9'>
 																				{% if proyect.city != "" and proyect.city != None %}{{ proyect.city }} {% endif %}
 																				{% if proyect.state_u != "" and proyect.state_u != None %}, {{ proyect.state_u }} {% endif %}
 																				{% if proyect.zipcode != "" and proyect.zipcode != None %}, {{ proyect.zipcode }} {% endif %}
 																				{% if proyect.apartment != "" and proyect.apartment != None %}, {{ proyect.apartment }} {% endif %}
 																			</span></td>
-																		<td class="text-start text-muted fs-8">{{ proyect.customerName }}</td>
+																		<td class="text-start text fs-8">{{ proyect.customerName }}</td>
 																		
-																		<td class="text-start text-muted fs-8">{{ proyect.creationDate }}</td>
-																		<td class="text-start text-muted fs-8">{{ proyect.difference }}</td>
-																		<td class="text-center text-muted fs-8"></td>
-																		<td class="text-center text-muted fs-8">{{ proyect.qty_wo }}</td>
-
+																		<td class="text-start text fs-8">{{ proyect.creationDate }}</td>
+																		<td class="text-start text fs-8">{{ proyect.difference }}</td>
+																		<td class="text-start text fs-8">{{ proyect.categories }}</td>
+																		<td class="text-start text fs-8">{{ proyect.qty_wo }}</td>
+																		<td class="text-start fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a>
 																		{% if proyect.state_id == 1 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-success">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-success">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 2 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-primary">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-primary">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 3 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-warning">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-warning">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 4 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-success">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-success">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 4 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-info">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-info">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 5 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-light">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-light">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 6 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-danger">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-danger">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 7 %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light-white">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light-white">{{ proyect.state }}</span>
 																		{% else %}
-																			<td class="fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a><span class="badge badge-light">{{ proyect.state }}</span></td>
+																			<span class="badge badge-light">{{ proyect.state }}</span>
 																		{% endif %}
-
+																		</td>
 																		<td class='text-center text-end fs-8'>
 																			<div class="d-flex justify-content-end flex-shrink-0">
 																				<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" >

@@ -56,18 +56,7 @@
 										<a href="#" class="text-muted text-hover-primary">New</a>
 									</li>
 								</ul>
-								<!--end::Breadcrumb-->
-
-								{% if messages %}
-									<div class="alert alert-dismissible fade show" role="alert">
-										{% for message in messages %}
-											<div class="alert alert-{{ message.tags }}">
-												{{ message }}
-											</div>
-										{% endfor %}
-									</div>
-								{% endif %}
-
+								<!--end::Breadcrumb-->								
 							</div>
 							<!--end::Page title-->
 						</div>
@@ -79,7 +68,7 @@
 						<!--begin::Container-->							
 						<div id="kt_content_container" class="container-xxl">							
 							<!--begin::Form-->
-							<form id="kt_project_settings_form" class="form" method="POST">
+							<form id="projFormNew" class="form" method="POST">
 								{% csrf_token %}
 
 								<!--begin::Card-->
@@ -95,6 +84,29 @@
 									
 									<!--begin::Card body-->
 									<div class="card-body">
+										{% if messages %}
+
+										{% for message in messages %}
+
+										<div class="alert alert-danger d-flex align-items-center p-5 mb-10">
+											<!--begin::Svg Icon | path: icons/duotune/general/gen048.svg-->
+											<span class="svg-icon svg-icon-2hx svg-icon-danger me-4">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="black"></path>
+													<path d="M10.5606 11.3042L9.57283 10.3018C9.28174 10.0065 8.80522 10.0065 8.51412 10.3018C8.22897 10.5912 8.22897 11.0559 8.51412 11.3452L10.4182 13.2773C10.8099 13.6747 11.451 13.6747 11.8427 13.2773L15.4859 9.58051C15.771 9.29117 15.771 8.82648 15.4859 8.53714C15.1948 8.24176 14.7183 8.24176 14.4272 8.53714L11.7002 11.3042C11.3869 11.6221 10.874 11.6221 10.5606 11.3042Z" fill="black"></path>
+												</svg>
+											</span>
+											<!--end::Svg Icon-->
+											<div class="d-flex flex-column">
+												<h4 class="mb-1 text-danger">This is an alert</h4>
+												<span>{{ message }}</span>
+											</div>
+										</div>
+
+										{% endfor %}
+
+										{% endif %}																					
+										
 										
 										<!--begin::Type-->
 										<div class="row mb-8">
@@ -297,6 +309,11 @@
 											</div>
 											<!--begin::Col-->
 
+
+											
+
+
+
 										</div>
 
 										<!--begin::Phone-->
@@ -408,14 +425,16 @@
 									<!--begin::Card footer-->
 									<div class="card-footer d-flex justify-content-end py-6 px-9">
 										
-										<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>
-										<button type="submit" class="btn btn-primary" id="kt_project_settings_submit">Save</button>
+										<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2">Clean</button>										
+										<button id="save" type="button" class="btn btn-primary">Save</button>
+
 									</div>
+										
 									<!--end::Card footer-->
 
 								</div>
 								<!--end::Card-->
-
+								<button type="submit" id="btnSave" style="display:none"></button>
 							</form>
 							<!--end:Form-->
 						</div>
@@ -867,7 +886,8 @@
 		div.parentNode.remove();	
 
 
-		$(document).ready(function () {
+		$(document).ready(function () {						
+
 			$('#allDay').change(function () {
 				if ($('#allDay').is(':checked')) {
 					$("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
@@ -883,7 +903,7 @@
 				$('#inputCity').val($('#ciudad').val());
 				$('#inputState').val($('#estado').val());
 				$('#inputZipcode').val($('#zip_code').val());
-				validateAddress();
+				validateAddress(0);
             });
 
 			$('#selectType').change(function() {
@@ -900,29 +920,8 @@
             });
 
 			$('#inputAddress').change(function() {
-                validateAddress();
-            });
-
-			$('#inputApartment').change(function() {
-                validateAddress();
-            });
-
-			$('#inputApartment').change(function() {
-                validateAddress();
-            });
-
-			$('#inputCity').change(function() {
-                validateAddress();
-            });
-
-			$('#inputState').change(function() {
-                validateAddress();
-            });
-
-			$('#inputZipcode').change(function() {
-                validateAddress();
-            });
-
+                validateAddress(0);
+            });			
 
 			$('#reset').click(function() {
 				$('.divDecorator').css('display', 'none');
@@ -939,6 +938,11 @@
 			$('.modal_data_close').click(function() {				
 				$('.dataDecoratorR').html("");
             });		
+
+			$('#save').click(function() {
+                validateAddress(1);
+            });	
+			
 			
 
 		});
@@ -1089,7 +1093,7 @@
 		}
 
 
-		function validateAddress(){	
+		function validateAddress(i){	
 
 			var address = $("#inputAddress").val();
 			var city = $("#inputCity").val();
@@ -1098,7 +1102,7 @@
 			var apartment = $("#inputApartment").val();
 			$('#divValidateAddress').css('display', 'none');
 			$('#divValidateAddress').html("");
-			
+						
 			$.ajax({
 				url: "{% url 'getAddress_url' %}",  // La URL que manejará la consulta AJAX
 				method: 'POST',
@@ -1114,10 +1118,31 @@
 					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
 				},
 				success: function(response) {					
-					if(response.result != ""){
-						$('#divValidateAddress').css('display', '');
+					if(response.result != "" || i == 1){
 						$('#divValidateAddress').html(response.result);	
-						$('#proyectExist').val(response.msg);
+						$('#divValidateAddress').css('display', '');
+						// $('#proyectExist').val(response.msg);
+						if(i == 1){														
+							if(response.msg == '1'){
+
+								swal.fire({				
+									text: "The address already exists! Please review the projects.",
+									icon: "error",
+									buttonsStyling: !1,
+									confirmButtonText: "Ok!",
+									customClass: { confirmButton: "btn fw-bold btn-light-primary" }
+								});
+								
+								// .then((result) => {
+								// 	if (result.isConfirmed) {
+								// 		$('html, body').animate({ scrollTop: 0 }, 'fast');
+								// 	}
+								// });
+							}
+							else{						
+								$('#btnSave').click();
+							}							
+						}
 					}
 				},
 				error: function(xhr, status, error) {					

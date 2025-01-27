@@ -18,9 +18,11 @@ urlpatterns = [
     path('selectItems/', views.selectItems, name='getSelectItems_url'),
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
+    path('saveItemComment/', views.saveItemComment, name='saveItemComment_url'),
 
     path('deleteItem/', views.deleteItem, name='deleteItem_url'),
     path('deleteProyect/', views.deleteProyect, name='deleteProyect_url'),
+    path('deleteItemCommentFile/', views.deleteItemCommentFile, name='deleteItemCommentFile_url'),
 
     path('updateStatus/', views.updateStatus, name='updateStatus_url'),
 
