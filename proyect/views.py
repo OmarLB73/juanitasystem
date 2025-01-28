@@ -15,6 +15,9 @@ from django.core.exceptions import ValidationError #Para manejar excepciones
 
 from django.utils import timezone #Para ver la hora correctamente.
 
+from xhtml2pdf import pisa #Para el PDF
+from django.template.loader import get_template #Para el PDF
+
 from django.contrib.auth.models import User #Datos del usuario
 from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files, Item_Comment_State, Item_Comment_State_Files #Aquí importamos a los modelos que necesitamos
 
@@ -251,9 +254,10 @@ def proyect_view(request, proyect_id):
         decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
         ascociates = Decorator.objects.filter(proyects = proyect, is_supervisor = 2).order_by('name')
         events = Event.objects.filter(proyect_id = proyect_id).order_by('creation_date')
-        state_new = State.objects.get(id = (proyect.state.id + 1))
+        state_new = State.objects.filter(id = (proyect.state.id + 1)).first()
 
-        state_new_name = state_new.name
+        if state_new:
+            state_new_name = state_new.name
 
     except Decorator.DoesNotExist:
         decorators = None
@@ -684,13 +688,18 @@ def funct_data_items(proyect_id):
         for item in items:
 
             fecha_propuesta = ''
+            fecha_fin = ''
             code = ''
             group = ''
             itemN+= 1
 
             try:
                 if item.date_proposed:
-                    fecha_propuesta = item.date_proposed.strftime('%Y/%m/%d')
+
+                    fecha_propuesta = item.date_proposed.strftime('%Y-%m-%d')
+
+                if item.date_end:
+                    fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
 
                 if proyect.code:
                     code = proyect.code + '-' + str(itemN)
@@ -766,10 +775,10 @@ def funct_data_items(proyect_id):
                     if file.file.url[-4:] == '.pdf':
                         itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
 
-                    if file.file.url[-5:] == '.docx':
+                    if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
                         itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
 
-                    if file.file.url[-5:] == '.xlsx':
+                    if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
                         itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
                                                     
                     itemsHTML += '<span>'
@@ -984,7 +993,7 @@ def funct_data_items(proyect_id):
                          itemsHTML += '<li><a href=' + file.file.url + '>' + file.name + '</a>'
                     itemsHTML += "</ul>"
 
-                itemsHTML += '</div><br/><br/>'
+                itemsHTML += '</div><br/>'
 
                 ##################################################################################
 
@@ -1002,8 +1011,8 @@ def funct_data_items(proyect_id):
                 itemsHTML += '<form id="formItem_' + str(item.id) + '" method="POST" enctype="multipart/form-data">'
                 itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt4 + '</textarea><br/>'
                 
-                itemsHTML += '<div class="col-xl-4 fv-row">'
-                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Proposed date:</div>'                
+                itemsHTML += '<div class="col-xl-6 fv-row">'
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">End date:</div>'            
                 itemsHTML += '<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">'
                 itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
                 itemsHTML += '<path opacity="0.3" d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z" fill="black" />'
@@ -1011,7 +1020,7 @@ def funct_data_items(proyect_id):
                 itemsHTML += '<path d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z" fill="black" />'
                 itemsHTML += '</svg>'
                 itemsHTML += '</span>'
-                itemsHTML += '<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="datepicker_' + str(item.id) + '" />'
+                itemsHTML += '<input class="form-control form-control-solid ps-12 date-picker" name="date_end" placeholder="Pick a date" value="' + fecha_fin + '"/>'
                 itemsHTML += '</div><br/>'
 
                            
@@ -1024,9 +1033,19 @@ def funct_data_items(proyect_id):
                
                
                 itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
-                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(item.id) + ')">Save</button>'
-                itemsHTML += '</form>'
-                itemsHTML += '<br/><div id="divItemMsg_' + str(item.id) + '" class="alert alert-success text-start p-2 mb-10" style="display:none">The data has been saved successfully.</div>'
+
+                itemsHTML += '<div class="row">'
+               
+                itemsHTML += '<div class="col-md-3">'
+                itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(item.id) + ')">Save</button>'                
+                itemsHTML += '</div>'
+                itemsHTML += '<div class="col-md-9">'                                
+                itemsHTML += '<div class="divItemMsg alert alert-success text-start p-2 mb-1" style="display:none">The data has been saved successfully.</div>'
+                
+                itemsHTML += '</div>'                                
+                itemsHTML += '</div>'
+                
+                itemsHTML += '</form><br/><br/>'
                 itemsHTML += '</div>'
                 itemsHTML += '</div>'
 
@@ -1306,6 +1325,7 @@ def saveItemComment(request):
         proyect_id = request.POST.get('id1')
         item_id = request.POST.get('id2')
         notes = request.POST.get('notes')
+        date_end = request.POST.get('date_end')
 
         proyect = Proyect.objects.get(id=proyect_id)
         item = Item.objects.get(proyect = proyect, id=item_id)
@@ -1313,6 +1333,10 @@ def saveItemComment(request):
         if item:
 
             item_coment = Item_Comment_State.objects.filter(item=item, state=proyect.state).first()
+
+            if date_end:
+                item.date_end = date_end
+                item.save()
 
             if item_coment == None:
 
@@ -1454,7 +1478,7 @@ def validateTypeFile(value):
 
     try:                
         # Tipos permitidos
-        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
 
         if value in tipos_permitidos:            
             isfileValidate = True
@@ -1541,3 +1565,22 @@ def timeline_body(date_str, name, email, description, stateId):
     timeline_cont += '</div>'
 
     return timeline_cont
+
+
+def generate_pdf(request, proyect_id):
+    # Cargar la plantilla HTML para el PDF
+    template = get_template('proyect\pdf_template.html')
+    html = template.render({'some_data': 'Información para el PDF'})  # Datos que quieres pasar a la plantilla
+
+    # Crear la respuesta HTTP con el contenido del PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="WO_.pdf"'
+
+    # Usar xhtml2pdf para convertir HTML a PDF y escribirlo en la respuesta
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    # Si el PDF se genera correctamente, devolver la respuesta, de lo contrario, mostrar un error
+    if pisa_status.err:
+        return HttpResponse('Error generando el PDF', status=500)
+    
+    return response

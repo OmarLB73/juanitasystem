@@ -30,5 +30,7 @@ urlpatterns = [
     path('getDataCustomer/', views.getDataCustomer, name='getDataCustomer_url'),
     path('getDataProyectCustomer/', views.getDataProyectCustomer, name='getDataProyectCustomer_url'),
 
+    path('generate_pdf/<int:proyect_id>/', views.generate_pdf, name='generate_pdf'),
+
     #path('proyect/view/', views.proyect_view, name='proyect_view_url')
 ]
