@@ -15,11 +15,7 @@ from django.core.exceptions import ValidationError #Para manejar excepciones
 
 from django.utils import timezone #Para ver la hora correctamente.
 
-
-
-
-
-
+from django.contrib.auth.models import User #Datos del usuario
 from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files, Item_Comment_State, Item_Comment_State_Files #Aquí importamos a los modelos que necesitamos
 
 @login_required
@@ -143,8 +139,8 @@ def proyect_new(request):
                                                             phone=phone,
                                                             description=customer_description,
                                                             notes=customer_notes,
-                                                            created_by_user = request.user,
-                                                            modification_by_user = request.user
+                                                            created_by_user = request.user.id,
+                                                            modification_by_user = request.user.id
                                                             )
                     
                 
@@ -182,10 +178,10 @@ def proyect_new(request):
                                                             customer=Customer.objects.get(id=customer_id), 
                                                             # responsible=responsible,
                                                             state=State.objects.get(id=state_Id),
-                                                            date=date, 
+                                                            # date=date, 
                                                             description=proyect_description,                                                        
-                                                            created_by_user = request.user,
-                                                            modification_by_user = request.user)
+                                                            created_by_user = request.user.id,
+                                                            modification_by_user = request.user.id)
                     proyect_id = proyect_save.id
 
                     
@@ -211,7 +207,7 @@ def proyect_new(request):
 
                     # Event.objects.create( type_event_id=1,                                        
                     #                         proyect_id=proyect_id, 
-                    #                         user=request.user)
+                    #                         user=request.user.id)
                     
                     saveEvent(request, 1, proyect_id, None)
             
@@ -443,7 +439,7 @@ def selectAscociate(request):
     decoratorsHTML = ''
 
     for decorator in decorators:  
-        print("Valores recibidos: ", decorator.id )
+        # print("Valores recibidos: ", decorator.id )
         decoratorsHTML += '<option value=' + str(decorator.id) + '>' + decorator.name + '</option>'
                     
     # Devolvemos la lista de ascociates como respuesta JSON
@@ -1070,6 +1066,8 @@ def funct_data_events(proyect_id):
 
             notesHTML += '<div class="timeline-item">'
 
+            user = User.objects.get(id=event.user)
+
             try:
                 if event.creation_date:
                     event_date = timezone.localtime(event.creation_date)
@@ -1087,7 +1085,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'Project is created', event.type_event_id)
+                    notesHTML += timeline_body(event_date, user.first_name + ' ' + user.last_name, user.email, 'Project is created', event.type_event_id)
 
                 if event.type_event_id == 3: #se agrega item
                     notesHTML += '<div class="timeline-line w-40px"></div>'
@@ -1104,7 +1102,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been added', event.type_event_id)
+                    notesHTML += timeline_body(event_date, user.first_name + ' ' + user.last_name, user.email, 'An item has been added', event.type_event_id)
 
                 if event.type_event_id == 4: #se borra item
                     notesHTML += '<div class="timeline-line w-40px"></div>'
@@ -1122,7 +1120,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, 'An item has been deleted', event.type_event_id)
+                    notesHTML += timeline_body(event_date, user.first_name + ' ' + user.last_name, user.email, 'An item has been deleted', event.type_event_id)
 
 
                 if event.type_event_id == 6: #se avanza status
@@ -1141,7 +1139,7 @@ def funct_data_events(proyect_id):
                     notesHTML += '</div>'
                     notesHTML += '</div>'
 
-                    notesHTML += timeline_body(event_date, event.user.first_name + ' ' + event.user.last_name, event.user.email, event.description, event.type_event_id)
+                    notesHTML += timeline_body(event_date, user.first_name + ' ' + user.last_name, user.email, event.description, event.type_event_id)
 
             except ValueError:
                 messages.error('Server error. Date not exist!')
@@ -1178,7 +1176,7 @@ def saveEvent(request, type_event_id, proyect_id, description):
         Event.objects.create(   type_event_id=type_event_id,                                        
                                 proyect=proyect, 
                                 description = description,
-                                user=request.user)
+                                user=request.user.id)
         
     except Proyect.DoesNotExist:        
         messages.error('Server error. Please contact to administrator!')
@@ -1209,8 +1207,8 @@ def saveItem(request):
                                             qty = qty,
                                             notes = notes,
                                             date_proposed = date_proposed,
-                                            created_by_user = request.user,
-                                            modification_by_user = request.user)
+                                            created_by_user = request.user.id,
+                                            modification_by_user = request.user.id)
             item_id = item_save.id
 
             saveEvent(request, 3, proyect_id, None)
@@ -1321,13 +1319,13 @@ def saveItemComment(request):
                 item_coment_save = Item_Comment_State.objects.create(   item = item,
                                                                         state = proyect.state,
                                                                         notes = notes,
-                                                                        created_by_user = request.user,
-                                                                        modification_by_user = request.user)
+                                                                        created_by_user = request.user.id,
+                                                                        modification_by_user = request.user.id)
             else:
 
                 item_coment_save = item_coment
                 item_coment_save.notes = notes
-                item_coment_save.modification_by_user = request.user
+                item_coment_save.modification_by_user = request.user.id
                 item_coment_save.save()
 
             ################################### Se recorren los archivos ###################################
@@ -1433,7 +1431,7 @@ def updateStatus(request):
         Event.objects.create(   type_event_id = 6,                                        
                                 proyect=proyect, 
                                 description = description,
-                                user=request.user)
+                                user=request.user.id)
 
         
         status = 1

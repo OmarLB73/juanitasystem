@@ -41,9 +41,10 @@ class Type(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    # created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     #La clase Meta, ayuda a evitar usar prefijos de la aplicacion en la base de datos. 
@@ -63,9 +64,9 @@ class Responsible(models.Model):
     email = models.CharField(max_length=150)
     id_user = models.IntegerField(default=0)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -85,9 +86,9 @@ class Customer(models.Model):
     description = models.CharField(max_length=2000, null=True, blank=True)
     notes = models.CharField(max_length=2000, null=True, blank=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -98,9 +99,9 @@ class State(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -115,9 +116,9 @@ class Proyect(models.Model):
     description = models.CharField(max_length=2000, null=True)
     code = models.CharField(max_length=50, null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -129,9 +130,9 @@ class Category(models.Model):
     name = models.CharField(max_length=50)
     order = models.IntegerField(default=1)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -144,9 +145,9 @@ class Subcategory(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     order = models.IntegerField(default=1)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -160,9 +161,9 @@ class Group(models.Model):
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     order = models.IntegerField(default=1)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -194,9 +195,9 @@ class Decorator(models.Model):
         related_name='proyects')
     id_user = models.IntegerField(default=0)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -208,7 +209,7 @@ class Event(models.Model):
     type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
     proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=2000, null=True)    
-    user  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, default=1, related_name='+')
+    user  = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
 
 
@@ -216,9 +217,9 @@ class Place(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -231,9 +232,9 @@ class Attribute(models.Model):
     name = models.CharField(max_length=50)    
     description = models.TextField(null=True, blank=True)        
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
    
     def __str__(self):
@@ -252,9 +253,9 @@ class Category_Attribute(models.Model):
     order = models.IntegerField(default=1)
     file = models.ImageField(upload_to=get_file_path_img_att, blank=True, null=True)  # Nuevo campo de imagen
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -281,9 +282,9 @@ class Item(models.Model):
     date_end = models.DateTimeField(null=True)
     responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True, default=0)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -302,9 +303,9 @@ class Item_Attribute(models.Model):
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)    
     notes = models.CharField(blank=True, null=True, max_length=150)
     status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
@@ -374,7 +375,7 @@ class Item_Comments(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     notes = models.TextField(blank=True, null=True)
     type = models.IntegerField(choices=EVENTOS,  default=2)
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
     
     def __str__(self):
@@ -386,9 +387,9 @@ class Item_Comment_State(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     notes = models.TextField(blank=True, null=True)    
-    created_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
-    modification_by_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
     
     def __str__(self):
