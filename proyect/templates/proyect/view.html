@@ -170,8 +170,7 @@
 												</div>
 												<div class="my-lg-0 my-1">
 													{% if state_new != '' %}
-													<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-info font-weight-bolder text-uppercase">NEXT</a>
-
+													<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-primary font-weight-bolder text-uppercase">{{state_new}}</a>
 													{% endif %}
 												</div>
 											</div>
@@ -222,7 +221,7 @@
 
 
 												</div>
-			
+						
 												<div class="d-flex flex-wrap align-items-center py-2">
 
 													<div class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
@@ -231,21 +230,21 @@
 														</span>
 														
 														{% if proyect.state_id == 1 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-primary col-lg-12">
 														{% elif proyect.state_id == 2 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-primary col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-danger col-lg-12">
 														{% elif proyect.state_id == 3 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-warning col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-warning col-lg-12">
 														{% elif proyect.state_id == 4 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-success col-lg-12">
 														{% elif proyect.state_id == 5 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-info col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-info col-lg-12">
 														{% elif proyect.state_id == 6 %}
-														<div class="fs-6 fw-bold mb-2 badge-light-success col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light-dark col-lg-12">
 														{% elif proyect.state_id == 7 %}
-														<div class="fs-6 fw-bold mb-2 badge-danger-success col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light col-lg-12">
 														{% else %}
-														<div class="fs-6 fw-bold mb-2 badge-white-success col-lg-12">
+														<div class="fs-6 fw-bold p-2 mb-3 badge-light col-lg-12">
 														{% endif %}
 
 														{{proyect.state.name}}
@@ -254,7 +253,7 @@
 
 														<div class="progress progress-xs mt-2 mb-2">
 															<div class="progress-bar bg-success" role="progressbar"
-																style="width:{{advance}}%"  
+																style="width:0%"  
 																aria-valuenow="{{advance}}" aria-valuemin="0"
 																aria-valuemax="100"></div>
 														</div>
@@ -498,7 +497,7 @@
 																				</svg>
 																			</span>
 																			<!--end::Svg Icon-->
-																			<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="kt_datepicker" />
+																			<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="date_proposed_id" />
 																		</div>
 
 
@@ -591,7 +590,11 @@
 														
 														<div class="card-footer d-flex justify-content-end py-6 px-9">
 															<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()">Clean</button>
-															<button type="submit" class="btn btn-primary px-8 py-2 mr-4" id="submitItem">Save</button>
+															<button type="submit" class="btn btn-primary px-8 py-2 mr-4" id="submitItem" data-kt-indicator="off">
+																<span class="indicator-label">Save</span>
+																<span class="indicator-progress">Please wait...
+																<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+															</button>
 														</div>
 
 													</div>
@@ -604,7 +607,21 @@
 
 												<div>
 
-													<div class="card-title fs-6 fw-bolder">Items list:</div>
+													<div class="row">
+														<div class="col-md-6">															
+															<div class="card-title fs-6 fw-bolder">Items list:</div>
+														</div>
+														<div class="col-md-6 text-end">	
+															
+															{% if proyect.state_id >= 4 %}
+															<img alt="" class="w-20px me-3" src="/static/images/pdf.svg" alt="">
+															<a href="{% url 'generate_pdf' proyect_id=1 %}" class="fs-7 text-hover-primary" target="_blank">Download WO</a>
+															{% endif %}
+
+														</div>
+													</div>
+
+													
 
 													<div id="messageSave">
 
@@ -744,7 +761,8 @@
 
 				// $("#inputQty").mask('0000'); // Formato de número 4 digitos	
 				$('.grid-gallery').masonry_gallery();
-				$("#kt_datepicker").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });				
+				$("#date_proposed_id").flatpickr({ enableTime: true, dateFormat: "Y-m-d" });
+				initializeFlatpickr();
 
 			});
 
@@ -969,22 +987,32 @@
 
 				// Crear una vista previa para cada imagen seleccionada
 				for (const file of files) {
-					const reader = new FileReader();
-					
-					reader.onload = function(e) {
-						const img = document.createElement('img');
-						img.src = e.target.result;
-						img.classList.add('preview');
-						img.name = 'images';
-						previewContainer.appendChild(img);
+					 // Validar si el archivo es una imagen
+    				if (file.type.startsWith('image/')) {
+						const reader = new FileReader();
+						
+						reader.onload = function(e) {
+							const img = document.createElement('img');
+							img.src = e.target.result;
+							img.classList.add('preview');
+							img.name = 'images';
+							previewContainer.appendChild(img);
+							$(divNotes).css('display', '');
+							$(divDel).css('display', '');
+							$(inputImg).css('display', 'none');
+							newImagesDiv(id);
+
+						};
+						
+						reader.readAsDataURL(file);
+					}
+					else{
+						previewContainer.innerHTML = '<div class="card-body d-flex justify-content-start text-start flex-column p-8"><div class="symbol symbol-150px mb-5"><img src="/static/images/upload.svg" alt=""><div class="fs-7 fw-bold text-gray-400">' + file.name + '</div></div></div>';
 						$(divNotes).css('display', '');
 						$(divDel).css('display', '');
 						$(inputImg).css('display', 'none');
 						newImagesDiv(id);
-
-					};
-					
-					reader.readAsDataURL(file);
+					}
 				}
 			}
 
@@ -1039,14 +1067,24 @@
 
 
 			function cleanItemForm(){
+																				
 				var select = document.getElementById('selectCategory');				
 				select.selectedIndex = 0; // Establece el primer elemento como seleccionado
-				
-				select = document.getElementById('selectPlace');
+
+				var select = document.getElementById('selectPlace');
 				select.selectedIndex = 0; // Establece el primer elemento como seleccionado				
 
+				var select = document.getElementById('selectSubcategory');				
+				select.innerHTML = ''; // Establece el primer elemento como seleccionado								
+
+				var select = document.getElementById('selectGroup');
+				select.innerHTML = ''; // Establece el primer elemento como seleccionado
+
+				$('#inputQty').html('');
+				$('#date_proposed_id').html('');				
+
 				$('#selectSubcategory').html('');
-				$('#divAttributes').html('');				
+				$('#divAttributes').html('');
 				$('#divImages').html(newImagesDiv(0));
 
 			}
@@ -1063,10 +1101,10 @@
 			function state(i){
 
 				var state = document.querySelector('#aState').textContent;
-				var state = "next";
+				//var state = "next";
 				Swal.fire({
 					title: 'Are you sure?',
-					text: 'Do you want to advance to ' + state + ' status?',
+					text: 'Do you want to advance to "' + state + '" status?',
 					icon: 'warning',
 					showCancelButton: true,  // Muestra el botón de cancelación
 					confirmButtonText: 'Yes',
@@ -1158,7 +1196,10 @@
 					},
 					success: function(response) {
 						if(response.result = "OK"){
-							loadItems();
+							
+							const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
+							divWithClass.show();
+							divWithClass.fadeOut(5000);
 						}						
 					},
 					error: function() {
@@ -1204,6 +1245,14 @@
 				});	
 			}
 
+
+			function initializeFlatpickr() {
+				// Aplicar flatpickr a los inputs con la clase 'date-picker'
+				$(".date-picker").flatpickr({
+					enableTime: true, // Deshabilitar la selección de hora
+					dateFormat: "Y-m-d H:i" // Establecer el formato de fecha
+				});
+			}
 
 		</script>
 

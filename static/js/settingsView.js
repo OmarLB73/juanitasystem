@@ -41,7 +41,11 @@ var KTProjectSettings = {
                                     if (result.isConfirmed) {
                                         // Si el usuario confirma, enviar el formulario
                                         // $('#formItem')[0].submit(); // Enviar el formulario manualmente
-                                           
+
+                                            i.setAttribute("data-kt-indicator", "on");
+                                            i.disabled = true;  // Deshabilitar el botón mientras el proceso se realiza
+                                            
+                                          
                                             // var formData = $('#formItem').serialize(); // Serializa los datos del formulario
                                             var formData = new FormData();  // Creamos un objeto FormData vacío
 
@@ -84,20 +88,30 @@ var KTProjectSettings = {
                                                 },
                                                 success: function(response) {
                                                     loadItems();
-                                                    $('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>item</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                                                    cleanItemForm();                                                                                                                                                            
                                                     $('#nav-items-tab').click();
+                                                    
+                                                    $('#messageSave').show();
+                                                    $('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>item</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                                                    setTimeout(function() {
+                                                        $('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+                                                    }, 5000); 
+
                                                 },
                                                 error: function() {
                                                     console.error("Error server: " + error, event.error);
                                                 }
                                             });
-                                        
-
+                                    
 
                                     } else {
                                         // Si el usuario cancela, no hacer nada
                                         console.log('Form not sent');
                                     }
+
+                                    i.setAttribute("data-kt-indicator", "off");
+                                    i.disabled = false;  // Deshabilitar el botón mientras el proceso se realiza
+
                                 })                                                                                                                                                                                            
                                 : swal.fire({
                                     text: "Please complete the required information.",

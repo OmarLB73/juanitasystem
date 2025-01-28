@@ -316,21 +316,19 @@
 																		<td class="text-start text fs-8">{{ proyect.qty_wo }}</td>
 																		<td class="text-start fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a>
 																		{% if proyect.state_id == 1 %}
-																			<span class="badge badge-light-success">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 2 %}
 																			<span class="badge badge-light-primary">{{ proyect.state }}</span>
+																		{% elif proyect.state_id == 2 %}
+																			<span class="badge badge-light-danger">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 3 %}
 																			<span class="badge badge-light-warning">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 4 %}
-																			<span class="badge badge-light-success">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 4 %}
-																			<span class="badge badge-light-info">{{ proyect.state }}</span>
+																			<span class="badge badge-light-success">{{ proyect.state }}</span>																		
 																		{% elif proyect.state_id == 5 %}
-																			<span class="badge badge-light-light">{{ proyect.state }}</span>
+																			<span class="badge badge-light-info">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 6 %}
-																			<span class="badge badge-light-danger">{{ proyect.state }}</span>
+																			<span class="badge badge-light-dark">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 7 %}
-																			<span class="badge badge-light-white">{{ proyect.state }}</span>
+																			<span class="badge badge-light">{{ proyect.state }}</span>
 																		{% else %}
 																			<span class="badge badge-light">{{ proyect.state }}</span>
 																		{% endif %}
