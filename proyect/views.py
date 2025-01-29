@@ -1569,7 +1569,7 @@ def timeline_body(date_str, name, email, description, stateId):
 
 def generate_pdf(request, proyect_id):
     # Cargar la plantilla HTML para el PDF
-    template = get_template('proyect\pdf_template.html')
+    template = get_template('proyect/pdf_template.html')
     html = template.render({'some_data': 'Información para el PDF'})  # Datos que quieres pasar a la plantilla
 
     # Crear la respuesta HTTP con el contenido del PDF
