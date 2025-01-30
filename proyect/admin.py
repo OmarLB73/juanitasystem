@@ -237,7 +237,7 @@ class Category_AttributeAdmin(admin.ModelAdmin):
 admin.site.register(Type, TypeAdmin)
 admin.site.register(Responsible, ResponsibleAdmin)
 admin.site.register(Customer, CustomerAdmin)
-# admin.site.register(Proyect, ProyectAdmin)
+admin.site.register(Proyect, ProyectAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Subcategory, SubcategoryAdmin)

@@ -8,8 +8,12 @@ urlpatterns = [
     path('grafics/', views.grafics_view, name='grafics_url'), 
 
         
-    path('getDataDecorator/', views.getDataDecorator, name='getDataDecorators_url'),    
+    path('getDataDecorator/', views.getDataDecorator, name='getDataDecorators_url'), 
+    path('getDataCustomer/', views.getDataCustomer, name='getDataCustomer_url'),
+    path('getDataProyectCustomer/', views.getDataProyectCustomer, name='getDataProyectCustomer_url'),
     path('getAddress/', views.getAddress, name='getAddress_url'),
+    path('getDataCalendar/', views.getDataCalendar, name='getDataCalendar_url'),
+    path('getDataComment/', views.getDataComment, name='getDataComment_url'),
 
     path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
     path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
@@ -27,8 +31,7 @@ urlpatterns = [
     path('updateStatus/', views.updateStatus, name='updateStatus_url'),
 
 
-    path('getDataCustomer/', views.getDataCustomer, name='getDataCustomer_url'),
-    path('getDataProyectCustomer/', views.getDataProyectCustomer, name='getDataProyectCustomer_url'),
+    
 
     path('generate_pdf/<int:proyect_id>/', views.generate_pdf, name='generate_pdf'),
 

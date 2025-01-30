@@ -1,25 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>PDF generado</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Trabajo - PDF</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
         }
-        .content {
-            margin: 20px;
+
+        /* Definir márgenes para la página */
+        @page {
+            margin: 20mm;
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Cabecera */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 30px;
+            color: #009688;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Tabla de detalles de la WO */
+        .wo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        .wo-table th,
+        .wo-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .wo-table th {
+            background-color: #009688;
+            color: white;
+        }
+
+        /* Filas alternas */
+        .wo-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Botones */
+        .btn {
+            background-color: #d4dbe3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            margin: 10px 0;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #00796b;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 40px;
+        }
+
+        .footer a {
+            color: #009688;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0 me-lg-15">
-        <a href="#">
-            <img alt="Logo" src="../static/images/logo.png" class="h-40px h-lg-60px" />
-        </a>
+
+<div class="container">
+    <!-- Cabecera -->
+    <div class="header">
+        <h1>Orden de Trabajo WO</h1>
+        <p>El proyecto completo? Por item?</p>
     </div>
-    <div class="content">
-        <h1>ESTA ES LA WO</h1>
-        <p>En construcción</p>
-    </div>
+
+    <!-- Tabla con los detalles -->
+    <table class="wo-table">
+        <tr>
+            <th>ID de WO</th>
+            <td>#123456789</td>
+        </tr>
+        <tr>
+            <th>Fecha de Creación</th>
+            <td>30 Enero 2025</td>
+        </tr>
+        <tr>
+            <th>Departamento</th>
+            <td>Ingeniería</td>
+        </tr>
+        <tr>
+            <th>Asignado a</th>
+            <td>Juan Pérez</td>
+        </tr>
+        <tr>
+            <th>Descripción</th>
+            <td>Reparación del sistema de aire acondicionado, zona 4.</td>
+        </tr>
+        <tr>
+            <th>Fecha de Inicio</th>
+            <td>01 Febrero 2025</td>
+        </tr>
+        <tr>
+            <th>Fecha Estimada de Finalización</th>
+            <td>05 Febrero 2025</td>
+        </tr>
+        <tr>
+            <th>Prioridad</th>
+            <td>Alta</td>
+        </tr>
+    </table>
+
+
+</div>
+
 </body>
 </html>

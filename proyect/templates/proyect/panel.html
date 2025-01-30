@@ -7,8 +7,8 @@
 	<title>Proyect - Dashboard</title>	
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
 
-	<link href="{% static 'css/datatables.bundle.css' %}" rel="stylesheet" type="text/css" />
-	<link href="{% static 'css/datatables.bundle.rtl.css' %}" rel="stylesheet" type="text/css" />
+	<!-- <link href="{% static 'css/datatables.bundle.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/datatables.bundle.rtl.css' %}" rel="stylesheet" type="text/css" /> -->
 
 	
 	<link href="{% static 'css/fullcalendar/fullcalendar.bundle.css' %}" rel="stylesheet" type="text/css" />
@@ -17,11 +17,10 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	
+	<meta name="csrf-token" content="{{ csrf_token }}">
 	<!--end::Global Stylesheets Bundle-->
 </head>
 <!--end::Head-->
-
-{% csrf_token %}
 
 <!--begin::Body-->
 <body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed"
@@ -583,80 +582,7 @@
 									<!--end::Description-->
 								</div>
 								<!--end::Timeline heading-->
-								<!--begin::Timeline details-->
-								<div class="overflow-auto pb-5">
-									<!--begin::Record-->
-									<div
-										class="d-flex align-items-center border border-dashed border-gray-300 rounded min-w-750px px-7 py-3 mb-5">
-										<!--begin::Title-->
-										<a href="#"
-											class="fs-5 text-dark text-hover-primary fw-bold w-375px min-w-200px">Tapicería</a>
-										<!--end::Title-->
-										<!--begin::Label-->
-										<div class="min-w-175px pe-2">
-											<span class="badge badge-light text-muted">Comedor</span>
-										</div>
-										<!--end::Label-->
-										<!--begin::Users-->
-										<div class="symbol-group symbol-hover flex-nowrap flex-grow-1 min-w-100px pe-2">
-											<!--begin::User-->
-											<div class="symbol symbol-circle symbol-25px">
-												<img src="{% static 'proyect/images/multimedia-photo-icon.png' %}"
-													alt="img" />
-											</div>
-											<!--end::User-->
-											<!--begin::User-->
-											<div class="symbol symbol-circle symbol-25px">
-												<img src="{% static 'proyect/images/multimedia-photo-icon.png' %}"
-													alt="img" />
-											</div>
-											<!--end::User-->
-										</div>
-										<!--end::Users-->
-										<!--begin::Progress-->
-										<div class="min-w-125px pe-2">
-											<span class="badge badge-light-primary">En progreso</span>
-										</div>
-										<!--end::Progress-->
-										<!--begin::Action-->
-										<a href="#" class="btn btn-sm btn-light btn-active-light-primary">Ver</a>
-										<!--end::Action-->
-									</div>
-									<!--end::Record-->
-									<!--begin::Record-->
-									<div
-										class="d-flex align-items-center border border-dashed border-gray-300 rounded min-w-750px px-7 py-3 mb-0">
-										<!--begin::Title-->
-										<a href="#"
-											class="fs-5 text-dark text-hover-primary fw-bold w-375px min-w-200px">Cortinas</a>
-										<!--end::Title-->
-										<!--begin::Label-->
-										<div class="min-w-175px">
-											<span class="badge badge-light text-muted">Living</span>
-										</div>
-										<!--end::Label-->
-										<!--begin::Users-->
-										<div class="symbol-group symbol-hover flex-nowrap flex-grow-1 min-w-100px">
-											<!--begin::User-->
-											<div class="symbol symbol-circle symbol-25px">
-												<img src="{% static 'proyect/images/multimedia-photo-icon.png' %}"
-													alt="img" />
-											</div>
-											<!--end::User-->
-										</div>
-										<!--end::Users-->
-										<!--begin::Progress-->
-										<div class="min-w-125px">
-											<span class="badge badge-light-success">Completado</span>
-										</div>
-										<!--end::Progress-->
-										<!--begin::Action-->
-										<a href="#" class="btn btn-sm btn-light btn-active-light-primary">Ver</a>
-										<!--end::Action-->
-									</div>
-									<!--end::Record-->
-								</div>
-								<!--end::Timeline details-->
+
 							</div>
 							<!--end::Timeline content-->
 						</div>
@@ -1017,6 +943,125 @@
 	<!--begin::Javascript-->
 	<!--begin::Global Javascript Bundle(used by all pages)-->
 
+
+	<div id="tooltip" class="popover fade show bs-popover-end" role="tooltip" style="display: none; position: absolute; inset: 0px auto auto 0px; margin: 0px; z-index: 9999;">		
+		
+		<h3 class="popover-header">Event Summary</h3>
+		<div class="popover-body">
+			<div class="fw-bolder mb-2"><span id="tooltipTitle"></span></div>
+			<div class="fs-7"><span class="fw-bold">Date: </span><span id="tooltipDate"></span></div>
+			<div class="fs-7 mb-4"><span class="fw-bold">Customer: </span> <span id="tooltipDescription"></span></div>			
+		</div>
+	</div>
+
+	<!--begin::Modal - New Product-->
+	<div class="modal fade" id="kt_modal_view_event" tabindex="-1" aria-hidden="true">
+		<!--begin::Modal dialog-->
+		<div class="modal-dialog modal-dialog-centered mw-650px">
+			<!--begin::Modal content-->
+			<div class="modal-content">
+				<!--begin::Modal header-->
+				<div class="modal-header border-0 justify-content-end">
+					<!--begin::Edit-->
+					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-primary me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Edit proyect" id="kt_modal_view_event_edit">
+						<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
+						<span class="svg-icon svg-icon-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" />
+								<path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+					</div>
+					<!--end::Edit-->
+					<!--begin::Edit-->
+					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="kt_modal_view_event_delete">
+						<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+						<span class="svg-icon svg-icon-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+								<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+								<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+					</div>
+					<!--end::Edit-->
+					<!--begin::Close-->
+					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Hide Event" data-bs-dismiss="modal">
+						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+						<span class="svg-icon svg-icon-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+					</div>
+					<!--end::Close-->
+				</div>
+				<!--end::Modal header-->
+				<!--begin::Modal body-->
+				<div class="modal-body pt-0 pb-20 px-lg-17">
+					<!--begin::Row-->
+					<div class="d-flex">
+						<!--begin::Icon-->
+						<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->						
+						<span class="svg-icon svg-icon-1 svg-icon-muted me-5">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black" />
+								<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+						<!--end::Icon-->
+						<div class="mb-9">
+							<!--begin::Event name-->
+							<div class="d-flex align-items-center mb-2">
+								<span class="fs-3 fw-bolder me-3" data-kt-calendar="event_name"><span id="tooltipTitleMd"></span></span>
+								<span class="badge badge-light-success" data-kt-calendar="all_day"></span>
+							</div>
+							<!--end::Event name-->
+							<!--begin::Event description-->
+							<div class="fs-6" data-kt-calendar="event_description"><span id="tooltipDescriptionMd"></span></div>
+							<!--end::Event description-->
+						</div>
+					</div>
+					<!--end::Row-->
+					<!--begin::Row-->
+					<div class="d-flex align-items-center mb-2">
+						<!--begin::Icon-->
+						<!--begin::Svg Icon | path: icons/duotune/abstract/abs050.svg-->
+						<span class="svg-icon svg-icon-1 svg-icon-success me-5">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+								<circle fill="#000000" cx="12" cy="12" r="8" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+						<!--end::Icon-->
+						<!--begin::Event start date/time-->
+						<div class="fs-6">
+							<span class="fw-bolder">Date: </span>
+							<span data-kt-calendar="event_start_date"><span id="tooltipDateMd"></span></span>
+						</div>
+						<!--end::Event start date/time-->
+					</div>
+					<!--end::Row-->
+					<input id="id1" name="id1" type="hidden" value="" readonly/>
+					<input id="id2" name="id2" type="hidden" value="" readonly/>
+					<!--begin::Row-->
+					<div id="saveItemComment">
+										
+					</div>
+					<!--end::Row-->
+				</div>
+				<!--end::Modal body-->
+			</div>
+		</div>
+	</div>
+	<!--end::Modal - New Product-->
+	
+
 	<script>var KTAppSettings = { "breakpoints": { "sm": 576, "md": 768, "lg": 992, "xl": 1200, "xxl": 1400 }, "colors": { "theme": { "base": { "white": "#ffffff", "primary": "#3699FF", "secondary": "#E5EAEE", "success": "#1BC5BD", "info": "#8950FC", "warning": "#FFA800", "danger": "#F64E60", "light": "#E4E6EF", "dark": "#181C32" }, "light": { "white": "#ffffff", "primary": "#E1F0FF", "secondary": "#EBEDF3", "success": "#C9F7F5", "info": "#EEE5FF", "warning": "#FFF4DE", "danger": "#FFE2E5", "light": "#F3F6F9", "dark": "#D6D6E0" }, "inverse": { "white": "#ffffff", "primary": "#ffffff", "secondary": "#3F4254", "success": "#ffffff", "info": "#ffffff", "warning": "#ffffff", "danger": "#ffffff", "light": "#464E5F", "dark": "#ffffff" } }, "gray": { "gray-100": "#F3F6F9", "gray-200": "#EBEDF3", "gray-300": "#E4E6EF", "gray-400": "#D1D3E0", "gray-500": "#B5B5C3", "gray-600": "#7E8299", "gray-700": "#5E6278", "gray-800": "#3F4254", "gray-900": "#181C32" } }, "font-family": "Poppins" };</script>
 
 	<script src="{% static 'js/jquery.min.js' %}"></script>
@@ -1030,94 +1075,18 @@
 
 	<script>
 
-		function cargarProyectos() {
-			
-			var e = moment().startOf("day"),
-			t = e.format("YYYY-MM"),
-			a = e.clone().subtract(1, "day").format("YYYY-MM-DD"),
-			o = e.format("YYYY-MM-DD"),
-			s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
-			r = document.getElementById("kt_calendar_widget_1");
-
-			var calendar = new FullCalendar.Calendar(r, {
-				headerToolbar: {
-					left: "prev,next today",
-					center: "title",
-					right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
-				},
-				height: 800,
-				contentHeight: 780,
-				aspectRatio: 3,
-				nowIndicator: !0,
-				//now: o + "T09:25:00",
-				views: {
-					dayGridMonth: { buttonText: "month" },
-					timeGridWeek: { buttonText: "week" },
-					timeGridDay: { buttonText: "day" }
-				},
-				initialView: "dayGridMonth",
-				initialDate: o,
-				editable: true,
-				dayMaxEvents: !0,
-				navLinks: !0					
-			})
-
-			calendar.render();
-			
-            $.ajax({
-                url: "{% url 'getDataProyectCustomer_url' %}",  // URL de la vista AJAX
-                method: "GET",  // El método de la solicitud (GET para obtener datos)
-                success: function(response) {
-                    // Limpiar la tabla antes de agregar nuevos datos
-                    $('#tableCustomerProyect tbody').empty();
-
-                    // Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
-                    response.proyects.forEach(function(proyecto) {
-                        var row = '<tr>';
-                        row += "<td><a href='#'class='text-dark fw-bolder text-hover-primary mb-1 fs-6'>" + proyecto.customerName + "</a> <span class='text-muted fw-bold d-block'>" + proyecto.email + "</span></td>";
-                        row += '<td class="text-muted">' + proyecto.address + '</td>';
-						row += '<td class="text-muted">' + (proyecto.date).slice(0,10) + '</td>';
-                        row += '<td></td>';
-						row += '<td class="text-end"><span class="badge badge-light-success">' + proyecto.state + '</span></td>';
-						row += "<td class='text-end'><a href='#'class='btn btn-sm btn-icon btn-bg-light btn-active-color-primary'><span class='svg-icon svg-icon-2'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><rect opacity='0.5' x='18' y='13' width='13' height='2' rx='1' transform='rotate(-180 18 13)' fill='black' /> <path d='M15.4343 12.5657L11.25 16.75C10.8358 17.1642 10.8358 17.8358 11.25 18.25C11.6642 18.6642 12.3358 18.6642 12.75 18.25L18.2929 12.7071C18.6834 12.3166 18.6834 11.6834 18.2929 11.2929L12.75 5.75C12.3358 5.33579 11.6642 5.33579 11.25 5.75C10.8358 6.16421 10.8358 6.83579 11.25 7.25L15.4343 11.4343C15.7467 11.7467 15.7467 12.2533 15.4343 12.5657Z' fill='black' /></svg></span></a></td>";
-                        row += '</tr>';
-                        $('#tableCustomerProyect tbody').append(row);
-
-						calendar.addEvent({
-							title: proyecto.address,
-							start: proyecto.date,
-							description: proyecto.name,
-							allDay: proyecto.allDay,
-						});
-
-
-                    });
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error en la solicitud AJAX:", error);
-                }
-            });
-
-
-			
-
-
-        }
-
-
-		function cargarCalendario(eventos){
+		function loadCalendar() {
 
 			if ("undefined" != typeof FullCalendar && document.querySelector("#kt_calendar_widget_1")) {
-
+			
 				var e = moment().startOf("day"),
-					t = e.format("YYYY-MM"),
-					a = e.clone().subtract(1, "day").format("YYYY-MM-DD"),
-					o = e.format("YYYY-MM-DD"),
-					s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
-					
-					r = document.getElementById("kt_calendar_widget_1");
-
-				new FullCalendar.Calendar(r, {
+				t = e.format("YYYY-MM"),
+				a = e.clone().subtract(1, "day").format("YYYY-MM-DD"),
+				o = e.format("YYYY-MM-DD"),
+				s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
+				r = document.getElementById("kt_calendar_widget_1");
+	
+				var calendar = new FullCalendar.Calendar(r, {
 					headerToolbar: {
 						left: "prev,next today",
 						center: "title",
@@ -1136,23 +1105,100 @@
 					initialView: "dayGridMonth",
 					initialDate: o,
 					editable: true,
-					dayMaxEvents: !0,
-					navLinks: !0,
-					events: [
-						/*{ title: "Blanca Estela 500, Con Cón", start: t + "-01", description: "Living", className: "fc-event-danger", backgroundColor: "red" }*/
-					]
-				}).render()
+					dayMaxEvents: true,
+					navLinks: true,
+					 // Evento al pasar el ratón sobre el evento
+					// Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
+					eventDidMount: function(info) {
+						// Detectar el mouseover y mouseout
+						var eventEl = info.el; // El elemento DOM del evento
+
+						// Mostrar el tooltip cuando el ratón pasa sobre el evento
+						eventEl.addEventListener('mouseenter', function(jsEvent) {
+							var tooltip = document.getElementById('tooltip');
+							tooltip.style.display = 'block';
+							document.getElementById('tooltipTitle').textContent = info.event.title;
+							document.getElementById('tooltipDescription').textContent = info.event.extendedProps.description;
+
+							var eventDate = info.event.start;
+							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
+
+							document.getElementById('tooltipDate').textContent = formattedDate;							
+							// Posicionar el tooltip cerca del ratón
+							tooltip.style.top = jsEvent.pageY + 10 + 'px';
+							tooltip.style.left = jsEvent.pageX + 10 + 'px';
+						});
+
+						// // Ocultar el tooltip cuando el ratón salga del evento
+						eventEl.addEventListener('mouseleave', function() {
+							document.getElementById('tooltip').style.display = 'none';
+						});
+					},
+					// Nuevo: evento click en un evento
+					eventClick: function(info) {
+		// 
+						var myModal = new bootstrap.Modal(document.getElementById('kt_modal_view_event'));
+    					myModal.show();
+
+						document.getElementById('kt_modal_view_event_edit').addEventListener('click', function() {														
+    						window.location.href = "/proyect/view/" + info.event.groupId; // Combinar URL de Django con el ID
+						});
+
+
+						var eventDate = info.event.start;
+							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
+
+						document.getElementById('tooltipTitleMd').textContent = info.event.title;
+						document.getElementById('tooltipDescriptionMd').textContent = info.event.extendedProps.description;
+						document.getElementById('tooltipDateMd').textContent = formattedDate;
+						document.getElementById('id1').value = info.event.groupId;
+						document.getElementById('id2').value = info.event.id;
+						loadIC(info.event.groupId, info.event.id);
+					}
+
+
+				})
+	
+				calendar.render();
+				
+				$.ajax({
+					url: "{% url 'getDataCalendar_url' %}",  // URL de la vista AJAX
+					method: "GET",  // El método de la solicitud (GET para obtener datos)
+					success: function(response) {
+						
+						// Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
+						response.calendar.forEach(function(agendy) {
+							
+							calendar.addEvent({
+								id: agendy.id,
+								groupId: agendy.groupId,
+								title: agendy.title,
+								start: agendy.start,
+								description: agendy.description,
+								color: agendy.color,
+								
+							});						
+	
+						});
+					},
+					error: function(xhr, status, error) {
+						console.error("Error en la solicitud AJAX:", error);
+					}
+				
+	
+	
+				});	
 			}
 		}
 
+		
 		$(document).ready(function() {
 
 			$("#dateFrom").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
 			$("#dateUntil").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
-
-            cargarProyectos();
-			cargarCalendario();
-
+			
+			loadCalendar();
+			
 			var table = $('#kt_datatable').DataTable({		
 				"order": [[3, 'desc']] 
 			});
@@ -1216,6 +1262,125 @@
 					});	
 				}
 			});
+		}
+
+		
+		function loadIC(y, t){
+			
+			$.ajax({
+				url: "{% url 'getDataComment_url' %}",  // La URL que manejará la consulta AJAX
+				method: 'GET',
+				data: {
+					'id1': y,
+					'id2': t,
+				},		
+				success: function(response) {
+					$('#saveItemComment').html(response.result);
+					initializeFlatpickr();		
+				},
+				error: function() {
+					console.error("Error server: " + error, event.error);
+				}
+			});
+			
+		}
+
+
+		function saveIC(i){
+
+			var p = $('#id1').val()				
+			var formData = new FormData();  // Creamos un objeto FormData vacío
+			formData.append('id1', p);
+			formData.append('id2', i);
+			// Serializamos los datos del formulario (excepto los archivos)
+			var serializedData = $('#formItem_' + String(i)).serialize();
+						
+			// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+			var params = serializedData.split('&');
+			params.forEach(function(param) {
+				var keyValue = param.split('=');
+				var key = decodeURIComponent(keyValue[0]);
+				var value = decodeURIComponent(keyValue[1] || '');
+				formData.append(key, value);
+			});
+
+			var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
+
+			if (inputFile && inputFile.files.length > 0) {
+
+				for (var i = 0; i < inputFile.files.length; i++) {
+					formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
+				}
+			}
+
+			$.ajax({
+				type: "POST",
+				url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
+				data: formData,
+				processData: false,  // Esto es importante para enviar archivos correctamente
+				contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras					
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {
+					if(response.result = "OK"){
+						
+						const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
+						divWithClass.show();
+						divWithClass.fadeOut(5000);
+					}						
+				},
+				error: function() {
+					console.error("Error server: " + error, event.error);
+				}
+			});
+
+			}
+
+
+		function initializeFlatpickr() {
+			// Aplicar flatpickr a los inputs con la clase 'date-picker'
+			$(".date-picker").flatpickr({
+				enableTime: true, // Deshabilitar la selección de hora
+				dateFormat: "Y-m-d H:i" // Establecer el formato de fecha
+			});
+		}
+
+
+		function delImC(o,i,t,e){
+
+			var p = $('#id1').val()				
+			$.ajax({					
+				url: "{% url 'deleteItemCommentFile_url' %}",  // La URL que manejará la consulta AJAX
+				method: 'POST',
+				data: {
+					'i': i,
+					't': t,
+					'p': p,
+					'e': e
+				},
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {
+					// Rellena los campos con los datos obtenidos de la respuesta
+					if(response.result == "1"){
+						const pad = o.parentNode;
+						pad.remove();
+					}						
+				},
+				error: function(xhr, status, error) {																
+					Swal.fire({
+							title: 'Error server!',
+							text: error,
+							icon: 'error',
+							confirmButtonText: 'Ok.'
+						});
+
+				}
+			});	
 		}
 
 
