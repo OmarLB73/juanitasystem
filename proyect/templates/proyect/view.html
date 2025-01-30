@@ -615,7 +615,7 @@
 															
 															{% if proyect.state_id >= 4 %}
 															<img alt="" class="w-20px me-3" src="/static/images/pdf.svg" alt="">
-															<a href="{% url 'generate_pdf' proyect_id=1 %}" class="fs-7 text-hover-primary" target="_blank">Download WO</a>
+															<a href="{% url 'generate_pdf' proyect_id=proyect.id %}" class="fs-7 text-hover-primary" target="_blank">Download WO</a>
 															{% endif %}
 
 														</div>
@@ -1186,7 +1186,7 @@
 			
 				$.ajax({
 					type: "POST",
-					url: "../../saveItemComment/",  // Reemplaza con la URL de tu vista
+					url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
 					data: formData,
 					processData: false,  // Esto es importante para enviar archivos correctamente
 					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
