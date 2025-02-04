@@ -118,13 +118,13 @@
 													<!--begin::Name-->
 													<h3>{{ customer.address}}
 														{% if customer.apartment != None and customer.apartment != "" %}
-														, {{ customer.apartment }} {% endif %}
+														, {{ customer.apartment }}{% endif %}
 														{% if customer.city != None and customer.city != "" %}
-														, {{ customer.city }} {% endif %}
+														, {{ customer.city }}{% endif %}
 														{% if customer.state != None and customer.state != "" %}
-														, {{ customer.state }} {% endif %}
+														, {{ customer.state }}{% endif %}
 														{% if customer.zipcode != None and customer.zipcode != "" %}
-														, {{ customer.zipcode }} {% endif %}
+														, {{ customer.zipcode }}{% endif %}
 													</h3>
 													<!--end::Name-->
 													<!--begin::Contacts-->
@@ -253,7 +253,7 @@
 
 														<div class="progress progress-xs mt-2 mb-2">
 															<div class="progress-bar bg-success" role="progressbar"
-																style="width:0%"  
+																style="width:{{advance}}%"  
 																aria-valuenow="{{advance}}" aria-valuemin="0"
 																aria-valuemax="100"></div>
 														</div>

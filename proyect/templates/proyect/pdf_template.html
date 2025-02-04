@@ -1,146 +1,90 @@
-<!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orden de Trabajo - PDF</title>
     <style>
+
+        @page {
+            size: 8.5in 11in;  /* Establece el tamaño de la página en pulgadas */
+            margin: 0.5in;  /* Márgenes de 1 pulgada en todos los lados */
+        }
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
         }
-
-        /* Definir márgenes para la página */
-        @page {
-            margin: 20mm;
-        }
-
-        /* Contenedor principal */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* Cabecera */
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            font-size: 20px;            
         }
-
-        .header h1 {
-            font-size: 30px;
-            color: #009688;
+        .content {
+            font-size: 12px;
         }
-
-        .header p {
-            font-size: 16px;
-            color: #666;
-        }
-
-        /* Tabla de detalles de la WO */
-        .wo-table {
+        
+        /* Estilo para las tablas generales */
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 40px;
+            margin-bottom: 10px;         
+            page-break-inside: avoid;   
         }
 
-        .wo-table th,
-        .wo-table td {
-            padding: 12px;
+        th, td {
+            border: 1px solid #ccc;            
             text-align: left;
-            border: 1px solid #ddd;
+            padding: 3px; 
+            border-collapse: collapse;
         }
 
-        .wo-table th {
-            background-color: #009688;
-            color: white;
+        th {
+            background-color: #f4f4f4;
         }
 
-        /* Filas alternas */
-        .wo-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        /* Estilo para las tablas importantes */        
+        .table_wo th {
+            background-color: #f1f1f1; /* Fondo gris plomo */
+            color: #333; /* Color de texto oscuro para contraste */
+            width: 120px;
+            font-weight: bold;
+        }        
+        
+        .table_item {    
+            border-collapse: collapse;
+            padding: 0;
+            border: 0;
         }
 
-        /* Botones */
-        .btn {
-            background-color: #d4dbe3;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-align: center;
-            text-decoration: none;
-            margin: 10px 0;
-            display: inline-block;
+        .table_item th td {            
+            padding: 0px;
+            padding: 0;
+            border: 0;
         }
 
-        .btn:hover {
-            background-color: #00796b;
+        .td_item {            
+            width: 120px;
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            margin-top: 40px;
+        .table_item_detalle {                
+            padding: 0;
+            border: 0;
+            border-spacing: 0; 
         }
 
-        .footer a {
-            color: #009688;
-            text-decoration: none;
+        /* Estilo de los encabezados */
+        h1, h2, h3 {
+            color: #333;
         }
+
+        /* Agregar espaciado entre las secciones */
+        .section {
+            margin-bottom: 20px;
+        }
+
     </style>
 </head>
 <body>
-
-<div class="container">
-    <!-- Cabecera -->
+    <img src="../{{ STATIC_URL }}images/logo.png" width="180"/>
     <div class="header">
-        <h1>Orden de Trabajo WO</h1>
-        <p>El proyecto completo? Por item?</p>
+        <h1>Work Order</h1>
     </div>
-
-    <!-- Tabla con los detalles -->
-    <table class="wo-table">
-        <tr>
-            <th>ID de WO</th>
-            <td>#123456789</td>
-        </tr>
-        <tr>
-            <th>Fecha de Creación</th>
-            <td>30 Enero 2025</td>
-        </tr>
-        <tr>
-            <th>Departamento</th>
-            <td>Ingeniería</td>
-        </tr>
-        <tr>
-            <th>Asignado a</th>
-            <td>Juan Pérez</td>
-        </tr>
-        <tr>
-            <th>Descripción</th>
-            <td>Reparación del sistema de aire acondicionado, zona 4.</td>
-        </tr>
-        <tr>
-            <th>Fecha de Inicio</th>
-            <td>01 Febrero 2025</td>
-        </tr>
-        <tr>
-            <th>Fecha Estimada de Finalización</th>
-            <td>05 Febrero 2025</td>
-        </tr>
-        <tr>
-            <th>Prioridad</th>
-            <td>Alta</td>
-        </tr>
-    </table>
-
-
-</div>
-
+    <div class="content">
+        {{ CABECERA|safe }}
+    </div>
 </body>
 </html>
