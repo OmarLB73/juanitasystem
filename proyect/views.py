@@ -17,6 +17,8 @@ from django.utils import timezone #Para ver la hora correctamente.
 
 from xhtml2pdf import pisa #Para el PDF
 from django.template.loader import get_template #Para el PDF
+from django.http import Http404 #Para el PDF
+from django.conf import settings #Para el PDF, manejar las rutas
 
 from django.contrib.auth.models import User #Datos del usuario
 from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files, Item_Comment_State, Item_Comment_State_Files #Aquí importamos a los modelos que necesitamos
@@ -784,8 +786,8 @@ def funct_data_items(proyect_id):
 
                     fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y-%m-%d')
 
-                if item.date_end:
-                    fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
+                # if item.date_end:
+                #     fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
 
                 if proyect.code:
                     code = proyect.code + '-' + str(itemN)
@@ -1631,18 +1633,186 @@ def comments_state(item, state_id):
 
 
 def generate_pdf(request, proyect_id):
-    # Cargar la plantilla HTML para el PDF
+    try:
+        project = Proyect.objects.get(id=proyect_id)
+    except Proyect.DoesNotExist:
+        raise Http404("El proyecto no existe")
+    
+    htmlCabecera = ""
+    
+    if project:
+
+        #Cabecera cliente
+
+        htmlCabecera += "<table class='table_wo'>"
+        
+        address = ''
+
+        if project.customer.address != "":
+            address += project.customer.address
+
+        if project.customer.apartment != "":
+            address += "," + project.customer.apartment
+
+        if project.customer.city != "":
+            address += "," + project.customer.city
+
+        if project.customer.state != "":
+            address += "," + project.customer.state
+
+        if project.customer.zipcode != "":
+            address += "," + project.customer.zipcode
+        
+        name = project.customer.name if str(project.customer.name) != "" else "--"
+        phone = project.customer.phone if str(project.customer.phone) != "" else "--"
+        email = project.customer.email if str(project.customer.email) != "" else "--"
+
+        htmlCabecera += "<tr><th>Address:</th><td>" + address + "</td></tr>"
+        htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td></tr>"      
+        htmlCabecera += "<tr><th>Phone:</th><td>" + str(phone) + "</td></tr>"
+        htmlCabecera += "<tr><th>Email:</th><td>" + str(email) + "</td></tr>"
+        htmlCabecera += "</table>"
+        
+                
+        #Cabecera proyecto
+        htmlCabecera += "<table class='table_wo'>"
+
+        code = project.code if str(project.code) != "" else "--"
+        htmlCabecera += "<tr><th>Code:</th><td>" + str(code) + "</td></tr>"
+
+        decorators = Decorator.objects.filter(proyects = project)
+
+        if decorators:
+
+            htmlCabecera += "<tr><th rowspan='" + str(len(decorators)) + "'>Decorator:</th>"
+            n = 0
+
+            for decorator in decorators:
+                name = decorator.name if str(decorator.name) != "" else "--"
+                phone = decorator.phone if str(decorator.phone) != "" else "--"
+                email = decorator.email if str(decorator.email) != "" else "--"
+
+                if n == 0:
+                    htmlCabecera += "<td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td>"
+                    htmlCabecera += "</tr>"
+                    n+=1
+                else:
+                    htmlCabecera += "<tr><td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td></tr>"            
+
+        htmlCabecera += "</table>"
+
+        #Items
+
+
+        #Cabecera proyecto
+
+        items = Item.objects.filter(proyect = project).order_by("id")                        
+                
+        if items:
+            
+            n = 1
+            
+            for item in items:
+
+                htmlCabecera += "<table class='table_item'>"
+                htmlCabecera += "<tr><th colspan='2'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                n+=1
+
+                category = item.category.name if str(item.category.name) != "" else "--"
+                
+                subcategory = "--"
+                if item.subcategory.name:
+                    subcategory = item.subcategory.name if str(item.subcategory.name) != "" else "--"
+                
+                group = "--"
+                if item.group:
+                    group = item.group.name if str(item.group.name) != "" else "--"
+                
+                place = "--"
+                if item.place:
+                    place = item.place.name if str(item.place.name) != "" else "--"
+                
+                
+                qty = item.qty if str(item.qty) != "" else "--"
+
+                date_end = "--"
+                if item.date_end:             
+                    date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
+                
+                notes = item.notes if str(item.notes) != "" else "--"
+
+
+                htmlCabecera1 = "<table class='table_item_detalle'>"
+                htmlCabecera1 += "<tr><td class='td_item'>Category:</td><td>" + str(category) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Sub Category:</td><td>" + str(subcategory) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Group:</td><td>" + str(group) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Place:</td><td>" + str(place) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>QTY:</td><td>" + str(qty) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Date:</td><td>" + str(date_end) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Notes:</td><td>" + str(notes) + "</td></tr>"
+                htmlCabecera1 += "</table>"
+
+                attributes = Item_Attribute.objects.filter(item = item)
+                htmlCabecera2 = ""
+
+                if attributes:
+                    htmlCabecera2 = "<table class='table_item_detalle'>"
+                    
+                    for attribute in attributes:
+
+                        name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
+                        notes = attribute.notes if str(attribute.notes) != "" else "--"
+                        htmlCabecera2 += "<tr><td class='td_item'>" + str(name) + ":</td><td>" + str(notes) + "</td></tr>"
+
+                    htmlCabecera2 += "</table>"
+
+
+                htmlCabecera += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera1 + "</td><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera2 + "</td></tr>"
+
+                htmlCabecera += "</table>"
+
+                images= Item_Images.objects.filter(item = item)
+
+                if images:
+                    
+                    htmlCabecera += "<table class='table_item'>"
+                    htmlCabecera += "<tr><td colspan='3'><b>Images:</b></td></tr>"
+                    htmlCabeceraImg = ""
+                    table_img = ""
+                    nt = 1
+                    for image in images:
+                        file = image.file.name if str(image.file.name) != "" else "--"
+                        notes = image.notes if str(image.notes) != "" else "--"
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='../" + settings.MEDIA_URL + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        if nt == 1:
+                            htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                        elif nt == 2:
+                            htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                        elif nt == 3:
+                            htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td></tr>"
+                            nt = 0
+                        
+                        nt += 1
+                    
+                    htmlCabecera += htmlCabeceraImg
+
+                    htmlCabecera += "</table>"
+
+
+
     template = get_template('proyect/pdf_template.html')
-    html = template.render({'some_data': 'Información para el PDF'})  # Datos que quieres pasar a la plantilla
+    context = {
+        'CABECERA': htmlCabecera,
+        'STATIC_URL': settings.STATIC_URL,
+        # 'MEDIA_URL': settings.MEDIA_URL
+    }
+    html = template.render(context)
 
-    # Crear la respuesta HTTP con el contenido del PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="WO_.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="project_{}.pdf"'.format(proyect_id)
 
-    # Usar xhtml2pdf para convertir HTML a PDF y escribirlo en la respuesta
     pisa_status = pisa.CreatePDF(html, dest=response)
 
-    # Si el PDF se genera correctamente, devolver la respuesta, de lo contrario, mostrar un error
     if pisa_status.err:
         return HttpResponse('Error generando el PDF', status=500)
     
