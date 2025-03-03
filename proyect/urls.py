@@ -14,12 +14,14 @@ urlpatterns = [
     path('getAddress/', views.getAddress, name='getAddress_url'),
     path('getDataCalendar/', views.getDataCalendar, name='getDataCalendar_url'),
     path('getDataComment/', views.getDataComment, name='getDataComment_url'),
+    path('getDataMaterial/', views.getDataMaterial, name='getDataMaterial_url'),
 
     path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
     path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
     path('selectGroup/', views.selectGroup, name='getSelectGroup_url'),
     path('selectAttibutes/', views.selectAttibutes, name='getSelectAttribute_url'),
     path('selectItems/', views.selectItems, name='getSelectItems_url'),
+    path('selectItem/', views.selectItem, name='getSelectItem_url'),
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
     path('saveItemComment/', views.saveItemComment, name='saveItemComment_url'),
@@ -27,6 +29,8 @@ urlpatterns = [
     path('deleteItem/', views.deleteItem, name='deleteItem_url'),
     path('deleteProyect/', views.deleteProyect, name='deleteProyect_url'),
     path('deleteItemCommentFile/', views.deleteItemCommentFile, name='deleteItemCommentFile_url'),
+    path('deleteComment/', views.deleteComment, name='deleteComment_url'),
+    
 
     path('updateStatus/', views.updateStatus, name='updateStatus_url'),
 

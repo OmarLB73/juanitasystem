@@ -10,10 +10,13 @@
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
 
+	<link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet" type="text/css" />
+
 	<!-- <link href="{% static 'css/fullcalendar/fullcalendar.bundle.css' %}" rel="stylesheet" type="text/css" /> -->
 	<link href="{% static 'css/plugins.bundle.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/style.bundle.css' %}" rel="stylesheet" type="text/css" />
 
+	
 
 	<link href="{% static 'css/galery/gallery.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/galery/jquery.fancybox.css' %}" rel="stylesheet" type="text/css" />
@@ -23,12 +26,13 @@
 
 	<style>
 		.preview {
-			width: 200px;
-			height: 200px;
+			width: 100px;
+			height: 100px;
 			object-fit: cover;
 			margin-top: 20px;
 			margin-right: 10px;
 		}
+
 		.image-container {
 			display: flex;
 			flex-wrap: wrap;
@@ -91,12 +95,8 @@
 									{% endfor %}
 								</div>
 								{% endif %}
-
-
-
 							</div>
 							<!--end::Page title-->
-
 						</div>
 						<!--end::Container-->
 					</div>
@@ -107,169 +107,258 @@
 						<div class="container-xxl">
 							<!--begin::Card-->
 							<div class="card card-custom gutter-b">
-								<div class="card-body">
-									<div class="d-flex">
+								<div class="card-body p-5">
 
-										<!--begin: Info-->
-										<div class="flex-grow-1">
-											<!--begin: Title-->
-											<div class="d-flex align-items-center justify-content-between flex-wrap">
-												<div class="mr-3">
-													<!--begin::Name-->
-													<h3>{{ customer.address}}
-														{% if customer.apartment != None and customer.apartment != "" %}
-														, {{ customer.apartment }}{% endif %}
-														{% if customer.city != None and customer.city != "" %}
-														, {{ customer.city }}{% endif %}
-														{% if customer.state != None and customer.state != "" %}
-														, {{ customer.state }}{% endif %}
-														{% if customer.zipcode != None and customer.zipcode != "" %}
-														, {{ customer.zipcode }}{% endif %}
-													</h3>
-													<!--end::Name-->
-													<!--begin::Contacts-->
-													<div class="d-flex flex-wrap my-2">
-														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary me-5 mb-2">
-															<!--begin::Svg Icon | path: icons/duotune/communication/com006.svg-->
-															<span class="svg-icon svg-icon-4 me-1">
-																<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																	<path opacity="0.3" d="M22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12ZM12 7C10.3 7 9 8.3 9 10C9 11.7 10.3 13 12 13C13.7 13 15 11.7 15 10C15 8.3 13.7 7 12 7Z" fill="black"></path>
-																	<path d="M12 22C14.6 22 17 21 18.7 19.4C17.9 16.9 15.2 15 12 15C8.8 15 6.09999 16.9 5.29999 19.4C6.99999 21 9.4 22 12 22Z" fill="black"></path>
-																</svg>
-															</span>
-															<!--end::Svg Icon-->
-															{{ customer.name}}
-														</a>
-																																										
-														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary me-5 mb-2">
-															<!--begin::Svg Icon | path: icons/duotune/general/gen018.svg-->
-															<span class="svg-icon svg-icon-4 me-1">
-																<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																	<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black"></path>
-																	<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black"></path>
-																</svg>
-															</span>
-															<!--end::Svg Icon-->
-															{{ customer.phone}}
-														</a>
+									<div class="row mb-0">
+		
+										<div class="col-lg-9" style="border:1px solid white; border-width:1px;">
+											
+											<div class="mr-1">
+												<!--begin::Name-->
+												<h3>{{ customer.address}}
+													{% if customer.apartment != None and customer.apartment != "" %}
+													,{{customer.apartment }}{% endif %}
+													{% if customer.city != None and customer.city != "" %}
+													,{{customer.city }}{% endif %}
+													{% if customer.state != None and customer.state != "" %}
+													,{{customer.state }}{% endif %}
+													{% if customer.zipcode != None and customer.zipcode != "" %}
+													,{{customer.zipcode }}{% endif %}
+												</h3>
+												<!--end::Name-->
+												<div class="row">												
 
-														<a href="#" class="d-flex align-items-center text-gray-400 text-hover-primary mb-2">
-															<!--begin::Svg Icon | path: icons/duotune/communication/com011.svg-->
-															<span class="svg-icon svg-icon-4 me-1">
-																<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																	<path opacity="0.3" d="M21 19H3C2.4 19 2 18.6 2 18V6C2 5.4 2.4 5 3 5H21C21.6 5 22 5.4 22 6V18C22 18.6 21.6 19 21 19Z" fill="black"></path>
-																	<path d="M21 5H2.99999C2.69999 5 2.49999 5.10005 2.29999 5.30005L11.2 13.3C11.7 13.7 12.4 13.7 12.8 13.3L21.7 5.30005C21.5 5.10005 21.3 5 21 5Z" fill="black"></path>
-																</svg>
-															</span>
-															<!--end::Svg Icon-->
-															{{ customer.email}}
-														</a>
-														
-													</div>
-													<!--end::Contacts-->
-												</div>
-												<div class="my-lg-0 my-1">
-													{% if state_new != '' %}
-													<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-primary font-weight-bolder text-uppercase">{{state_new}}</a>
-													{% endif %}
-												</div>
-											</div>
-											<!--end: Title-->
-											<!--begin: Content-->
-											<div class="d-flex align-items-center flex-wrap justify-content-between">
-												<div class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
-													
-													{% if customer.description != '' %}
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24"/>
-																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
-																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
-													{{ customer.description}} <br/> {% endif %}
-													{% if customer.notes != None %}
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24"/>
-																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
-																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
-													{{ customer.notes}} <br/> {% endif %}
-													{% if proyect.description != None %}
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24"/>
-																<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
-																<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
-													{{ proyect.description}} {% endif %}
-
-
-												</div>
-						
-												<div class="d-flex flex-wrap align-items-center py-2">
-
-													<div class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
-														<span class="font-weight-bold">
-															<b>State:</b>
-														</span>
-														
-														{% if proyect.state_id == 1 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-primary col-lg-12">
-														{% elif proyect.state_id == 2 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-danger col-lg-12">
-														{% elif proyect.state_id == 3 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-warning col-lg-12">
-														{% elif proyect.state_id == 4 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-success col-lg-12">
-														{% elif proyect.state_id == 5 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-info col-lg-12">
-														{% elif proyect.state_id == 6 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light-dark col-lg-12">
-														{% elif proyect.state_id == 7 %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light col-lg-12">
-														{% else %}
-														<div class="fs-6 fw-bold p-2 mb-3 badge-light col-lg-12">
-														{% endif %}
-
-														{{proyect.state.name}}
+													<div class="col-lg-6" style="border:1px solid white; border-width:1px;">
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12ZM12 7C10.3 7 9 8.3 9 10C9 11.7 10.3 13 12 13C13.7 13 15 11.7 15 10C15 8.3 13.7 7 12 7Z" fill="black"></path>
+																		<path d="M12 22C14.6 22 17 21 18.7 19.4C17.9 16.9 15.2 15 12 15C8.8 15 6.09999 16.9 5.29999 19.4C6.99999 21 9.4 22 12 22Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ customer.name}}
+															</div>
 														</div>
-
-
-														<div class="progress progress-xs mt-2 mb-2">
-															<div class="progress-bar bg-success" role="progressbar"
-																style="width:{{advance}}%"  
-																aria-valuenow="{{advance}}" aria-valuemin="0"
-																aria-valuemax="100"></div>
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black"></path>
+																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ customer.phone}}
+															</div>																	
 														</div>
-														<!-- {{advance}} -->
-
-														<!-- <span class="font-weight-bolder text-dark">{{ proyect.state.name}}</span> -->
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M21 19H3C2.4 19 2 18.6 2 18V6C2 5.4 2.4 5 3 5H21C21.6 5 22 5.4 22 6V18C22 18.6 21.6 19 21 19Z" fill="black"></path>
+																			<path d="M21 5H2.99999C2.69999 5 2.49999 5.10005 2.29999 5.30005L11.2 13.3C11.7 13.7 12.4 13.7 12.8 13.3L21.7 5.30005C21.5 5.10005 21.3 5 21 5Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ customer.email}}
+															</div>																	
+														</div>
 													</div>
+
+
+													{% for decorator in decorators %}
+
+													<div class="col-lg-6" style="border:1px solid white; border-width:1px;">
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12ZM12 7C10.3 7 9 8.3 9 10C9 11.7 10.3 13 12 13C13.7 13 15 11.7 15 10C15 8.3 13.7 7 12 7Z" fill="black"></path>
+																		<path d="M12 22C14.6 22 17 21 18.7 19.4C17.9 16.9 15.2 15 12 15C8.8 15 6.09999 16.9 5.29999 19.4C6.99999 21 9.4 22 12 22Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ decorator.name}}
+															</div>																	
+														</div>
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="black"></path>
+																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ decorator.phone}}
+															</div>																	
+														</div>
+														<div class="row">
+															<div class="col-xl-12">																		
+																<span class="svg-icon svg-icon-4 me-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																		<path opacity="0.3" d="M21 19H3C2.4 19 2 18.6 2 18V6C2 5.4 2.4 5 3 5H21C21.6 5 22 5.4 22 6V18C22 18.6 21.6 19 21 19Z" fill="black"></path>
+																			<path d="M21 5H2.99999C2.69999 5 2.49999 5.10005 2.29999 5.30005L11.2 13.3C11.7 13.7 12.4 13.7 12.8 13.3L21.7 5.30005C21.5 5.10005 21.3 5 21 5Z" fill="black"></path>
+																	</svg>
+																</span>
+																{{ decorator.email}}
+															</div>																	
+														</div>
+													</div>
+											
+													{% endfor %}
 												</div>
-											</div>
-											<!--end: Content-->
+											</div>														
 										</div>
-										<!--end: Info-->
+										
+										<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+											<div class="d-flex flex-wrap align-items-center py-2">
+												<div class="flex-grow-1 flex-shrink-0 w-150px w-xl-300px mt-4 mt-sm-0">
+													<span class="font-weight-bold">
+														<b>State:</b>
+													</span>
+													<i class="fas fa-question-circle" data-bs-toggle="tooltip" title="{{ proyect.state.description}}"></i>
+													{% if proyect.state_id == 1 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-1 col-lg-12">
+													{% elif proyect.state_id == 2 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-2 col-lg-12">
+													{% elif proyect.state_id == 3 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-3 col-lg-12">
+													{% elif proyect.state_id == 4 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-4 col-lg-12">
+													{% elif proyect.state_id == 5 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-5 col-lg-12">
+													{% elif proyect.state_id == 6 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-6 col-lg-12">
+													{% elif proyect.state_id == 7 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-7 col-lg-12">
+													{% elif proyect.state_id == 8 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-8 col-lg-12">
+													{% elif proyect.state_id == 9 %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-9 col-lg-12">
+													{% else %}
+													<div class="fs-6 fw-bold p-2 mb-3 badge-light col-lg-12">
+													{% endif %}
+
+													{{proyect.state.name}}
+													</div>
+													<!-- <div class="fs-6 fw-bold p-2 mb-3 badge-state-1 col-lg-12">New Proyect</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-2 col-lg-12">Get a Quote</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-3 col-lg-12">Awaiting Approval</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-4 col-lg-12">Approved pending materials</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-5 col-lg-12">In Progress</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-6 col-lg-12">Ready to deliver/Install</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-7 col-lg-12">Produce Final Invoice</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-8 col-lg-12">Validate payment in full	</div>
+													<div class="fs-6 fw-bold p-2 mb-3 badge-state-9 col-lg-12">Finished Project</div> -->
+													<!-- <div class="progress progress-xs mt-2 mb-2">
+														<div class="progress-bar bg-success" role="progressbar" style="width:{{advance}}%" aria-valuenow="{{advance}}" aria-valuemin="0" aria-valuemax="100"></div>
+													</div> -->
+													<!-- {{advance}} -->													
+												</div>
+											</div>
+										</div>
+									</div>									
+
+									<div class="row mb-0">
+										<div class="col-lg-12" style="border:1px solid white; border-width:1px;">
+
+
+											<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divProjectDetail">
+												<!--begin::Icon-->
+												<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
+													<!--begin::Svg Icon | path: icons/duotune/general/gen036.svg-->
+													<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+															<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>
+															<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>
+														</svg>
+													</span>
+													<!--end::Svg Icon-->
+													<!--begin::Svg Icon | path: icons/duotune/general/gen035.svg-->
+													<span class="svg-icon toggle-off svg-icon-1">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+															<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>
+															<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>
+															<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>
+														</svg>
+													</span>
+													<!--end::Svg Icon-->
+												</div>
+												<!--end::Icon-->
+												<!--begin::Title-->
+												<h6 class="text-gray-700 cursor-pointer mb-0">See more details</h6>
+												<!--end::Title-->
+											</div>
+
+											<div id="divProjectDetail" class="fs-7 ms-1 collapse">
+												<!--begin::Text-->
+												{% if decoratorsHTML != '' %}
+												<div class="mb-4 text-gray-600 fs-6 ps-10">
+													<div class="d-flex align-items-center flex-wrap justify-content-between">
+														<div class="card-title fs-6 fw-bolder">Decorators:</div>
+														{{ decoratorsHTML|safe }}
+														{% if ascociatesHTML != '' %}
+															<br/>
+															<div class="card-title fs-6 fw-bolder">Ascociates:</div>
+															{{ ascociatesHTML|safe }}
+														{% endif %}
+													</div>
+												</div>
+												{% endif %}
+
+												<div class="mb-4 text-gray-600 fs-7 ps-10">											
+													<!--begin: Content-->
+													<div class="d-flex align-items-center flex-wrap justify-content-between">
+														<div class="flex-grow-1 font-weight-bold text-dark-50 py-5 py-lg-2 mr-5">
+															{% if customer.description != '' %}
+															<span class="svg-icon mr-3">
+																<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+																<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+																	<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																		<rect x="0" y="0" width="24" height="24"/>
+																		<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																		<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+																	</g>
+																</svg>
+																<!--end::Svg Icon-->
+															</span>
+															<b>Address notes:</b> {{ customer.description}} <br/> {% endif %}
+															{% if customer.notes != None %}
+															<span class="svg-icon mr-3">
+																<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+																<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+																	<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																		<rect x="0" y="0" width="24" height="24"/>
+																		<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																		<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+																	</g>
+																</svg>
+																<!--end::Svg Icon-->
+															</span>
+															<b>Client notes:</b> {{ customer.notes}} <br/> {% endif %}
+															{% if proyect.description != None %}
+															<span class="svg-icon mr-3">
+																<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
+																<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+																	<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+																		<rect x="0" y="0" width="24" height="24"/>
+																		<path d="M12.2674799,18.2323597 L12.0084872,5.45852451 C12.0004303,5.06114792 12.1504154,4.6768183 12.4255037,4.38993949 L15.0030167,1.70195304 L17.5910752,4.40093695 C17.8599071,4.6812911 18.0095067,5.05499603 18.0083938,5.44341307 L17.9718262,18.2062508 C17.9694575,19.0329966 17.2985816,19.701953 16.4718324,19.701953 L13.7671717,19.701953 C12.9505952,19.701953 12.2840328,19.0487684 12.2674799,18.2323597 Z" fill="#000000" fill-rule="nonzero" transform="translate(14.701953, 10.701953) rotate(-135.000000) translate(-14.701953, -10.701953) "/>
+																		<path d="M12.9,2 C13.4522847,2 13.9,2.44771525 13.9,3 C13.9,3.55228475 13.4522847,4 12.9,4 L6,4 C4.8954305,4 4,4.8954305 4,6 L4,18 C4,19.1045695 4.8954305,20 6,20 L18,20 C19.1045695,20 20,19.1045695 20,18 L20,13 C20,12.4477153 20.4477153,12 21,12 C21.5522847,12 22,12.4477153 22,13 L22,18 C22,20.209139 20.209139,22 18,22 L6,22 C3.790861,22 2,20.209139 2,18 L2,6 C2,3.790861 3.790861,2 6,2 L12.9,2 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
+																	</g>
+																</svg>
+																<!--end::Svg Icon-->
+															</span>
+															<b>Proyect description:</b> {{ proyect.description}} {% endif %}
+														</div>
+													</div>
+													<!--end: Content-->
+												</div>
+												<!--end::Text-->
+											</div>											
+										</div>
 									</div>
 								</div>
 							</div>
 							<!--end::Card-->
+							
 							<!--begin::Card-->
 
 							<div class="separator-dashed mt-4 mb-6"></div>
@@ -281,8 +370,7 @@
 									<!--begin::Body-->
 									<nav>
 										<div class="nav nav-tabs" id="nav-tab" role="tablist">
-
-											<button class="nav-link active" id="nav-newItem-tab" data-bs-toggle="tab" data-bs-target="#nav-newItem" type="button" role="tab" aria-controls="nav-newItem" aria-selected="true" {% if proyect.state_id != 1 %} style="display:none" {% endif %}>
+											<button class="nav-link active" id="nav-newItem-tab" data-bs-toggle="tab" data-bs-target="#nav-items" type="button" role="tab" aria-controls="nav-newItem" aria-selected="true">
 												<span class="nav-icon mr-2">
 													<span class="svg-icon mr-3">
 														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
@@ -296,358 +384,458 @@
 														<!--end::Svg Icon-->
 													</span>
 												</span>
-												<span class="nav-text font-weight-bold">Add item</span>
-											</button>
-
-											<button class="nav-link" id="nav-items-tab" data-bs-toggle="tab" data-bs-target="#nav-items" type="button" role="tab" aria-controls="nav-items" aria-selected="true" onclick="showImgs()">
-												<span class="nav-icon mr-2">
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24"/>
-																<path d="M10.5,5 L19.5,5 C20.3284271,5 21,5.67157288 21,6.5 C21,7.32842712 20.3284271,8 19.5,8 L10.5,8 C9.67157288,8 9,7.32842712 9,6.5 C9,5.67157288 9.67157288,5 10.5,5 Z M10.5,10 L19.5,10 C20.3284271,10 21,10.6715729 21,11.5 C21,12.3284271 20.3284271,13 19.5,13 L10.5,13 C9.67157288,13 9,12.3284271 9,11.5 C9,10.6715729 9.67157288,10 10.5,10 Z M10.5,15 L19.5,15 C20.3284271,15 21,15.6715729 21,16.5 C21,17.3284271 20.3284271,18 19.5,18 L10.5,18 C9.67157288,18 9,17.3284271 9,16.5 C9,15.6715729 9.67157288,15 10.5,15 Z" fill="#000000"/>
-																<path d="M5.5,8 C4.67157288,8 4,7.32842712 4,6.5 C4,5.67157288 4.67157288,5 5.5,5 C6.32842712,5 7,5.67157288 7,6.5 C7,7.32842712 6.32842712,8 5.5,8 Z M5.5,13 C4.67157288,13 4,12.3284271 4,11.5 C4,10.6715729 4.67157288,10 5.5,10 C6.32842712,10 7,10.6715729 7,11.5 C7,12.3284271 6.32842712,13 5.5,13 Z M5.5,18 C4.67157288,18 4,17.3284271 4,16.5 C4,15.6715729 4.67157288,15 5.5,15 C6.32842712,15 7,15.6715729 7,16.5 C7,17.3284271 6.32842712,18 5.5,18 Z" fill="#000000" opacity="0.3"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
-												</span>
 												<span class="nav-text font-weight-bold">Items</span>
 											</button>
-
-											<button class="nav-link" id="nav-decorators-tab" data-bs-toggle="tab" data-bs-target="#nav-decorators" type="button" role="tab" aria-controls="nav-decorators" aria-selected="true">
-												<span class="nav-icon mr-2">
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/Devices/Display1.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<polygon points="0 0 24 0 24 24 0 24"/>
-																<path d="M12,11 C9.790861,11 8,9.209139 8,7 C8,4.790861 9.790861,3 12,3 C14.209139,3 16,4.790861 16,7 C16,9.209139 14.209139,11 12,11 Z" fill="#000000" fill-rule="nonzero" opacity="0.3"/>
-																<path d="M3.00065168,20.1992055 C3.38825852,15.4265159 7.26191235,13 11.9833413,13 C16.7712164,13 20.7048837,15.2931929 20.9979143,20.2 C21.0095879,20.3954741 20.9979143,21 20.2466999,21 C16.541124,21 11.0347247,21 3.72750223,21 C3.47671215,21 2.97953825,20.45918 3.00065168,20.1992055 Z" fill="#000000" fill-rule="nonzero"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
-												</span>
-												<span class="nav-text font-weight-bold">Decorators</span>
-											</button>
-											
 											<button class="nav-link" id="nav-notes-tab" data-bs-toggle="tab" data-bs-target="#nav-notes" type="button" role="tab" aria-controls="nav-notes" aria-selected="false"><span class="nav-icon mr-2">
-													<span class="svg-icon mr-3">
-														<!--begin::Svg Icon | path:assets/media/svg/icons/General/Notification2.svg-->
-														<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1"> 
-															<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-																<rect x="0" y="0" width="24" height="24"/>
-																<path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "/>
-																<rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"/>
-															</g>
-														</svg>
-														<!--end::Svg Icon-->
-													</span>
+												
+												<span class="svg-icon mr-3">
+													<!--begin::Svg Icon | path:assets/media/svg/icons/General/Notification2.svg-->
+													<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1"> 
+														<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+															<rect x="0" y="0" width="24" height="24"/>
+															<path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "/>
+															<rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"/>
+														</g>
+													</svg>
+													<!--end::Svg Icon-->
 												</span>
 												<span class="nav-text font-weight-bold">Notes</span>
-											</button>											
-
+											</button>
 										</div>
 									</nav>
 									<div class="card-body">
 										<div class="tab-content" id="nav-tabContent">
-											<div {% if proyect.state_id != 1 %} class="tab-pane fade" {% else %} class="tab-pane active" {% endif %} id="nav-newItem" role="tabpanel" aria-labelledby="nav-newItem-tab" {% if proyect.state_id != 1 %} style="display:none" {% endif %}>
-																								
-												<form id="formItem" class="form" method="POST" enctype="multipart/form-data">
-													<div class=""> <!--  class="card-body" -->
+
+											<div class="tab-pane active" id="nav-items" role="tabpanel" aria-labelledby="nav-newItem-tab">
+
+												<div class="row my-1">
+													<div class="col-md-6">																													
+														{% if proyect.state_id == 1 %}
+														<div class="col-xl-2 fv-row">															
+															<a id="aAddItem" class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalItem">Add Item (+)</a>
+														</div>
+														{% endif %}
+
+
+														{% if proyect.state_id >= 2 %}
+														<div class="fv-row">															
+															<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC({{proyect.id}},0,0)">Add general comment (+)</a>
+														</div>
+														{% endif %}
 														
-														<div class="card-title fs-6 fw-bolder">Item:</div>
-									
-														<!--begin::Row-->
-														<div class="row">
-															<!--begin::Col-->
-																														
-																<div class="col-lg-6">
-	
-																	<div class="row mb-6">
-	
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Category:</div>
-																		</div>
-																		<!--end::Col-->
-																		<!--begin::Col-->
-																		<div class="col-xl-6 fv-row">
-																			<!--begin::Input-->
-	
-																			<select id="selectCategory" class="form-select form-select-solid" name="category">
-																				<option value="">---</option>
-																				{% for category in categories %}
-																				<option value="{{ category.id }}">{{ category.name }}</option>
-																				{% endfor %}
-																			</select>
-	
-																			<!--end::Input-->
-																		</div>
-																		<!--end::Col-->
-	
-																	</div>
-	
-																	<div class="row mb-6">
-	
-																		<!--begin::Col-->
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Sub Category:</div>
-																		</div>
-																		<!--end::Col-->
-																		<!--begin::Col-->
-																		<div class="col-xl-6 fv-row">
-																			<!--begin::Input-->
-																		
-																			<select id="selectSubcategory" class="form-select form-select-solid"
-																				data-kt-select2="false" data-placeholder="Select"
-																				data-allow-clear="true" name="subcategory">
-																				<option value="">---</option>
-																			</select>
-																		
-																			<!--end::Input-->
-																		</div>
-																		<!--end::Col-->
-	
-																	</div>
 
-																	<div class="row mb-6">
-	
-																		<!--begin::Col-->
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Group:</div>
-																		</div>
-																		<!--end::Col-->
-																		<!--begin::Col-->
-																		<div class="col-xl-6 fv-row">
-																			<!--begin::Input-->
-																		
-																			<select id="selectGroup" class="form-select form-select-solid"
-																				data-kt-select2="false" data-placeholder="Select"
-																				data-allow-clear="true" name="group">
-																				<option value="">---</option>
-																			</select>
-																		
-																			<!--end::Input-->
-																		</div>
-																		<!--end::Col-->
-	
-																	</div>
-	
-																	<div class="row mb-6">
-	
-																		<!--begin::Col-->
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Place:</div>
-																		</div>
-																		<!--end::Col-->
-																		<!--begin::Col-->
-																		<div class="col-xl-6 fv-row">
-																			<!--begin::Input-->
-	
-																			<select id="selectPlace" class="form-select form-select-solid"
-																				data-kt-select2="false" data-placeholder="Select"
-																				data-allow-clear="true" name="place">
-																				<option value="">---</option>
-																				{% for place in places %}
-																				<option value="{{ place.id }}">{{ place.name }}</option>
-																				{% endfor %}
-																			</select>
-	
-																			<!--end::Input-->
-																		</div>
-																		<!--end::Col-->
-																	</div>
-	
-																	<div class="row mb-6">
-	
-																		<!--begin::Col-->
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">QTY:</div>
-																		</div>
-																		<!--end::Col-->
-	
-																		<div class="col-xl-6 fv-row">
-																			<input id="inputQty" type="text" class="form-control form-control-solid" name="qty" value="" maxlength="100"/>
-																		</div>
-	
-																	</div>
-
-																	<div class="row mb-6">
-																		<!--begin::Col-->
-																		<div class="col-xl-2">																			
-																			<div class="fs-7 fw-bold mt-2 mb-3">Proposed date:</div>
-																		</div>
-
-																		<div class="col-xl-6 fv-row">
-																			<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
-																			<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">
-																				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-																					viewBox="0 0 24 24" fill="none">
-																					<path opacity="0.3"
-																						d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z"
-																						fill="black" />
-																					<path
-																						d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z"
-																						fill="black" />
-																					<path
-																						d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z"
-																						fill="black" />
-																				</svg>
-																			</span>
-																			<!--end::Svg Icon-->
-																			<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="date_proposed_id" />
-																		</div>
-
-
-																	</div>
-	
-																	<div class="row mb-6">
-																		<!--begin::Col-->
-																		<div class="col-xl-2">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>
-																		</div>
-																		<!--end::Col-->
-																		<!--begin::Col-->
-																		<div class="col-xl-9 fv-row">
-																			<textarea id="textareaNotes" name="notes"
-																				class="form-control form-control-solid h-100px"
-																				maxlength="2000"></textarea>																	
-																		</div>
-																		<!--begin::Col-->
-																	</div>
-
-																</div>
-																	
-															<!--begin::Col-->
-															<div id="divAttributes" class="col-lg-6">
-
-															</div>
-
-														</div>
-
-														<div class="card-title fs-4 fw-bolder">Add images <i class="fas fa-cloud-upload-alt"></i></div><div class="card-title fs-8 fw-bolder">(jpeg, png, bmp)</div>
-
-														<div id="divImages">
-
-															<div id="divImg_1" class="row">
-																
-																<div class="col-lg-4">
-	
-																	<div class="row mb-2">
-																		
-																		<div id="previewContainer_1" class="image-container"></div>
-																		<input id="inputImg_1" type="file" name="inputImg_1" class="form-control form-control" onchange="previewImages(event, 1)" required>															
-	
-																	</div>
-	
-																</div>
-																
-																<div id="divImgNotes_1" class="col-lg-7" style="display: none;">
-	
-																	<div class="row mb-6">
-																																			
-																		<div class="col-xl-11 fv-row">
-																			<div class="fs-7 fw-bold mt-2 mb-3">Description:</div>
-																			<textarea id="txtImgNotes_1" name="txtImgNotes_1" class="form-control form-control-solid h-150px" maxlength="2000"></textarea><br/>
-																			<div class="form-check form-check-custom form-check-solid me-9">
-																				<input class="form-check-input" type="checkbox" id="chkImgType_1" name="chkImgType_1" />
-																				<label class="form-check-label ms-3" for="email">Material</label>
-																			</div>
-																		</div>																	
-																	</div>
-	
-																</div>
-	
-																<div id="divImgDel_1" class="col-lg-1" style="display: none;">
-	
-																	<div class="row mb-2">
-																																			
-																		<a href="javascript:del_img(1)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
-																			<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-																			<span class="svg-icon svg-icon-3" title="Delete image">
-																				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																					<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
-																					<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
-																					<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
-																				</svg>
-																			</span>
-																			<!--end::Svg Icon-->
-																		</a>
-																		
-																	</div>
-	
-																</div>
-
-															</div>
-
-															<br/>
-
-														</div>
-
-														<input id="proyect_id" name="proyect_id" type="hidden" value="{{ proyect.id }}" readonly/>
+														{% if proyect.state_id >= 5 %}
+														<img alt="" class="w-20px me-3" src="/static/images/pdf.svg" alt="">
+														<a href="{% url 'generate_pdf' proyect_id=proyect.id %}" class="fs-7 text-hover-primary" target="_blank">Download WO</a>
+														{% endif %}
 														
-														<div class="card-footer d-flex justify-content-end py-6 px-9">
-															<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()">Clean</button>
-															<button type="submit" class="btn btn-primary px-8 py-2 mr-4" id="submitItem" data-kt-indicator="off">
-																<span class="indicator-label">Save</span>
-																<span class="indicator-progress">Please wait...
-																<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-															</button>
-														</div>
-
 													</div>
-	
-												</form>
-																																											 
-											</div>
-
-											<div {% if proyect.state_id != 1 %} class="tab-pane active" {% else %} class="tab-pane fade" {% endif %} id="nav-items" role="tabpanel">
-
-												<div>
-
-													<div class="row">
-														<div class="col-md-6">															
-															<div class="card-title fs-6 fw-bolder">Items list:</div>
-														</div>
-														<div class="col-md-6 text-end">	
-															
-															{% if proyect.state_id >= 4 %}
-															<img alt="" class="w-20px me-3" src="/static/images/pdf.svg" alt="">
-															<a href="{% url 'generate_pdf' proyect_id=proyect.id %}" class="fs-7 text-hover-primary" target="_blank">Download WO</a>
-															{% endif %}
-
-														</div>
-													</div>
-
 													
+													
+													<div class="col-md-6 text-end">	
 
-													<div id="messageSave">
+														<div class="my-lg-0 my-5">
+															{% if state_new != '' %}
+															<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-toggle="tooltip">{{proyect.state.buttonName}}</a>
+															<input id="stateAfter" type="hidden" value="{{ state_new }}">
+															{% endif %}
+																																										
+														</div>																												
 
 													</div>
-
-													<div id="itemsDetails">
-														{{ itemsHtml|safe }}
-													</div>																										
+												</div>
 																	
+												<div id="messageSave">
+
 												</div>
 
-											</div>
+												<div id="itemsDetails">
+													{{ itemsHtml|safe }}
+												</div>																										
+																																										
 
-											<div class="tab-pane fade" id="nav-decorators" role="tabpanel" >
+												<!--begin::Modal Item-->
+												<div class="post d-flex flex-column-fluid">
+													<!--begin::Container-->
+													<div id="kt_content_container" class="container-xxl">
+														<!--begin::Modal - Select Location-->
+														<div class="modal fade" id="modalItem" tabindex="-1" >
+															<!--begin::Modal dialog-->
+															<div class="modal-dialog" style="max-width: 98% !important;">
+																<!--begin::Modal content-->
+																<div class="modal-content">
+																	<!--begin::Modal header-->
+																	<div class="modal-header">
+																		<!--begin::Title-->
+																		<h2>Item</h2>
+																		<!--end::Title-->
+																		<!--begin::Close-->
+																		<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+																		</div>
+																		<!--end::Close-->
+																	</div>
+																	<!--end::Modal header-->
+																	<!--begin::Modal body-->
+																	<div class="modal-body">
 
-												<div>
-													<div class="card-title fs-6 fw-bolder">Decorators:</div>
-													{{ decoratorsHTML|safe }}
+																		<form id="formItem" class="form" method="POST" enctype="multipart/form-data">
+																			<div class=""> <!--  class="card-body" -->
+																																																							
+																				<!--begin::Row-->
+																				<div class="row">
+																					<!--begin::Col-->
+																																				
+																						<div class="col-lg-6">
+							
+																							<div class="row mb-6">
+							
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">Category:</div>
+																								</div>
+																								<!--end::Col-->
+																								<!--begin::Col-->
+																								<div class="col-xl-6 fv-row">
+																									<!--begin::Input-->
+							
+																									<select id="selectCategory" class="form-select form-select-solid" name="category">
+																										<option value="">---</option>
+																										{% for category in categories %}
+																										<option value="{{ category.id }}">{{ category.name }}</option>
+																										{% endfor %}
+																									</select>
+							
+																									<!--end::Input-->
+																								</div>
+																								<!--end::Col-->
+							
+																							</div>
+							
+																							<div class="row mb-6">
+							
+																								<!--begin::Col-->
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">Sub Category:</div>
+																								</div>
+																								<!--end::Col-->
+																								<!--begin::Col-->
+																								<div class="col-xl-6 fv-row">
+																									<!--begin::Input-->
+																								
+																									<select id="selectSubcategory" class="form-select form-select-solid"
+																										data-kt-select2="false" data-placeholder="Select"
+																										data-allow-clear="true" name="subcategory">
+																										<option value="">---</option>
+																									</select>
+																								
+																									<!--end::Input-->
+																								</div>
+																								<!--end::Col-->
+							
+																							</div>
+						
+																							<div class="row mb-6">
+							
+																								<!--begin::Col-->
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">Group:</div>
+																								</div>
+																								<!--end::Col-->
+																								<!--begin::Col-->
+																								<div class="col-xl-6 fv-row">
+																									<!--begin::Input-->
+																								
+																									<select id="selectGroup" class="form-select form-select-solid"
+																										data-kt-select2="false" data-placeholder="Select"
+																										data-allow-clear="true" name="group">
+																										<option value="">---</option>
+																									</select>
+																								
+																									<!--end::Input-->
+																								</div>
+																								<!--end::Col-->
+							
+																							</div>
+							
+																							<div class="row mb-6">
+							
+																								<!--begin::Col-->
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">Place:</div>
+																								</div>
+																								<!--end::Col-->
+																								<!--begin::Col-->
+																								<div class="col-xl-6 fv-row">
+																									<!--begin::Input-->
+							
+																									<select id="selectPlace" class="form-select form-select-solid"
+																										data-kt-select2="false" data-placeholder="Select"
+																										data-allow-clear="true" name="place">
+																										<option value="">---</option>
+																										{% for place in places %}
+																										<option value="{{ place.id }}">{{ place.name }}</option>
+																										{% endfor %}
+																									</select>
+							
+																									<!--end::Input-->
+																								</div>
+																								<!--end::Col-->
+																							</div>
+							
+																							<div class="row mb-6">
+							
+																								<!--begin::Col-->
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">QTY:</div>
+																								</div>
+																								<!--end::Col-->
+							
+																								<div class="col-xl-6 fv-row">
+																									<input id="inputQty" type="text" class="form-control form-control-solid" name="qty" value="" maxlength="100"/>
+																								</div>
+							
+																							</div>
+						
+																							<div class="row mb-6">
+																								<!--begin::Col-->
+																								<div class="col-xl-2">																			
+																									<div class="fs-7 fw-bold mt-2 mb-3">Proposed date:</div>
+																								</div>
+						
+																								<div class="col-xl-6 fv-row">
+																									<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
+																									<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">
+																										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+																											viewBox="0 0 24 24" fill="none">
+																											<path opacity="0.3"
+																												d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z"
+																												fill="black" />
+																											<path
+																												d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z"
+																												fill="black" />
+																											<path
+																												d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z"
+																												fill="black" />
+																										</svg>
+																									</span>
+																									<!--end::Svg Icon-->
+																									<input class="form-control form-control-solid ps-12" name="date_proposed" placeholder="Pick a date" id="date_proposed_id" />
+																								</div>
+						
+						
+																							</div>
+							
+																							<div class="row mb-6">
+																								<!--begin::Col-->
+																								<div class="col-xl-2">
+																									<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>
+																								</div>
+																								<!--end::Col-->
+																								<!--begin::Col-->
+																								<div class="col-xl-9 fv-row">
+																									<textarea id="textareaNotes" name="notes" class="form-control form-control-solid h-100px" maxlength="2000"></textarea>
+																								</div>
+																								<!--begin::Col-->
+																							</div>
+						
+																						</div>
+																							
+																					<!--begin::Col-->
+																					<div id="divAttributes" class="col-lg-6">
+						
+																					</div>
+						
+																				</div>
 
-													<br/>
 
-													<div class="card-title fs-6 fw-bolder">Ascociates:</div>
-													{{ ascociatesHTML|safe }}
+
+																				<div class="separator separator-dashed mt-9 mb-6"></div>
+
+
+																				<div class="card-title fs-6 fw-bolder">Add materials <i class="fas fa-cloud-upload-alt"></i></div>
+																				<div id="messageMaterial">
+																					
+																				</div>
+
+																				<div id="divMaterials">
+
+																					<table id="tableMaterials" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" style="max-width: 1000px">
+																						<thead class="fw-bolder text-muted">																							
+																							<tr>																								
+																								<th class="align-top" width="60%">Name</th>
+																								<th class="align-top text-center" width="20%">Preview</th>																								
+																								<th class="align-top" width="10%"></th>
+																							</tr>
+																						</thead>
+																						<tbody>
+																							<tr class="baseRow" style="display:none">																								
+																								<td><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
+																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
+        																						<td class="text-center">
+																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
+																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																										<span class="svg-icon svg-icon-2">
+																											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																												<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+																												<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+																												<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+																											</svg>
+																										</span>
+																										<!--end::Svg Icon-->
+																									</div>
+																								</td>
+																							</tr>
+																							<tr class="baseRow">																								
+																								<td><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
+																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
+        																						<td class="text-center">
+																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
+																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																										<span class="svg-icon svg-icon-2">
+																											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																												<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+																												<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+																												<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+																											</svg>
+																										</span>
+																										<!--end::Svg Icon-->
+																									</div>
+																								</td>
+																							</tr>
+																						</tbody>
+																					</table>
+																					<!-- Enlace para agregar nuevas filas -->
+																					<a href="javascript:void(0);" id="addMaterial">Add material (+)</a>
+						
+																				</div>
+
+																				<div class="separator separator-dashed mt-9 mb-6"></div>
+						
+																				<div class="card-title fs-6 fw-bolder">Add images <i class="fas fa-cloud-upload-alt"></i></div><div class="card-title fs-8 fw-bolder"></div>
+						
+																				<div id="divImages">
+						
+																					<table id="tableImages" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" style="max-width: 1000px">
+																						<thead class="fw-bolder text-muted">																							
+																							<tr>																								
+																								<th class="align-top" width="60%">Comment</th>
+																								<th class="align-top text-center" width="20%">Preview</th>																								
+																								<th class="align-top" width="10%"></th>
+																							</tr>
+																						</thead>
+																						<tbody>
+																							<tr class="baseRowImage" style="display:none">																								
+																								<td><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000"></textarea><br/><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>																								
+																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
+        																						<td class="text-center">
+																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
+																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																										<span class="svg-icon svg-icon-2">
+																											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																												<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+																												<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+																												<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+																											</svg>
+																										</span>
+																										<!--end::Svg Icon-->
+																									</div>
+																								</td>
+																							</tr>																							
+																						</tbody>
+																					</table>
+																					<!-- Enlace para agregar nuevas filas -->
+																					<a href="javascript:void(0);" id="addImage">Add image (+)</a>																				
+						
+																				</div>
+																				
+																				<input id="proyect_id" name="proyect_id" type="hidden" value="{{ proyect.id }}" readonly/>
+																				
+																				<div class="card-footer d-flex justify-content-end py-6 px-9">
+																					<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()" data-bs-dismiss="modal">Cancel</button>
+																					
+																					<button type="submit" class="btn btn-primary px-8 py-2 mr-4" id="submitItem" data-kt-indicator="off">
+																						<span class="indicator-label">Save</span>
+																						<span class="indicator-progress">Please wait...
+																						<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+																					</button>
+																				</div>						
+																			</div>							
+																		</form>
+
+																																																																	
+																	</div>
+																	<!--end::Modal body-->																	
+																</div>
+																<!--end::Modal content-->
+															</div>
+															<!--end::Modal dialog-->
+														</div>
+														<!--end::Modal - Add Item-->
+													</div>
+													<!--end::Container-->
 												</div>
+												<!--end::Modal Item-->
 
+
+
+												<!--begin::Modal Comment-->
+												
+												<div class="modal fade" id="modalComment" tabindex="-1" aria-hidden="true">
+													<!--begin::Modal dialog-->
+													<div class="modal-dialog modal-dialog-centered mw-650px">
+														<!--begin::Modal content-->
+														<div class="modal-content">
+															<!--begin::Modal header-->
+															<div class="modal-header border-0 justify-content-end">
+																<!--begin::Edit-->
+																<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete" id="modalCommentDelete">
+																	<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																	<span class="svg-icon svg-icon-2">
+																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																			<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+																			<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+																			<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+																		</svg>
+																	</span>
+																	<!--end::Svg Icon-->
+																</div>
+																<!--end::Edit-->
+																<!--begin::Close-->
+																<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+																	<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+																	<span class="svg-icon svg-icon-1">
+																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																			<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+																			<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+																		</svg>
+																	</span>
+																	<!--end::Svg Icon-->
+																</div>
+																<!--end::Close-->
+															</div>
+															<!--end::Modal header-->
+															<!--begin::Modal body-->
+															<div class="modal-body pt-0 pb-20 px-lg-17">
+																
+																<!--end::Row-->
+																<input id="id1" name="id1" type="hidden" value="" readonly/>
+																<input id="id2" name="id2" type="hidden" value="" readonly/>
+																<input id="id3" name="id3" type="hidden" value="" readonly/>
+																<!--begin::Row-->
+																<div id="saveItemComment">
+																					
+																</div>
+																<!--end::Row-->
+															</div>
+															<!--end::Modal body-->
+														</div>
+													</div>
+												</div>
+												<!--end::Modal - New Product-->
+
+
+												
 											</div>
+
 											
 											<div class="tab-pane fade" id="nav-notes" role="tabpanel" >
 
@@ -738,19 +926,32 @@
 
 		<script>var KTAppSettings = { "breakpoints": { "sm": 576, "md": 768, "lg": 992, "xl": 1200, "xxl": 1400 }, "colors": { "theme": { "base": { "white": "#ffffff", "primary": "#3699FF", "secondary": "#E5EAEE", "success": "#1BC5BD", "info": "#8950FC", "warning": "#FFA800", "danger": "#F64E60", "light": "#E4E6EF", "dark": "#181C32" }, "light": { "white": "#ffffff", "primary": "#E1F0FF", "secondary": "#EBEDF3", "success": "#C9F7F5", "info": "#EEE5FF", "warning": "#FFF4DE", "danger": "#FFE2E5", "light": "#F3F6F9", "dark": "#D6D6E0" }, "inverse": { "white": "#ffffff", "primary": "#ffffff", "secondary": "#3F4254", "success": "#ffffff", "info": "#ffffff", "warning": "#ffffff", "danger": "#ffffff", "light": "#464E5F", "dark": "#ffffff" } }, "gray": { "gray-100": "#F3F6F9", "gray-200": "#EBEDF3", "gray-300": "#E4E6EF", "gray-400": "#D1D3E0", "gray-500": "#B5B5C3", "gray-600": "#7E8299", "gray-700": "#5E6278", "gray-800": "#3F4254", "gray-900": "#181C32" } }, "font-family": "Poppins" };</script>
 
-		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<!-- <script src="{% static 'js/jquery.min.js' %}"></script> -->
 
+		
+
+
+		<script src="{% static 'js/jquery-3.7.1.js' %}"></script>		
 		<script src="{% static 'js/plugins.bundle.js' %}"></script>
 		<script src="{% static 'js/scripts.bundle.js' %}"></script>
-		<script src="{% static 'js/settingsView.js' %}"></script>
-		<script src="{% static 'js/jquery.mask.min.js' %}"></script>
 		
-		<script src="{% static 'js/galery/imagesloaded.pkgd.min.js' %}"></script>
-		<script src="{% static 'js/galery/isotope.pkgd.min.js' %}"></script>
-		<script src="{% static 'js/galery/masonry.pkgd.min.js' %}"></script>
+		
+		
+		<script src="{% static 'js/jquery-ui.js' %}"></script>
+
+		<script src="{% static 'js/settingsView.js' %}"></script>
+
+		
 		<script src="{% static 'js/galery/jquery.fancybox.js' %}"></script>
 		<script src="{% static 'js/galery/gallery.js' %}"></script>
 		
+				
+		<script src="{% static 'js/jquery.mask.min.js' %}"></script>		
+		<script src="{% static 'js/galery/imagesloaded.pkgd.min.js' %}"></script>
+		<script src="{% static 'js/galery/isotope.pkgd.min.js' %}"></script>
+		<script src="{% static 'js/galery/masonry.pkgd.min.js' %}"></script>
+		
+		 		
 
 		<script>
 						
@@ -759,26 +960,134 @@
 
 			$(document).ready(function () {
 
+				autoCompleteReload();
+
 				// $("#inputQty").mask('0000'); // Formato de número 4 digitos	
 				$('.grid-gallery').masonry_gallery();
-				$("#date_proposed_id").flatpickr({ enableTime: true, dateFormat: "Y-m-d" });
+				$("#date_proposed_id").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
 				initializeFlatpickr();
+
+				$('#aAddItem').click(function() {
+					cleanItemForm();
+				});
+
+
+				$('#addMaterial').click(function() {
+					// Clonamos la fila con id "filaBase"					
+					var newRow = $('.baseRow:first').clone();										
+					newRow.find('input').val('');      					
+					newRow.find('.previewMaterial').hide();					
+					newRow.removeAttr('style');
+					newRow.removeAttr('id');
+
+					$('#tableMaterials tbody').append(newRow);
+
+					autoCompleteReload();
+				});
+
+				$('#addImage').click(function() {
+					// Clonamos la fila con id "filaBase"					
+					var newRow = $('.baseRowImage:first').clone();										
+					newRow.find('input').val('');      					
+					newRow.find('.previewImage').hide();					
+					newRow.removeAttr('style');
+					newRow.removeAttr('id');
+
+					$('#tableImages tbody').append(newRow);					
+				});
+
+				$(document).on('click', '.deleteMaterial', function() {
+      				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+    			});
+
+				$(document).on('click', '.deleteImage', function() {
+      				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+    			});
+
+
+				$('#tableMaterials').on('change', 'input[type="file"]', function(event) {
+					var input = $(this)[0];
+					var file = input.files[0];
+
+					// Solo procesamos si el archivo es una imagen
+					if (file && file.type.match('image.*')) {
+						var reader = new FileReader();
+
+						reader.onload = function(e) {
+						// Mostrar la imagen en la vista previa
+							$(input).closest('tr').find('.preview').attr('src', e.target.result).show();
+							$(input).closest('tr').find('.fileUpload').hide();
+						};
+
+						reader.readAsDataURL(file);
+					} else {
+						// Si no es una imagen, ocultar la vista previa
+						$(input).closest('tr').find('.preview').hide();
+						$(input).closest('tr').find('.fileUpload').show();
+					}
+				});
+
+				$('#tableImages').on('change', 'input[type="file"]', function(event) {
+					var input = $(this)[0];
+					var file = input.files[0];
+
+					// Solo procesamos si el archivo es una imagen
+					if (file && file.type.match('image.*')) {
+						var reader = new FileReader();
+
+						reader.onload = function(e) {
+						// Mostrar la imagen en la vista previa
+							$(input).closest('tr').find('.preview').attr('src', e.target.result).show();
+							$(input).closest('tr').find('.fileUpload').hide();
+						};
+
+						reader.readAsDataURL(file);
+					} else {
+						// Si no es una imagen, ocultar la vista previa
+						$(input).closest('tr').find('.preview').hide();
+						$(input).closest('tr').find('.fileUpload').show();
+					}
+				});
+				
 
 			});
 
 			$('#selectCategory').change(function() {
-                loadSubcategory();
+                loadSubcategory(0,0);
 				loadAttributes();
-				loadGroup();
+				loadGroup(0);
             });
 
 			$('#selectSubcategory').change(function() {
-				loadGroup();
+				loadGroup(0);
             });
 
 
+
+			function autoCompleteReload(){
+				
+				$('.autocompleteMaterial').autocomplete({
+					source: function(request, response) {								
+								// Enviar la solicitud AJAX al servidor
+								$.ajax({
+									url: "{% url 'getDataMaterial_url' %}",  // La URL que manejará la consulta AJAX
+									method: 'GET',
+									dataType: 'json',  // Esperamos recibir una respuesta en formato JSON
+									data: {
+										'term': request.term  // "term" es el texto que el usuario ha ingresado en el input
+									},
+									success: function(data) {
+									// Pasar las sugerencias a la función `response()`
+										response(data);
+									}
+								});
+							},
+					minLength: 2,  // Mínimo de caracteres antes de realizar la búsqueda
+				});
+			}
+
 			
-			function loadSubcategory(){	
+			function loadSubcategory(i,g){	
 				var selectValue = $("#selectCategory").val();			
 								
 				if(selectValue != "" ) {				
@@ -796,6 +1105,15 @@
 						success: function(response) {
 							// Rellena los campos con los datos obtenidos de la respuesta
 							$('#selectSubcategory').html(response.result);
+
+							if ($('#selectSubcategory option[value="' + i + '"]').length > 0) {
+								$('#selectSubcategory').val(i);  // Establecer el valor
+							}
+
+							if(g > 0){
+								loadGroup(g)
+							}
+
 						},
 						error: function(xhr, status, error) {
 							console.error("Error server: " + error, event.error);							
@@ -807,7 +1125,7 @@
 			}
 
 
-			function loadGroup(){	
+			function loadGroup(i){	
 				
 				var selectValue1 = $("#selectCategory").val();			
 				var selectValue2 = $("#selectSubcategory").val();
@@ -828,6 +1146,10 @@
 						success: function(response) {
 							// Rellena los campos con los datos obtenidos de la respuesta
 							$('#selectGroup').html(response.result);
+
+							if ($('#selectGroup option[value="' + i + '"]').length > 0) {
+								$('#selectGroup').val(i);  // Establecer el valor
+							}
 						},
 						error: function(xhr, status, error) {
 							console.error("Error server: " + error, event.error);							
@@ -954,118 +1276,6 @@
 			}
 
 
-			function del_img(i){
-
-				Swal.fire({
-					title: 'Are you sure?',
-					text: 'Do you want to delete the image?',
-					icon: 'warning',
-					showCancelButton: true,  // Muestra el botón de cancelación
-					confirmButtonText: 'Yes',
-					cancelButtonText: 'Cancel'
-				}).then((result) => {
-					if (result.isConfirmed) {																		
-						divImg = '#divImg_' + String(i);						
-						$(divImg).remove();
-
-					}
-				});
-			}
-
-
-			function previewImages(event, id) {
-
-				div = 'previewContainer_' + String(id)
-				divNotes = '#divImgNotes_' + String(id)
-				divDel = '#divImgDel_' + String(id)
-				inputImg = '#inputImg_' + String(id)
-
-				const previewContainer = document.getElementById(div);
-				previewContainer.innerHTML = ''; // Limpiar las imágenes previas
-
-				const files = event.target.files;
-
-				// Crear una vista previa para cada imagen seleccionada
-				for (const file of files) {
-					 // Validar si el archivo es una imagen
-    				if (file.type.startsWith('image/')) {
-						const reader = new FileReader();
-						
-						reader.onload = function(e) {
-							const img = document.createElement('img');
-							img.src = e.target.result;
-							img.classList.add('preview');
-							img.name = 'images';
-							previewContainer.appendChild(img);
-							$(divNotes).css('display', '');
-							$(divDel).css('display', '');
-							$(inputImg).css('display', 'none');
-							newImagesDiv(id);
-
-						};
-						
-						reader.readAsDataURL(file);
-					}
-					else{
-						previewContainer.innerHTML = '<div class="card-body d-flex justify-content-start text-start flex-column p-8"><div class="symbol symbol-150px mb-5"><img src="/static/images/upload.svg" alt=""><div class="fs-7 fw-bold text-gray-400">' + file.name + '</div></div></div>';
-						$(divNotes).css('display', '');
-						$(divDel).css('display', '');
-						$(inputImg).css('display', 'none');
-						newImagesDiv(id);
-					}
-				}
-			}
-
-
-			function newImagesDiv(id){
-
-				newId = id + 1;
-				divNotes = '#divImg_' + String(id)
-				
-				html = '<br/>';
-				html += '<div id="divImg_' + String(newId) + '" class="row">';
-				
-				html += '<div class="col-lg-4">';				
-				html +=	'<div class="row mb-2">';
-				html += '<div id="previewContainer_' + String(newId) + '" class="image-container"></div>';
-				html +=	'<input id="inputImg_' + String(newId) + '" type="file" name="inputImg_' + String(newId) + '" class="form-control form-control" onchange="previewImages(event, ' + String(newId) + ')" required>';
-				html += '</div></div>';
-
-				html += '<div id="divImgNotes_' + String(newId) + '" class="col-lg-7" style="display: none;">';
-				html += '<div class="row mb-6">';
-				html += '<div class="col-xl-11 fv-row">';
-				html += '<div class="fs-7 fw-bold mt-2 mb-3">Description:</div>';
-				html += '<textarea id="txtImgNotes_' + String(newId) + '" name="txtImgNotes_' + String(newId) + '" class="form-control form-control-solid h-150px" maxlength="2000"></textarea><br/>';
-				html += '<div class="form-check form-check-custom form-check-solid me-9">';
-				html += '<input class="form-check-input" type="checkbox" id="chkImgType_' + String(newId) + '" name="chkImgType_' + String(newId) + '" />';
-				html += '<label class="form-check-label ms-3" for="email">Material</label>';
-				html += '</div></div></div></div>';
-				
-				html += '<div id="divImgDel_' + String(newId) + '" class="col-lg-1" style="display: none;">';
-				html += '<div class="row mb-2">';
-				html += '<a href="javascript:del_img(' + String(newId) + ')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">';
-				html += '<span class="svg-icon svg-icon-3" title="Delete image">';
-				html += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">';
-				html += '<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />';
-				html += '<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />';
-				html += '<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />';
-				html += '</svg>';
-				html += '</span>';
-				html += '</a>';
-				html += '</div></div>';
-
-				html += '</div>';
-
-				if(id != 0){
-					$(divNotes).after(html);
-				}
-				else{
-					return html;
-				}
-
-			}
-
-
 			function cleanItemForm(){
 																				
 				var select = document.getElementById('selectCategory');				
@@ -1080,12 +1290,18 @@
 				var select = document.getElementById('selectGroup');
 				select.innerHTML = ''; // Establece el primer elemento como seleccionado
 
+				$('#modalItem').hide();
+
 				$('#inputQty').html('');
 				$('#date_proposed_id').html('');				
 
 				$('#selectSubcategory').html('');
 				$('#divAttributes').html('');
-				$('#divImages').html(newImagesDiv(0));
+
+
+				$("#tableMaterials tbody tr:not(:first)").remove();
+				$("#tableImages tbody tr:not(:first)").remove();
+				
 
 			}
 
@@ -1100,22 +1316,21 @@
 
 			function state(i){
 
-				var state = document.querySelector('#aState').textContent;
-				//var state = "next";
-				Swal.fire({
-					title: 'Are you sure?',
-					text: 'Do you want to advance to "' + state + '" status?',
-					icon: 'warning',
-					showCancelButton: true,  // Muestra el botón de cancelación
-					confirmButtonText: 'Yes',
-					cancelButtonText: 'Cancel'
-				}).then((result) => {
-					if (result.isConfirmed) {
+				var state = document.querySelector('#stateAfter').value;
+				var cant = $('.itemCount').length;
+				if(cant > 0){
 
-						var cant = $('.itemCount').length;
+					//var state = "next";
+					Swal.fire({
+						title: 'Are you sure?',
+						text: 'Do you want to advance to "' + state + '" status?',
+						icon: 'warning',
+						showCancelButton: true,  // Muestra el botón de cancelación
+						confirmButtonText: 'Yes',
+						cancelButtonText: 'Cancel'
+					}).then((result) => {
+						if (result.isConfirmed) {
 
-						if(cant > 0){						
-							
 							$.ajax({
 								url: "{% url 'updateStatus_url' %}",  // La URL que manejará la consulta AJAX
 								method: 'POST',
@@ -1138,111 +1353,160 @@
 											text: error,
 											icon: 'error',
 											confirmButtonText: 'Ok.'
-										});
-
+									});
 								}
-							});	
-
-						}
-						else{
-							Swal.fire({
-								title: 'Alert!',
-								text: 'You must add items.',
-								icon: 'info',
-								confirmButtonText: 'Ok.'
 							});
 						}
-					}
-				});
+					});
 				}
-
-
-			function saveIC(i){
-
-				var p = $('#proyect_id').val()				
-				var formData = new FormData();  // Creamos un objeto FormData vacío
-				formData.append('id1', p);
-				formData.append('id2', i);
-				// Serializamos los datos del formulario (excepto los archivos)
-				var serializedData = $('#formItem_' + String(i)).serialize();
-							
-				// Convertimos los datos serializados en un objeto y lo agregamos al FormData
-				var params = serializedData.split('&');
-				params.forEach(function(param) {
-					var keyValue = param.split('=');
-					var key = decodeURIComponent(keyValue[0]);
-					var value = decodeURIComponent(keyValue[1] || '');
-					formData.append(key, value);
-				});
-
-				var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
-				
-				if (inputFile && inputFile.files.length > 0) {
-
-					for (var i = 0; i < inputFile.files.length; i++) {
-						formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
-					}
+				else{
+					Swal.fire({
+						title: 'Alert!',
+						text: 'You must add items.',
+						icon: 'info',
+						confirmButtonText: 'Ok.'
+					});
 				}
-			
+			}
+
+
+			function loadIC(y, t, i){
+
 				$.ajax({
-					type: "POST",
-					url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
-					data: formData,
-					processData: false,  // Esto es importante para enviar archivos correctamente
-					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-					beforeSend: function(xhr, settings) {
-						// Añadir el token CSRF en las cabeceras
-						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-					},
+					url: "{% url 'getDataComment_url' %}",  // La URL que manejará la consulta AJAX
+					method: 'GET',
+					data: {
+						'id1': y,
+						'id2': t,
+						'id3': i,
+					},		
 					success: function(response) {
-						if(response.result = "OK"){
-							
-							const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
-							divWithClass.show();
-							divWithClass.fadeOut(5000);
-						}						
+						$('#saveItemComment').html(response.result);
+						initializeFlatpickr();
 					},
 					error: function() {
 						console.error("Error server: " + error, event.error);
 					}
 				});
+				}
+
+			
+			function saveIC(p,i,c){
+
+				var txt = $('#formItem_' + String(i) + ' textarea')[0];  // Seleccionamos el input dentro de form1
+				var texto = txt.value;
+								
+				if(texto != ""){					
+					var formData = new FormData();  // Creamos un objeto FormData vacío
+					formData.append('id1', p);
+					formData.append('id2', i);
+					formData.append('id3', c);
+					// Serializamos los datos del formulario (excepto los archivos)
+					var serializedData = $('#formItem_' + String(i)).serialize();
+								
+					// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+					var params = serializedData.split('&');
+					params.forEach(function(param) {
+						var keyValue = param.split('=');
+						var key = decodeURIComponent(keyValue[0]);
+						var value = decodeURIComponent(keyValue[1] || '');
+						formData.append(key, value);
+					});
+
+					var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
+					
+					if (inputFile && inputFile.files.length > 0) {
+
+						for (var i = 0; i < inputFile.files.length; i++) {
+							formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
+						}
+					}
+				
+					$.ajax({
+						type: "POST",
+						url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
+						data: formData,
+						processData: false,  // Esto es importante para enviar archivos correctamente
+						contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							if(response.result = "OK"){								
+								loadItems();
+								$('#modalComment').modal('hide');
+								
+								$('#messageSave').show();								
+								$('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>comment</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');								
+								setTimeout(function() {
+									$('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+								}, 3000); 
+							}						
+						},
+						error: function() {
+							console.error("Error server: " + error, event.error);
+						}
+					});
+				}
+				else{
+					const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
+					divWithClass.show();
+					divWithClass.fadeOut(5000);
+				}
 
 			}
 
 
-			function delImC(o,i,t,e){
+			function delFile(o,i,t,e,p,v){
 
-				var p = $('#proyect_id').val()				
-				$.ajax({					
-					url: "{% url 'deleteItemCommentFile_url' %}",  // La URL que manejará la consulta AJAX
-					method: 'POST',
-					data: {
-						'i': i,
-						't': t,
-						'p': p,
-						'e': e
-					},
-					beforeSend: function(xhr, settings) {
-						// Añadir el token CSRF en las cabeceras
-						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-					},
-					success: function(response) {
-						// Rellena los campos con los datos obtenidos de la respuesta
-						if(response.result == "1"){
-							const pad = o.parentNode;
-							pad.remove();
-						}						
-					},
-					error: function(xhr, status, error) {																
-						Swal.fire({
-								title: 'Error server!',
-								text: error,
-								icon: 'error',
-								confirmButtonText: 'Ok.'
-							});
+				v.preventDefault();
+				v.stopPropagation();
 
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'Do you want to delete the file?',
+					icon: 'warning',
+					showCancelButton: true,  // Muestra el botón de cancelación
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {																		
+												
+						$.ajax({					
+							url: "{% url 'deleteItemCommentFile_url' %}",  // La URL que manejará la consulta AJAX
+							method: 'POST',
+							data: {
+								'i': i,
+								't': t,
+								'p': p,
+								'e': e
+							},
+							beforeSend: function(xhr, settings) {
+								// Añadir el token CSRF en las cabeceras
+								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+							},
+							success: function(response) {
+								// Rellena los campos con los datos obtenidos de la respuesta
+								if(response.result == "1"){
+									const pad = o.parentNode;
+									pad.remove();
+									loadItems();
+								}						
+							},
+							error: function(xhr, status, error) {																
+								Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+
+							}
+						});	
 					}
-				});	
+				});
+				
 			}
 
 
@@ -1252,6 +1516,170 @@
 					enableTime: true, // Deshabilitar la selección de hora
 					dateFormat: "Y-m-d H:i" // Establecer el formato de fecha
 				});
+			}
+
+			
+			function delComm(t,e,p,v){
+
+				v.preventDefault();
+				v.stopPropagation();
+
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'Do you want to delete the comment?',
+					icon: 'warning',
+					showCancelButton: true,  // Muestra el botón de cancelación
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {																		
+												
+						$.ajax({					
+							url: "{% url 'deleteComment_url' %}",  // La URL que manejará la consulta AJAX
+							method: 'POST',
+							data: {
+								't': t,
+								'p': p,
+								'e': e
+							},
+							beforeSend: function(xhr, settings) {
+								// Añadir el token CSRF en las cabeceras
+								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+							},
+							success: function(response) {
+								// Rellena los campos con los datos obtenidos de la respuesta
+								if(response.result = "1"){								
+									loadItems();
+									$('#modalComment').modal('hide');
+									$('#messageSave').show();								
+									$('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>comment</strong> has been deleted successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');								
+									setTimeout(function() {
+										$('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+									}, 3000);
+
+								}
+								else{
+									Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+								}
+
+							},
+							error: function(xhr, status, error) {																
+								Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+							}
+						});	
+					}
+				});
+			}
+			
+
+			function editItem(p,i){
+				cleanItemForm();
+				$('#modalItem').modal('show');
+
+				var formData = new FormData();  // Creamos un objeto FormData vacío
+				formData.append('p', p);
+				formData.append('i', i);
+
+				$.ajax({
+					type: "POST",
+					url: "{% url 'getSelectItem_url' %}",  // Reemplaza con la URL de tu vista
+					data: formData,
+					processData: false,  // Esto es importante para enviar archivos correctamente
+					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						$('#selectCategory').val(response.category);
+						loadSubcategory(response.subCategory,response.group);						
+						$('#selectPlace').val(response.place);
+						$('#selectPlace').val(response.place);
+						$('#inputQty').val(response.qty);
+						$('#textareaNotes').val(response.notes);
+						$('#date_proposed_id').val(response.date);
+						
+
+
+
+					},
+					error: function() {
+						console.error("Error server: " + error, event.error);
+					}
+				});
+
+				// var txt = $('#formItem_' + String(i) + ' textarea')[0];  // Seleccionamos el input dentro de form1
+				// var texto = txt.value;
+								
+				// if(texto != ""){					
+				// 	var formData = new FormData();  // Creamos un objeto FormData vacío
+				// 	formData.append('id1', p);
+				// 	formData.append('id2', i);
+				// 	formData.append('id3', c);
+				// 	// Serializamos los datos del formulario (excepto los archivos)
+				// 	var serializedData = $('#formItem_' + String(i)).serialize();
+								
+				// 	// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+				// 	var params = serializedData.split('&');
+				// 	params.forEach(function(param) {
+				// 		var keyValue = param.split('=');
+				// 		var key = decodeURIComponent(keyValue[0]);
+				// 		var value = decodeURIComponent(keyValue[1] || '');
+				// 		formData.append(key, value);
+				// 	});
+
+				// 	var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
+					
+				// 	if (inputFile && inputFile.files.length > 0) {
+
+				// 		for (var i = 0; i < inputFile.files.length; i++) {
+				// 			formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
+				// 		}
+				// 	}
+
+				// 	$.ajax({
+				// 		type: "POST",
+				// 		url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
+				// 		data: formData,
+				// 		processData: false,  // Esto es importante para enviar archivos correctamente
+				// 		contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+				// 		beforeSend: function(xhr, settings) {
+				// 			// Añadir el token CSRF en las cabeceras
+				// 			xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				// 		},
+				// 		success: function(response) {
+				// 			if(response.result = "OK"){								
+				// 				loadItems();
+				// 				$('#modalComment').modal('hide');
+								
+				// 				$('#messageSave').show();								
+				// 				$('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>comment</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');								
+				// 				setTimeout(function() {
+				// 					$('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+				// 				}, 3000); 
+				// 			}						
+				// 		},
+				// 		error: function() {
+				// 			console.error("Error server: " + error, event.error);
+				// 		}
+				// 	});
+				// }
+				// else{
+				// 	const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
+				// 	divWithClass.show();
+				// 	divWithClass.fadeOut(5000);
+				// }
+
 			}
 
 		</script>

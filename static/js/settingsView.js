@@ -42,10 +42,49 @@ var KTProjectSettings = {
                                         // Si el usuario confirma, enviar el formulario
                                         // $('#formItem')[0].submit(); // Enviar el formulario manualmente
 
+                                        var hasContent = false;   
+                                        var rows = document.querySelectorAll("#tableMaterials tbody tr");                                                                                                                    
+                                        // Recorrer todas las filas
+                                        for (var y = 0; y < rows.length; y++) {
+                                            // Obtener todos los campos de input dentro de la fila
+                                            var inputs = rows[y].querySelectorAll('input.autocompleteMaterial');
+    
+                                            // Verificar si alguno de los inputs tiene un valor
+                                            
+                                            inputs.forEach(function(input) {
+                                                if (input.value.trim() !== "") {  // Verifica si el valor del input no está vacío
+                                                    hasContent = true;
+                                                }
+                                            });
+
+                                            var fileInput = rows[y].querySelector('input[type="file"]');
+                                            var hiddenInput = rows[y].querySelector('input[type="hidden"]');
+
+                                            hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;
+                                            
+                                        }
+                                        
+                                        var rows = document.querySelectorAll("#tableImages tbody tr");                                        
+                                        for (var y = 0; y < rows.length; y++) {
+                                            var fileInput = rows[y].querySelector('input[type="file"]');
+                                            var hiddenInput = rows[y].querySelector('input[type="hidden"]');
+
+                                            hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;
+                                            
+                                        }
+    
+                                        if(!hasContent){                                        
+                                            $('#messageMaterial').show();
+                                            $('#messageMaterial').html('<div class="alert alert-warning alert-dismissible fade show" role="alert">You must enter materials.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');                                        
+                                        }
+                                        else{
+                                            $('#messageMaterial').html('');
+                                            $('#messageMaterial').fadeOut();
+                                                                                        
                                             i.setAttribute("data-kt-indicator", "on");
                                             i.disabled = true;  // Deshabilitar el botón mientras el proceso se realiza
                                             
-                                          
+                                        
                                             // var formData = $('#formItem').serialize(); // Serializa los datos del formulario
                                             var formData = new FormData();  // Creamos un objeto FormData vacío
 
@@ -88,7 +127,7 @@ var KTProjectSettings = {
                                                 },
                                                 success: function(response) {
                                                     loadItems();
-                                                    cleanItemForm();                                                                                                                                                            
+                                                    cleanItemForm();
                                                     $('#nav-items-tab').click();
                                                     
                                                     $('#messageSave').show();
@@ -97,21 +136,24 @@ var KTProjectSettings = {
                                                         $('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
                                                     }, 5000); 
 
+                                                    $('#messageMaterial').html('');
+                                                    $('#messageMaterial').fadeOut();
+                                                    $('#modalItem').modal('hide');
+
                                                 },
                                                 error: function() {
                                                     console.error("Error server: " + error, event.error);
                                                 }
                                             });
-                                    
+
+                                            i.setAttribute("data-kt-indicator", "off");
+                                            i.disabled = false;  // Deshabilitar el botón mientras el proceso se realiza
+                                        }
 
                                     } else {
                                         // Si el usuario cancela, no hacer nada
                                         console.log('Form not sent');
                                     }
-
-                                    i.setAttribute("data-kt-indicator", "off");
-                                    i.disabled = false;  // Deshabilitar el botón mientras el proceso se realiza
-
                                 })                                                                                                                                                                                            
                                 : swal.fire({
                                     text: "Please complete the required information.",

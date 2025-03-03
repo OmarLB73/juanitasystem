@@ -4,7 +4,7 @@
 
 <head>
 	<base href="">
-	<title>Proyect - Dashboard</title>	
+	<title>Proyect - Panel</title>	
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
 
 	<!-- <link href="{% static 'css/datatables.bundle.css' %}" rel="stylesheet" type="text/css" />
@@ -252,8 +252,8 @@
 																</div>
 
 																<div class="col-lg-4 text-end" style="border:1px solid white; border-width:1px;">
-																	<button id="reset" type="reset" class="btn btn-light btn-active-light-primary px-8 py-2 mr-4">Clean</button>
-																	<button id="kt_modal_add_customer_submit" type="submit" class="btn btn-primary px-8 py-2 mr-4">
+																	<button id="reset" type="reset" class="btn btn-sm btn-light btn-active-light-primary px-8 py-2 mr-4">Clean</button>
+																	<button id="kt_modal_add_customer_submit" type="submit" class="btn btn-sm btn-primary px-8 py-2 mr-4">
 																		<span class="indicator-label">Search</span>
 																		<span class="indicator-progress">Please wait...
 																		<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
@@ -291,8 +291,9 @@
 																		<th title="Field #5">Ant</th>
 																		<th title="Field #5">Description</th>
 																		<th title="Field #6">Qty WO</th>
-																		<th title="Field #7">Status</th>
+																		<th title="Field #7">Status</th>																		
 																		<th class="min-w-100px text-end">Actions</th>
+																		<th style="display:none"></th>
 																		
 																	</tr>
 																</thead>
@@ -315,19 +316,23 @@
 																		<td class="text-start text fs-8">{{ proyect.qty_wo }}</td>
 																		<td class="text-start fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a>
 																		{% if proyect.state_id == 1 %}
-																			<span class="badge badge-light-primary">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge-state-1">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 2 %}
-																			<span class="badge badge-light-danger">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge badge-state-2">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 3 %}
-																			<span class="badge badge-light-warning">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge badge-state-3">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 4 %}
-																			<span class="badge badge-light-success">{{ proyect.state }}</span>																		
+																			<span class="fw-bold p-2 mb-3 badge badge-state-4">{{ proyect.state }}</span>																		
 																		{% elif proyect.state_id == 5 %}
-																			<span class="badge badge-light-info">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge badge-state-5">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 6 %}
-																			<span class="badge badge-light-dark">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge badge-state-6">{{ proyect.state }}</span>
 																		{% elif proyect.state_id == 7 %}
-																			<span class="badge badge-light">{{ proyect.state }}</span>
+																			<span class="fw-bold p-2 mb-3 badge badge-state-7">{{ proyect.state }}</span>
+																		{% elif proyect.state_id == 8 %}
+																			<span class="fw-bold p-2 mb-3 badge badge-state-8">{{ proyect.state }}</span>
+																		{% elif proyect.state_id == 9 %}
+																			<span class="fw-bold p-2 mb-3 badge badge-state-9">{{ proyect.state }}</span>
 																		{% else %}
 																			<span class="badge badge-light">{{ proyect.state }}</span>
 																		{% endif %}
@@ -367,6 +372,7 @@
 																				</a>
 																			</div>
 																		</td>
+																		<td style="display:none">{{ proyect.materials }}</td>
 																	</tr>
 																	{% endfor %}														
 																															
