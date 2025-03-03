@@ -52907,6 +52907,75 @@ code:not([class*=language-]) {
     background-color: #eff2f5
 }
 
+
+/** AJUSTES **/
+
+
+/** Azul brillante: New Proyect**/
+.badge-state-1 {
+    color: #009ef7;
+    background-color: #f1faff
+}
+
+/** Verde: 	Get a Quote**/
+.badge-state-2 {
+    color: #28a745;
+    background-color: #e6f9ea
+}
+
+/** Amarillo: Awaiting Approval **/
+.badge-state-3 {
+    color: #ffc107;
+    background-color: #fff3cd
+}
+
+/** Rojo: Approved pending materials **/
+.badge-state-4 {
+    color: #dc3545;
+    background-color: #f8d7da;    
+}
+
+/** Naranja: In Progress **/
+.badge-state-5 {
+    color: #ff9800;
+    background-color: #fff3e0;    
+}
+
+/** Cian: Ready to deliver/Install **/
+.badge-state-6 {
+    color: #17a2b8;
+    background-color: #e9f7f7;    
+}
+
+/** Gris: Produce Final Invoice **/
+.badge-state-7 {
+    color: #6c757d;
+    background-color: #e2e6ea;    
+}
+
+/** Púrpura: Validate payment in full **/
+.badge-state-8 {
+    color: #6610f2 ;
+    background-color: #f3e8ff;    
+}
+
+/** Púrpura: Finished Project **/
+.badge-state-9 {
+    color: #17a2b8;
+    background-color: #d0f3f3;    
+}
+
+
+
+
+
+/**************/
+
+
+
+
+
+
 .indicator-progress {
     display: none
 }

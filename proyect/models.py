@@ -98,6 +98,8 @@ class Customer(models.Model):
 class State(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
+    buttonName = models.CharField(max_length=50, null=True)
+    description = models.TextField(null=True, blank=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -224,13 +226,12 @@ class Place(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-    
-  
+      
 
 class Attribute(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
-    description = models.TextField(null=True, blank=True)        
+    description = models.TextField(null=True, blank=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -400,8 +401,8 @@ def get_file_path_comment(instance, filename):
     # Crear subcarpetas con el ID del objeto
     year = instance.creation_date.year
     month = instance.creation_date.month
-    proyect_id = instance.item_comment_state.item.proyect_id
-    return os.path.join('comments', str(year), str(month), str(proyect_id), filename)
+    proyect_id = instance.comment_state.proyect.id
+    return os.path.join('generalComments', str(year), str(month), str(proyect_id), filename)
 
 
 class Item_Comment_State_Files(models.Model):
@@ -413,6 +414,38 @@ class Item_Comment_State_Files(models.Model):
     
     def __str__(self):
         return f'{self.id} - {self.name}'
+    
+
+class Comment_State(models.Model):
+    id = models.AutoField(primary_key=True)
+    proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    notes = models.TextField(blank=True, null=True)    
+    created_by_user = models.IntegerField(null=True, blank=True)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+    modification_by_user = models.IntegerField(null=True, blank=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+    
+    def __str__(self):
+        return f'{self.id} - {self.proyect.id} - {self.notes}'
+
+
+class Comment_State_Files(models.Model):
+    id = models.AutoField(primary_key=True)
+    comment_state = models.ForeignKey(Comment_State, on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=get_file_path_comment, blank=True, null=True)  # Nuevo campo de archivo
+    name = models.CharField(blank=True, null=True, max_length=150)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+    
+    def __str__(self):
+        return f'{self.id} - {self.name}'
+    
+
+
+
+
+
+
 
 
 @receiver(pre_delete, sender=Item_Images)
@@ -438,7 +471,15 @@ def eliminar_imagen(sender, instance, **kwargs):
         if os.path.isfile(imagen_path):
             os.remove(imagen_path)
 
+
 @receiver(pre_delete, sender=Item_Comment_State_Files)
+def eliminar_imagen(sender, instance, **kwargs):
+    if instance.file:
+        imagen_path = instance.file.path
+        if os.path.isfile(imagen_path):
+            os.remove(imagen_path)
+
+@receiver(pre_delete, sender=Comment_State_Files)
 def eliminar_imagen(sender, instance, **kwargs):
     if instance.file:
         imagen_path = instance.file.path
