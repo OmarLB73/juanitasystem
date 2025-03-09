@@ -1108,14 +1108,22 @@ def funct_data_items(request, proyect_id):
             ## Celda 3 (materiales) ##                        
             itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<h6>Materials:</h6>'
-            itemsHTML += '<table><tbody>'         
+            itemsHTML += '<table><tbody>'    
 
+            sorted_notes = []
+            notes_img = ()
+            notes_fil = ()
+            qty_img = ()
+                        
             materials_images = Item_Images.objects.filter(item = item, type = 2)
             materials_files = Item_Files.objects.filter(item = item, type = 2)
-        
-            # Extraer las notas y cantidades (qty) de las consultas
-            notes_img, qty_img = zip(*materials_images.values_list('notes', 'qty'))  # Para Item_Images
-            notes_fil = materials_files.values_list('notes', flat=True)  # Solo las notas de Item_Files
+
+            if materials_images:        
+                # Extraer las notas y cantidades (qty) de las consultas
+                notes_img, qty_img = zip(*materials_images.values_list('notes', 'qty'))  # Para Item_Images
+
+            if materials_files:                        
+                notes_fil = materials_files.values_list('notes', flat=True)  # Solo las notas de Item_Files
 
             # Combinar las notas de ambas listas
             combined_notes = set(notes_img) | set(notes_fil)  # Unión de los sets de notas
