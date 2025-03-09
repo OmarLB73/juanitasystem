@@ -124,7 +124,7 @@
 										<div>
 											<div class="tab-content">
 												<!--begin::Form-->
-												<form method="POST">
+												<form id="formSearch" method="POST">
 													{% csrf_token %}
 													<!--begin::Card body-->
 													<div class="card-body">
@@ -166,7 +166,7 @@
 																					</svg>
 																				</span>
 																				<!--end::Svg Icon-->
-																				<input class="form-control form-control-solid ps-12" name="dateFrom" placeholder="Pick a date" id="dateFrom" value="{{ date_from }}"/>
+																				<input class="form-control form-control-solid ps-12" name="dateFrom" placeholder="Pick a date" id="dateFrom" value="{{date_from}}"/>
 																			</div>
 																		</div>
 																	</div>
@@ -193,7 +193,7 @@
 																					</svg>
 																				</span>
 																				<!--end::Svg Icon-->
-																				<input class="form-control form-control-solid ps-12" name="dateUntil" placeholder="Pick a date" id="dateUntil" value="{{ date_until }}"/>
+																				<input class="form-control form-control-solid ps-12" name="dateUntil" placeholder="Pick a date" id="dateUntil" value="{{date_until}}"/>
 																			</div>
 																		</div>
 																	</div>
@@ -204,7 +204,7 @@
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">Type of proyect</label>
 																			<!--begin::Select-->
-																			<select class="form-select form-select-solid" data-kt-select2="false" name="type">
+																			<select class="form-select form-select-solid" data-kt-select2="false" name="type" id="selectType">
 																				<option value="0"></option>
 																				{% for type in types %}
 																				<option value="{{ type.id }}" {% if type.id == type_id  %}selected{% endif %}>{{ type.name }}</option>
@@ -220,7 +220,7 @@
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">Status</label>
 																			<!--begin::Select-->
-																			<select class="form-select form-select-solid" data-kt-select2="false" name="state">
+																			<select class="form-select form-select-solid" data-kt-select2="false" name="state" id="selectState">
 																				<option value="0"></option>
 																				{% for state in states %}
 																				<option value="{{ state.id }}" {% if state.id == state_id %}selected{% endif %}>{{ state.name }}</option>
@@ -252,8 +252,8 @@
 																</div>
 
 																<div class="col-lg-4 text-end" style="border:1px solid white; border-width:1px;">
-																	<button id="reset" type="reset" class="btn btn-sm btn-light btn-active-light-primary px-8 py-2 mr-4">Clean</button>
-																	<button id="kt_modal_add_customer_submit" type="submit" class="btn btn-sm btn-primary px-8 py-2 mr-4">
+																	<button id="reset" type="button" class="btn btn-sm btn-light btn-active-light-primary px-8 py-2 mr-4">Clean</button>
+																	<button id="proyectSearch" type="submit" class="btn btn-sm btn-primary px-8 py-2 mr-4">
 																		<span class="indicator-label">Search</span>
 																		<span class="indicator-progress">Please wait...
 																		<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
@@ -1200,8 +1200,8 @@
 		
 		$(document).ready(function() {
 
-			$("#dateFrom").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
-			$("#dateUntil").flatpickr({ enableTime: !0, dateFormat: "Y-m-d" });
+			$("#dateFrom").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
+			$("#dateUntil").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
 			
 			loadCalendar();
 			
@@ -1212,6 +1212,17 @@
 			$('#globalSearch').on('keyup change', function() {
 				table.search(this.value).draw();  // Filtra la tabla con el valor del input
 			});
+
+
+			$("#reset").click(function() {
+				$("#dateFrom").val("");
+				$("#dateUntil").val("");
+				$("#globalSearch").val("");
+				$("#selectType").prop("selectedIndex", 0);
+				$("#selectState").prop("selectedIndex", 0);
+			});
+
+
 
         });
 
@@ -1251,7 +1262,7 @@
 									confirmButtonText: 'Ok.'
 								}).then((result) => {
 									if (result.isConfirmed) {
-										$("#kt_modal_add_customer_submit").click();
+										$("#proyectSearch").click();
 									}
 								});
 							}																

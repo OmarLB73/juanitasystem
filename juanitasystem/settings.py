@@ -138,6 +138,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expirar sesión cuando se cierra el na
 
 LOGIN_REDIRECT_URL = '/user/login/'    # Redirige al inicio después de un login exitoso
 LOGIN_URL = '/user/login/'   # Redirigir al login si no está autenticado
+LOGOUT_REDIRECT_URL = '/user/login/'  # Redirige a login después de hacer logout
 
 
 MEDIA_URL = '/media/'

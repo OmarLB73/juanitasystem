@@ -4,8 +4,16 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.http import JsonResponse #Para responder por AJAX
+from django.urls import reverse #Para acceder a otrs urls de otras apps
+
+from django.contrib.auth import logout
 
 def custom_login(request):
+
+    if request.user.is_authenticated:
+        return redirect(reverse('panel_url'))  # Redirige a la página principal si el usuario ya está autenticado
+
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -35,3 +43,11 @@ def custom_login(request):
         form = AuthenticationForm()
 
     return render(request, 'user/login.html', {'form': form})
+
+
+def logout_view(request):
+    # Cerrar sesión
+    logout(request)
+    # Redirigir a la página de inicio o login
+    #return redirect('login_url')  # Puedes redirigir a cualquier URL que desees, como 'home' o 'login
+    return redirect('user:login_url')  # Redirige a la página de login o inicio

@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
+
+    #path('user/', include('user.urls')),  # Asegúrate de incluir la app 'user' con su namespace
+
     path('panel/', views.panel_view, name='panel_url'), #(nombre en la url navegador, nombre de la vista en el archivo views.py, nombre de la variable que se usa en la vista)
     path('new/', views.proyect_new, name='proyect_new_url'), 
     path('view/<int:proyect_id>/', views.proyect_view, name='view_url'), 

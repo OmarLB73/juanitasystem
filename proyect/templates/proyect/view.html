@@ -29,7 +29,7 @@
 			width: 100px;
 			height: 100px;
 			object-fit: cover;
-			margin-top: 20px;
+			/* margin-top: 20px; */
 			margin-right: 10px;
 		}
 
@@ -104,7 +104,7 @@
 					<!--begin::Entry-->
 					<div class="d-flex flex-column-fluid">
 						<!--begin::Container-->
-						<div class="container-xxl">
+						<div id="kt_content_container" class="container-xxl">
 							<!--begin::Card-->
 							<div class="card card-custom gutter-b">
 								<div class="card-body p-5">
@@ -417,10 +417,18 @@
 														{% endif %}
 
 
-														{% if proyect.state_id >= 2 %}
+														{% if proyect.state_id == 2 %}
 														<div class="fv-row">															
-															<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC({{proyect.id}},0,0)">Add general comment (+)</a>
+															<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC({{proyect.id}},0,0,0)">Add general quote (+)</a>
 														</div>
+														{% endif %}
+
+														{% if proyect.state_id >= 3 %}
+														{% if proyect.state_id <= 9 %}
+														<div class="fv-row">															
+															<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC({{proyect.id}},0,0,0)">Add general comment (+)</a>
+														</div>
+														{% endif %}
 														{% endif %}
 														
 
@@ -436,7 +444,7 @@
 
 														<div class="my-lg-0 my-5">
 															{% if state_new != '' %}
-															<a id="aState" href="javascript:state({{ proyect.id }})" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-toggle="tooltip">{{proyect.state.buttonName}}</a>
+															<a id="aState" href="javascript:state({{ proyect.id }},{{ proyect.state.id }})" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="{{ state_new_description}}">{{proyect.state.buttonName}}</a>
 															<input id="stateAfter" type="hidden" value="{{ state_new }}">
 															{% endif %}
 																																										
@@ -459,7 +467,7 @@
 													<!--begin::Container-->
 													<div id="kt_content_container" class="container-xxl">
 														<!--begin::Modal - Select Location-->
-														<div class="modal fade" id="modalItem" tabindex="-1" >
+														<div class="modal bg-body fade" id="modalItem" tabindex="-1" >
 															<!--begin::Modal dialog-->
 															<div class="modal-dialog" style="max-width: 98% !important;">
 																<!--begin::Modal content-->
@@ -478,8 +486,15 @@
 																	<!--begin::Modal body-->
 																	<div class="modal-body">
 
+																		<div id="please_wait_message" style="display:none; text-align: center; padding: 20px;">
+																			<div class="spinner-border text-primary" role="status">
+																				<span class="sr-only">Loading...</span>
+																			</div>
+																			<span class="ml-2">Please wait, loading data...</span>
+																		</div>
+
 																		<form id="formItem" class="form" method="POST" enctype="multipart/form-data">
-																			<div class=""> <!--  class="card-body" -->
+																			<div id="divItem" class=""> <!--  class="card-body" -->
 																																																							
 																				<!--begin::Row-->
 																				<div class="row">
@@ -661,33 +676,18 @@
 																					<table id="tableMaterials" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" style="max-width: 1000px">
 																						<thead class="fw-bolder text-muted">																							
 																							<tr>																								
-																								<th class="align-top" width="60%">Name</th>
+																								<th class="align-top" width="40%">Name</th>
+																								<th class="align-top" width="20%">QTY</th>
 																								<th class="align-top text-center" width="20%">Preview</th>																								
 																								<th class="align-top" width="10%"></th>
 																							</tr>
 																						</thead>
 																						<tbody>
 																							<tr class="baseRow" style="display:none">																								
-																								<td><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
-																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
-        																						<td class="text-center">
-																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
-																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-																										<span class="svg-icon svg-icon-2">
-																											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																												<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
-																												<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
-																												<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
-																											</svg>
-																										</span>
-																										<!--end::Svg Icon-->
-																									</div>
-																								</td>
-																							</tr>
-																							<tr class="baseRow">																								
-																								<td><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
-																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
-        																						<td class="text-center">
+																								<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
+																								<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid"></td>
+																								<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
+        																						<td valign="top" class="text-center">
 																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
 																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																										<span class="svg-icon svg-icon-2">
@@ -724,9 +724,9 @@
 																						</thead>
 																						<tbody>
 																							<tr class="baseRowImage" style="display:none">																								
-																								<td><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000"></textarea><br/><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>																								
-																								<td class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
-        																						<td class="text-center">
+																								<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000"></textarea><br/><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>																								
+																								<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>																								
+        																						<td valign="top" class="text-center">
 																									<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
 																										<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																										<span class="svg-icon svg-icon-2">
@@ -839,14 +839,11 @@
 											
 											<div class="tab-pane fade" id="nav-notes" role="tabpanel" >
 
-												<div>
-													<div class="row mb-8">
-														<!--begin::Col-->
+												<!-- <div>
+													<div class="row mb-8">														
 														<div class="col-xl-1">
 															<div class="fs-7 fw-bold mt-2 mb-3">Comment</div>
-														</div>
-														<!--end::Col-->
-														<!--begin::Col-->
+														</div>														
 														<div class="col-xl-11 fv-row">
 															<textarea id="textareaDescProyect" name="proyectDescription"
 																class="form-control form-control-solid h-70px"
@@ -856,17 +853,13 @@
 														<div class="d-flex justify-content-end py-6 px-9">
 														
 															<button type="submit" class="btn btn-primary px-8 py-2 mr-4">Save</button>
-														</div>
-														<!--begin::Col-->
+														</div>														
 													</div>
-
-													<!--begin::Card footer-->
 													<div class="card-footer d-flex justify-content-end py-6 px-9">
 														
-													</div>
-													<!--end::Card footer-->
+													</div>													
 
-												</div>
+												</div> -->
 
 												<div class="timeline">
 
@@ -968,7 +961,7 @@
 				initializeFlatpickr();
 
 				$('#aAddItem').click(function() {
-					cleanItemForm();
+					cleanItemForm();					
 				});
 
 
@@ -1276,7 +1269,7 @@
 			}
 
 
-			function cleanItemForm(){
+			function cleanItemForm(){				
 																				
 				var select = document.getElementById('selectCategory');				
 				select.selectedIndex = 0; // Establece el primer elemento como seleccionado
@@ -1314,10 +1307,12 @@
 			}
 
 
-			function state(i){
+			function state(i,e){
 
 				var state = document.querySelector('#stateAfter').value;
-				var cant = $('.itemCount').length;
+				var cant = validateState(e).c;
+				var txt = validateState(e).m;
+				
 				if(cant > 0){
 
 					//var state = "next";
@@ -1362,7 +1357,7 @@
 				else{
 					Swal.fire({
 						title: 'Alert!',
-						text: 'You must add items.',
+						text: txt,
 						icon: 'info',
 						confirmButtonText: 'Ok.'
 					});
@@ -1370,7 +1365,7 @@
 			}
 
 
-			function loadIC(y, t, i){
+			function loadIC(y, t, i,c){
 
 				$.ajax({
 					url: "{% url 'getDataComment_url' %}",  // La URL que manejará la consulta AJAX
@@ -1379,6 +1374,7 @@
 						'id1': y,
 						'id2': t,
 						'id3': i,
+						'id4': c,
 					},		
 					success: function(response) {
 						$('#saveItemComment').html(response.result);
@@ -1599,7 +1595,9 @@
 					beforeSend: function(xhr, settings) {
 						// Añadir el token CSRF en las cabeceras
 						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-					},
+						$('#please_wait_message').show();
+                        $('#divItem').hide();
+					},					
 					success: function(response) {
 						$('#selectCategory').val(response.category);
 						loadSubcategory(response.subCategory,response.group);						
@@ -1608,14 +1606,28 @@
 						$('#inputQty').val(response.qty);
 						$('#textareaNotes').val(response.notes);
 						$('#date_proposed_id').val(response.date);
-						
+						$('#divAttributes').html(response.attributes);
+						$('#tableMaterials').append(response.materials);
+						$('#tableImages').append(response.images);
 
-
+						autoCompleteReload();
 
 					},
 					error: function() {
-						console.error("Error server: " + error, event.error);
-					}
+						Swal.fire({
+							title: 'Error!',
+							text: 'Server error. Please contact to administrator!',
+							icon: 'error',							
+							confirmButtonText: 'Ok',							
+						}).then((result) => {
+							console.error("Error server: " + error, event.error);
+						});	
+													
+					},
+					complete: function() {
+                        $('#please_wait_message').hide();
+                        $('#divItem').show();
+                    }
 				});
 
 				// var txt = $('#formItem_' + String(i) + ' textarea')[0];  // Seleccionamos el input dentro de form1
@@ -1682,6 +1694,63 @@
 
 			}
 
+			
+			function validateState(e){
+
+				c = 0;		
+				m = '';						
+				if (e == 1) {
+					c = $('.itemCount').length;
+					m = 'You must add items.';
+				}
+
+				if (e == 2) {										
+					$('.itemCount').each(function() {
+						if ($(this).find('.state_2').length > 0) {
+							c++;
+						}
+					});
+					
+					if ($('.itemCount').length != c){
+						c = 0;
+					}
+
+					m = 'You must enter quotes for each item.';
+				}
+
+				if (e == 3) {										
+					$('.itemCount').each(function() {
+						if ($(this).find('.approve:checked').length > 0) {
+							c++;
+						}
+					});
+					
+					if ($('.itemCount').length != c){
+						c = 0;
+					}
+
+					m = 'You must approve the quote for each item.';
+				}
+
+				if (e == 4) {										
+					$('.itemCount').each(function() {
+						$(this).find('input.materialOK:checked').each(function() {
+							c++;
+						});
+					});
+					
+					if ($('.materialOK').length != c){
+						c = 0;
+					}
+
+					m = 'You must check all the materials.';
+				}
+
+
+				return {c, m}
+			}
+		
+		
 		</script>
 
 </body>
