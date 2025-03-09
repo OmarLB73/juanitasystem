@@ -327,6 +327,7 @@ class Item_Images(models.Model):
     file = models.ImageField(upload_to=get_file_path_img, blank=True, null=True)  # Nuevo campo de imagen
     name = models.CharField(blank=True, null=True, max_length=150)
     notes = models.TextField(blank=True, null=True)
+    qty = models.CharField(blank=True, null=True, max_length=150)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
     type = models.IntegerField(choices=IMAGE_TYPE,  default=1)
 
@@ -356,6 +357,7 @@ class Item_Files(models.Model):
     file = models.ImageField(upload_to=get_file_path_file, blank=True, null=True)  # Nuevo campo de archivo
     name = models.CharField(blank=True, null=True, max_length=150)
     notes = models.TextField(blank=True, null=True)
+    qty = models.CharField(blank=True, null=True, max_length=150)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
     type = models.IntegerField(choices=IMAGE_TYPE,  default=1)
 
