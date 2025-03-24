@@ -54205,13 +54205,13 @@ html {
 }
 
 body,
-html {
+html { /** AJUSTE **/
     height: 100%;
     margin: 0;
     padding: 0;
     font-size: 13px !important;
     font-weight: 400;
-    font-family: Poppins, Helvetica, sans-serif;
+    font-family: "CT font",Arial,sans serif /* font-family: Poppins, Helvetica, sans-serif; */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale
 }

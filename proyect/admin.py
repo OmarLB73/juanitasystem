@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, Decorator, Place, Attribute, Category_Attribute, Group
+from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, ProyectDecorator, Place, Attribute, CategoryAttribute, Group, UIElement
 
 
 class TypeAdmin(admin.ModelAdmin):
@@ -26,8 +26,8 @@ class TypeAdmin(admin.ModelAdmin):
 
 
 class ResponsibleAdmin(admin.ModelAdmin):
-    list_display = ['name','email','status','modification_by_user_text','modification_date']
-    fields = ['name','email','status']
+    list_display = ['name','email','color','status','modification_by_user_text','modification_date']
+    fields = ['name','email','color','status']
     ordering = ['name']
     search_fields = ['name','email']
 
@@ -83,10 +83,10 @@ class StateAdmin(admin.ModelAdmin):
 
 
 class ProyectAdmin(admin.ModelAdmin):
-    list_display = ['type','customer','state','code','status','modification_by_user_text','modification_date']
-    fields = ['type','customer','state','code','status']
+    list_display = ['type','customer','code','status','modification_by_user_text','modification_date']
+    fields = ['type','customer','code','status']
     ordering = ['customer']
-    search_fields = ['type','customer','state','code']
+    search_fields = ['type','customer','code']
 
     def modification_by_user_text(self, obj):
         user = User.objects.filter(id=obj.modification_by_user).first()
@@ -121,10 +121,15 @@ class CategoryAdmin(admin.ModelAdmin):
     
 
 class SubcategoryAdmin(admin.ModelAdmin):
-    list_display = ['category','order','name','status','modification_by_user_text','modification_date']
+    list_display = ['category_name','order','name','status','modification_by_user_text','modification_date']
     fields = ['category','order','name','status']
     ordering = ['category','order','name']
-    search_fields = ['category','name']
+    search_fields = ['name', 'category__name']
+
+    # Método para mostrar el nombre de la categoría
+    def category_name(self, obj):
+        return obj.category.name if obj.category else "No Category"
+    category_name.short_description = 'Category'
 
     def modification_by_user_text(self, obj):
         user = User.objects.filter(id=obj.modification_by_user).first()
@@ -137,13 +142,29 @@ class SubcategoryAdmin(admin.ModelAdmin):
         if obj.modification_by_user == None:
             obj.modification_by_user = request.user.id  # Asigna el usuario logueado
         obj.save()
+
 
 
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ['category','subcategory','order','name','status','modification_by_user_text','modification_date']
-    fields = ['category','subcategory','order','name','status']
-    ordering = ['category','subcategory','order','name']
-    search_fields = ['category','subcategory','name']
+    list_display = ('name', 'category_name', 'subcategory_name','status','modification_by_user_text','modification_date')
+    # Aquí definas específicamente los campos que quieres que aparezcan en el formulario
+    fields = ('category_name', 'subcategory', 'order','name','status')  # Excluyendo 'status' y 'order'
+    ordering = ['subcategory__category__name', 'subcategory__name']
+    list_filter = ('subcategory',)
+    search_fields = ['name', 'subcategory__name', 'subcategory__category__name']
+
+    readonly_fields = ('category_name', 'subcategory_name')  # Solo lectura para estos campos calculados
+
+    
+    
+    def category_name(self, obj):
+        return obj.subcategory.category.name
+    category_name.admin_order_field = 'subcategory__category__name'
+
+    def subcategory_name(self, obj):
+        return obj.subcategory.name
+    subcategory_name.admin_order_field = 'subcategory__name'
+
 
     def modification_by_user_text(self, obj):
         user = User.objects.filter(id=obj.modification_by_user).first()
@@ -158,7 +179,7 @@ class GroupAdmin(admin.ModelAdmin):
         obj.save()
 
 
-class DecoratorAdmin(admin.ModelAdmin):
+class ProyectDecoratorAdmin(admin.ModelAdmin):
     list_display = ['name','phone','address','apartment','city','state','zipcode','supervisor','status','modification_by_user_text','modification_date']
     fields = ['name','phone','email','address','apartment','city','state','zipcode','is_supervisor','supervisor','status']
     ordering = ['name']
@@ -215,7 +236,7 @@ class AttributeAdmin(admin.ModelAdmin):
         obj.save()
 
 
-class Category_AttributeAdmin(admin.ModelAdmin):
+class CategoryAttributeAdmin(admin.ModelAdmin):
     list_display = ['category', 'order', 'attribute','file','status','modification_by_user_text','modification_date']
     fields = ['category', 'order', 'attribute', 'file','status']
     ordering = ['category', 'order', 'attribute']
@@ -234,6 +255,15 @@ class Category_AttributeAdmin(admin.ModelAdmin):
         obj.save()
 
 
+class UIElementAdmin(admin.ModelAdmin):
+    list_display = ['key','label_text']
+    fields = ['key','label_text']
+    ordering = ['key']
+    search_fields = ['key','label_text']
+
+
+
+
 admin.site.register(Type, TypeAdmin)
 admin.site.register(Responsible, ResponsibleAdmin)
 admin.site.register(Customer, CustomerAdmin)
@@ -241,9 +271,10 @@ admin.site.register(Proyect, ProyectAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Subcategory, SubcategoryAdmin)
-admin.site.register(Decorator, DecoratorAdmin)
+admin.site.register(ProyectDecorator, ProyectDecoratorAdmin)
 admin.site.register(Place, PlaceAdmin)
 admin.site.register(Attribute, AttributeAdmin)
-admin.site.register(Category_Attribute, Category_AttributeAdmin)
+admin.site.register(CategoryAttribute, CategoryAttributeAdmin)
 admin.site.register(Group, GroupAdmin)
+admin.site.register(UIElement, UIElementAdmin)
 

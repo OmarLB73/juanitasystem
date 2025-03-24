@@ -126,7 +126,7 @@ var KTProjectSettings = {
                                                     xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
                                                 },
                                                 success: function(response) {
-                                                    loadItems();
+                                                    loadWOs();
                                                     cleanItemForm();
                                                     $('#nav-items-tab').click();
                                                     

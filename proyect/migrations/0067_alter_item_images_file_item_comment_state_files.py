@@ -16,13 +16,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='item_images',
             name='file',
-            field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img),
+            field=models.ImageField(blank=True, null=True, upload_to='images/'),
+            # field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img),
         ),
         migrations.CreateModel(
             name='Item_Comment_State_Files',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('file', models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_file)),
+                ('file', models.ImageField(blank=True, null=True, upload_to='files/')),
+                # ('file', models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_file)),
                 ('name', models.CharField(blank=True, max_length=150, null=True)),
                 ('creation_date', models.DateTimeField(default=django.utils.timezone.now, null=True)),
                 ('item_comment_state', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='proyect.item_comment_state')),

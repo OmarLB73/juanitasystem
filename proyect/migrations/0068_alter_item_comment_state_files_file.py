@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='item_comment_state_files',
             name='file',
-            field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_comment),
+            field=models.ImageField(blank=True, null=True, upload_to='files/'),
+            # field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_comment),
         ),
     ]

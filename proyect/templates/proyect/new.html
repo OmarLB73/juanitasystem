@@ -75,11 +75,14 @@
 								<div class="card mb-5 mb-xl-10">
 
 									<!--begin::Card header Customer-->
-									<div class="card-header">
-										<!--begin::Card title-->
-										<div class="card-title fs-3 fw-bolder">Add information</div>
-										<!--end::Card title-->
+									<!--begin::Header-->
+									<div class="card-header pt-5">
+										<h3 class="card-title align-items-start flex-column">
+											<span class="card-label fw-bolder fs-3 mb-1">{{ labels.TITLE_PROYECT_NEW }}</span>
+											<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PROYECT_NEW }}</span>
+										</h3>
 									</div>
+									<!--end::Header-->
 									<!--end::Card header-->
 									
 									<!--begin::Card body-->
@@ -112,7 +115,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Type:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_TYPE }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -137,7 +140,7 @@
 
 											<!--begin::Col-->
 											<div class="col-xl-1 divDecorator" style="display: none;">
-												<div class="fs-7 fw-bold mt-2 mb-3">Decorator:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_DECORATOR }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -166,7 +169,7 @@
 											
 											<!--begin::Col-->
 											<div class="col-xl-1 divDecorator" style="display: none;">
-												<div class="fs-7 fw-bold mt-2 mb-3">Ascociate:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_ASCOCIATE }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -192,7 +195,7 @@
 
 											<!--begin::Col-->
 											<div class="col-xl-2 fv-row">
-												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Search address on Google Maps</a> <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="You can use Google Maps to search for a specific address."></i>
+												<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modal_select_location">Search address on Google Maps</a> <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="{{ labels.TOOLTIP_GOOGLEMAPS }}"></i>
 											</div>
 											<!--end::Col-->	
 
@@ -202,7 +205,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">Address:</label></div>
+												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">{{ labels.LABEL_ADDRESS }}:</label></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -218,7 +221,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Apt-ste-floor:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_NUM }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -233,7 +236,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">City:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_CITY }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -248,7 +251,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">State:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_STATE }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -263,7 +266,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">ZIP code:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_ZIPCODE }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -284,7 +287,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Address notes: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="You can add details regarding the address. For example: Upon arrival, you must enter the following code: 123."></i></div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_ADDRESS_NOTE }}: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="{{ labels.TOOLTIP_ADDRESS_NOTES }}"></i></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -300,7 +303,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">Client:</label></div>
+												<div class="fs-7 fw-bold mt-2 mb-3"><label class="required fs-7">{{ labels.LABEL_CLIENTE }}:</label></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -308,19 +311,13 @@
 												<input id="inputCustomer" type="text" class="form-control form-control-solid" name="customerName" value="" maxlength="150"/>
 											</div>
 											<!--begin::Col-->
-
-
-											
-
-
-
 										</div>
 
 										<!--begin::Phone-->
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Phone:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_PHONE }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -334,7 +331,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Email:</div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_EMAIL }}:</div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -348,7 +345,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Client notes: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="You can enter information about the customer. For example: this customer is very important because he has many contacts."></i></div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_CLIENTE_NOTES }}: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="{{ labels.TOOLTIP_CLIENT_NOTES }}"></i></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -406,7 +403,7 @@
 										<div class="row mb-8">
 											<!--begin::Col-->
 											<div class="col-xl-1">
-												<div class="fs-7 fw-bold mt-2 mb-3">Proyect description: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="You can enter information about the project in general. For example: this work involves curtains and upholstery."></i></div>
+												<div class="fs-7 fw-bold mt-2 mb-3">{{ labels.LABEL_PROYECT_DESCRIPTION }}: <i class="fas fa-question-circle" data-bs-toggle="tooltip" title="{{ labels.TOOLTIP_PROYECT_DESCRIPTION }}"></i></div>
 											</div>
 											<!--end::Col-->
 											<!--begin::Col-->
@@ -576,23 +573,23 @@
 
 										<div class="row mb-6">
 											<div class="col-lg-4">
-												<label class="fs-6 form-label fw-bolder text-dark">Address</label>																	
+												<label class="fs-6 form-label fw-bolder text-dark">{{ labels.LABEL_ADDRESS }}</label>																	
 												<input id="direccion" type="text" placeholder="Search.." class="form-control form-control-solid">
 											</div>
 										
 										
 											<div class="col-lg-3">
-												<label class="fs-6 form-label fw-bolder text-dark">City</label>	
+												<label class="fs-6 form-label fw-bolder text-dark">{{ labels.LABEL_CITY }}</label>	
 												<input id="ciudad" type="text" placeholder="" class="form-control form-control-solid" readonly>
 											</div>
 
 											<div class="col-lg-2">
-												<label class="fs-6 form-label fw-bolder text-dark">State</label>
+												<label class="fs-6 form-label fw-bolder text-dark">{{ labels.LABEL_STATE }}</label>
 												<input id="estado" type="text" placeholder="" class="form-control form-control-solid" readonly>
 											</div>
 
 											<div class="col-lg-2">
-												<label class="fs-6 form-label fw-bolder text-dark">Zip Code</label>
+												<label class="fs-6 form-label fw-bolder text-dark">{{ labels.LABEL_ZIPCODE }}</label>
 												<input id="zip_code" type="text" placeholder="" class="form-control form-control-solid" readonly>
 											</div>
 										</div>
