@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='item_images',
             name='file',
-            field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img),
+            field=models.ImageField(blank=True, null=True, upload_to='images/'),
+            # field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img),
         ),
     ]

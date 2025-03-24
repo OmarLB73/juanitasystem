@@ -22,7 +22,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='category_attribute',
             name='file',
-            field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img_att),
+            field=models.ImageField(blank=True, null=True, upload_to='attributes'),
+            # field=models.ImageField(blank=True, null=True, upload_to=proyect.models.get_file_path_img_att),
         ),
         migrations.AddField(
             model_name='category_attribute',

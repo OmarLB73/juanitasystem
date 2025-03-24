@@ -110,13 +110,13 @@
 								<!--begin::Col-->
 								<div class="col-xxl-12">
 									<!--begin::Tables Widget 5-->
-									<div class="card card-xxl-stretch mb-8 mb-xl-12">
+									<div class="card card-xxl-stretch mb-8 mb-xl-12">D
 
 										<!--begin::Header-->
 										<div class="card-header pt-5">
 											<h3 class="card-title align-items-start flex-column">
-												<span class="card-label fw-bolder fs-3 mb-1">Proyects</span>
-												<span class="text-muted mt-1 fw-bold fs-7">List</span>
+												<span class="card-label fw-bolder fs-3 mb-1">{{ labels.TITLE_PANEL }}</span>
+											<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PANEL }}</span>
 											</h3>
 										</div>
 										<!--end::Header-->
@@ -202,7 +202,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
-																			<label class="fs-7 form-label fw-bolder text-dark">Type of proyect</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_TYPE }}</label>
 																			<!--begin::Select-->
 																			<select class="form-select form-select-solid" data-kt-select2="false" name="type" id="selectType">
 																				<option value="0"></option>
@@ -218,7 +218,7 @@
 																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
-																			<label class="fs-7 form-label fw-bolder text-dark">Status</label>
+																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_STATUS }}</label>
 																			<!--begin::Select-->
 																			<select class="form-select form-select-solid" data-kt-select2="false" name="state" id="selectState">
 																				<option value="0"></option>
@@ -284,9 +284,9 @@
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
 																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
 																	<tr>																																	
-																		<th title="Field #3">Decorator</th>
-																		<th title="Field #1" class="min-w-25px ps-2">Address</th>
-																		<th title="Field #2">Client</th>																		
+																		<th title="Field #3">{{ labels.LABEL_DECORATOR }}</th>
+																		<th title="Field #1" class="min-w-25px ps-2">{{ labels.LABEL_ADDRESS }}</th>
+																		<th title="Field #2">{{ labels.LABEL_CLIENTE }}</th>																		
 																		<th title="Field #4">Start date</th>
 																		<th title="Field #5">Ant</th>
 																		<th title="Field #5">Description</th>
@@ -313,7 +313,7 @@
 																		<td class="text-start text fs-8">{{ proyect.creationDate }}</td>
 																		<td class="text-start text fs-8">{{ proyect.difference }}</td>
 																		<td class="text-start text fs-8">{{ proyect.categories }}</td>
-																		<td class="text-start text fs-8">{{ proyect.qty_wo }}</td>
+																		<td class="text-start text fs-8">{{ proyect.qty_items }}</td>
 																		<td class="text-start fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a>
 																		{% if proyect.state_id == 1 %}
 																			<span class="fw-bold p-2 mb-3 badge-state-1">{{ proyect.state }}</span>
@@ -359,7 +359,7 @@
 																					</span>
 																					<!--end::Svg Icon-->
 																				</a>
-																				<a href="javascript:del_p({{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+																				<a href="javascript:del_p(this,{{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-3" title="Delete">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1222,12 +1222,10 @@
 				$("#selectState").prop("selectedIndex", 0);
 			});
 
-
-
         });
 
 
-		function del_p(i){
+		function del_p(b,p){
 						
 			Swal.fire({
 				title: 'Are you sure?',
@@ -1243,7 +1241,7 @@
 						url: "{% url 'deleteProyect_url' %}",  // La URL que manejará la consulta AJAX
 						method: 'POST',
 						data: {
-							'i': i  // El valor que se envía al servidor
+							'p': p  // El valor que se envía al servidor
 						},
 						beforeSend: function(xhr, settings) {
 							// Añadir el token CSRF en las cabeceras
@@ -1255,6 +1253,11 @@
 						success: function(response) {
 							// Rellena los campos con los datos obtenidos de la respuesta
 							if(response.result == "1"){											
+
+								var row = b.parentNode.parentNode.parentNode;
+								row.remove();
+
+
 								Swal.fire({
 									title: 'Deleted!',
 									text: 'The proyect has been successfully deleted.',

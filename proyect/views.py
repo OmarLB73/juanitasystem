@@ -23,7 +23,7 @@ from django.conf import settings #Para el PDF, manejar las rutas
 from django.http import HttpRequest #Para las sesiones
 
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, State, Proyect, Decorator, Event, Category, Subcategory, Place, Category_Attribute, Attribute, Item, Item_Attribute, Item_Images, Group, Item_Files, Item_Comment_State, Item_Comment_State_Files, Comment_State, Comment_State_Files #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement #Aquí importamos a los modelos que necesitamos
 
 @login_required
 def panel_view(request):
@@ -46,20 +46,33 @@ def panel_view(request):
         state_id = int(request.POST.get('state'))
 
         if date_from != '':
-            # date_from += ' 00:00:00'
-            condiciones &= Q(creation_date__gte = date_from) ##fecha mayor o igual
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')  # Convierte el string a datetime
+                condiciones &= Q(creation_date__gte=date_from_obj)  # Fecha mayor o igual
+            except ValueError:
+                pass  # Si hay un error de formato, no se aplica la condición
 
         if date_until != '':            
-            condiciones &= Q(creation_date__lte = date_until + ' 23:59:59') ##fecha mayor o igual
+            try:
+                date_until_obj = datetime.strptime(date_until, '%Y-%m-%d')  # Convierte el string a datetime
+                # Concatenamos las horas para asegurarnos de que sea hasta el final del día
+                date_until_end = datetime.combine(date_until_obj, datetime.max.time())  # Al final del día
+                condiciones &= Q(creation_date__lte=date_until_end)  # Fecha menor o igual
+            except ValueError:
+                pass  # Si hay un error de formato, no se aplica la condición
 
         if type_id != 0:
             condiciones &= Q(type__id = type_id) ##igual a fk
 
         if state_id != 0:
-            condiciones &= Q(state__id = state_id) ##igual a fk    
+            condiciones &= Q(workorder__state__id = state_id) ##igual a fk    
 
 
-    proyects_data = funct_data_proyect(condiciones)
+    proyects_data = getDataProyect(condiciones)
+
+    uielement = UIElement.objects.all()
+    # Crear un diccionario de claves y valores con la key y el label_text
+    labels = {element.key: element.label_text for element in uielement}
     
     return render(request, 'proyect/panel.html', {'proyects_data': proyects_data,
                                                   'date_from': date_from,
@@ -67,12 +80,17 @@ def panel_view(request):
                                                   'type_id': type_id,
                                                   'state_id': state_id,
                                                   'types': types,
-                                                  'states': states})    
+                                                  'states': states,
+                                                  'labels': labels})    
 
 
 @login_required
 def proyect_new(request):
-     
+    
+    uielement = UIElement.objects.all()
+    # Crear un diccionario de claves y valores con la key y el label_text
+    labels = {element.key: element.label_text for element in uielement}
+
     if request.method == 'POST':
 
         type_id = request.POST.get('type')
@@ -183,7 +201,7 @@ def proyect_new(request):
                     proyect_save = Proyect.objects.create(  type=Type.objects.get(id=type_id), 
                                                             customer=Customer.objects.get(id=customer_id), 
                                                             # responsible=responsible,
-                                                            state=State.objects.get(id=state_Id),
+                                                            #state=State.objects.get(id=state_Id),
                                                             # date=date, 
                                                             description=proyect_description,                                                        
                                                             created_by_user = request.user.id,
@@ -193,7 +211,7 @@ def proyect_new(request):
                     
 
                     for decorator_id in decorators_ids:
-                        decorator = Decorator.objects.get(id = decorator_id)
+                        decorator = ProyectDecorator.objects.get(id = decorator_id)
                         decorator.proyects.add(proyect_save)
 
                         #Iniciales del nombre, si es através de Cliente
@@ -202,7 +220,7 @@ def proyect_new(request):
                             code += ''.join([parte[0].upper() for parte in partes])
 
                     for decorator_id in ascociate_ids:
-                        decorator = Decorator.objects.get(id = decorator_id)
+                        decorator = ProyectDecorator.objects.get(id = decorator_id)
                         decorator.proyects.add(proyect_save)
 
 
@@ -214,8 +232,10 @@ def proyect_new(request):
                     # Event.objects.create( type_event_id=1,                                        
                     #                         proyect_id=proyect_id, 
                     #                         user=request.user.id)
+
+                    workorderId = newWO(request, proyect_id)
                     
-                    saveEvent(request, 1, proyect_id, None)
+                    saveEvent(request, 1, workorderId, None)
             
                     return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
 
@@ -232,14 +252,14 @@ def proyect_new(request):
 
         types = Type.objects.filter(status=1).order_by('id')
         # customers = Customer.objects.filter(status=1).order_by('name')
-        decorators = Decorator.objects.filter(is_supervisor=1, status=1).order_by('name')
+        decorators = ProyectDecorator.objects.filter(is_supervisor=1, status=1).order_by('name')
         type_select = types.first()
 
         return render(request, 'proyect/new.html', 
                     {'types': types,
                     'type_select': type_select,
-                    'decorators': decorators
-                    # 'customers': customers,
+                    'decorators': decorators,
+                    'labels': labels,
                     })
 
 
@@ -250,50 +270,44 @@ def proyect_view(request, proyect_id):
     customer = proyect.customer    
     category = Category.objects.all().order_by('order','name')
     place = Place.objects.all().order_by('name')
-
-    state_new_name = ''
-    state_new_description = ''
         
     try:
-        decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
-        ascociates = Decorator.objects.filter(proyects = proyect, is_supervisor = 2).order_by('name')
-        events = Event.objects.filter(proyect_id = proyect_id).order_by('creation_date')
-        state_new = State.objects.filter(id = (proyect.state.id + 1)).first()
+        decorators = ProyectDecorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
+        ascociates = ProyectDecorator.objects.filter(proyects = proyect, is_supervisor = 2).order_by('name')
+        #events = Event.objects.filter(proyect_id = proyect_id).order_by('creation_date')
 
-        if state_new:
-            state_new_name = state_new.name
-            state_new_description = state_new.description
-
-    except Decorator.DoesNotExist:
+    except ProyectDecorator.DoesNotExist:
         decorators = None
         ascociates = None
 
-    except Event.DoesNotExist:
-        events = None
+    #except Event.DoesNotExist:
+        #events = None
 
     except State.DoesNotExist:
         state_new_name = ''
 
-    itemsHtml = funct_data_items(request, proyect_id)
-    advance = retornarAdvance(proyect.state.id)
+    workOrdersHtml = getDataWOs(request, proyect_id)    
 
-    decoratorsHTML = funct_table_decorators(decorators)
-    ascociatesHTML = funct_table_decorators(ascociates)
-    notesHTML = funct_data_events(proyect_id)
+    decoratorsHTML = getDecoratorsTable(decorators)
+    ascociatesHTML = getDecoratorsTable(ascociates)
+    #notesHTML = funct_data_events(proyect_id)
+
+    uielement = UIElement.objects.all()
+    # Crear un diccionario de claves y valores con la key y el label_text
+    labels = {element.key: element.label_text for element in uielement}
                         
     return render(request, 'proyect/view.html',{'proyect': proyect,
                                                 'customer': customer,
                                                 'decorators': decorators,
-                                                'events':events,
-                                                'categories':category,                                                
+                                                #'events':events,
+                                                'categories':category,
                                                 'places': place,
-                                                'itemsHtml': itemsHtml,
-                                                'state_new': state_new_name,
-                                                'state_new_description': state_new_description,
-                                                'advance':advance,
+                                                'workOrdersHtml': workOrdersHtml,
                                                 'decoratorsHTML': decoratorsHTML,
                                                 'ascociatesHTML': ascociatesHTML,
-                                                'notesHTML': notesHTML,})  
+                                                'labels': labels
+                                                #'notesHTML': notesHTML,
+                                                }) 
 
 
 @login_required
@@ -332,16 +346,7 @@ def getDataCustomer(request):
         }
         return JsonResponse(datos)
     
-
-@login_required
-def getDataProyectCustomer(request):
-    #Consulta los proyectos desde la base de datos
-    proyects_data = funct_data_proyect(None)
-    
-    # Devolvemos la lista de proyectos como respuesta JSON
-    return JsonResponse({'proyects': proyects_data})
-
-
+#Consulta ejecutada al momento de crear proyecto y en el detalle del proyecto, para ver la información del decorador/ayudante
 @login_required
 def getDataDecorator(request):
     #Consulta los decoradores desde la base de datos
@@ -351,9 +356,9 @@ def getDataDecorator(request):
      
     # print("Valores recibidos: ", selected_values)
 
-    decorators = Decorator.objects.filter(id__in =selected_values)    
+    decorators = ProyectDecorator.objects.filter(id__in =selected_values)    
         
-    decoratorsHTML = funct_table_decorators(decorators)
+    decoratorsHTML = getDecoratorsTable(decorators)
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'result': decoratorsHTML})
@@ -476,66 +481,248 @@ def getDataCalendar(request):
             fecha = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
             color = '',
 
-            if item.proyect.state.id == 4:
+            if item.workorder.state.id == 4:
                 color = '#50cd89'
 
-            if item.proyect.state.id == 5:
+            if item.workorder.state.id == 5:
                 color = '#7239ea'
 
-            if item.proyect.state.id == 6:
+            if item.workorder.state.id == 6:
                 color = 'fc-event-solid-dark'
 
-            if item.proyect.state.id == 7:
+            if item.workorder.state.id == 7:
                 color = 'fc-event-solid-dark'
                     
             events.append({
                 'id': item.id,
-                'title':  item.proyect.customer.address,
+                'title':  item.workorder.proyect.customer.address,
                 'start': fecha,
-                'description': item.proyect.customer.name,
+                'description': item.workorder.proyect.customer.name,
                 'color': color,
-                'groupId': str(item.proyect.id),
+                'groupId': str(item.workorder.id),
             })
                 
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'calendar': events})
     
-    
+#Funcion para agregar/editar comentarios generales o particulares
 @login_required
 def getDataComment(request):
     
-    proyectId = request.GET.get('id1')
+    workOrderId = request.GET.get('id1')
     itemId = request.GET.get('id2')
     commentId = request.GET.get('id3')
     case = request.GET.get('id4')
-    itemHtml = modal_comment(proyectId, itemId,commentId,case)
+    itemHtml = modalComment(workOrderId, itemId,commentId,case)
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'result': itemHtml})
 
-
+#Funcion autocomplete de materiales por Ajax, para crear un item.
 @login_required
 def getDataMaterial(request):
     # Verifica si la solicitud es por POST y si tiene el parámetro 'input_value'
     input_value = request.GET.get('term', None)
-    materials_images = Item_Images.objects.filter(notes__icontains = input_value, type = 2)[:100]
-    materials_files = Item_Files.objects.filter(notes__icontains = input_value, type = 2)[:100]
-    
-    result1 = [material.notes for material in materials_images]
-    result2 = [material.notes for material in materials_files]
+    materials = ItemMaterial.objects.filter(notes__icontains=input_value).order_by('notes')[:100]
 
-    # Unir ambos resultados en una sola lista
-    resultAll = result1 + result2
+     # Crear una lista con los valores de 'notes'
+    results = [item.notes for item in materials]
 
-    # Eliminar duplicados usando un set (en base al nombre) y luego ordenarlos alfabéticamente por 'notes'
-    resultadosUnique = sorted({item[0]: item for item in resultAll}.values(), key=lambda x: x[0])
+    return JsonResponse(results, safe=False)
+
+#Funcion que carga los datos del item
+@login_required
+def getDataItem(request):
     
-    return JsonResponse(resultadosUnique, safe=False)
+    workorderId = request.POST.get('w', None)
+    itemId = request.POST.get('i', None)
+
+    wo = WorkOrder.objects.get(id=workorderId)
+    item = Item.objects.get(id = itemId, workorder = wo)
+
+    ######### Atributos ##########
+
+    attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = item.group.subcategory.category.id)).order_by('order','attribute')
+
+    attributeHTML = ""
+        
+    for attribute in attributes:
+        attributeHTML += '<div class="row mb-2">'
+        attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + attribute.attribute.name + ':</div></div>'
+        notes = ''
+        value = []
+  
+        if ItemAttribute.objects.filter(item = item, attribute = attribute.attribute).exists():
+            value = ItemAttribute.objects.filter(item = item, attribute = attribute.attribute).values('notes').first()  
+            notes = str(value['notes'])
+        
+        attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '" value="' + notes + '"/></div></div>'
+    
+    ##############################
+
+    spanHTML = '<span class="svg-icon svg-icon-2">'
+    spanHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    spanHTML += '<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />'
+    spanHTML += '<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />'
+    spanHTML += '<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />'
+    spanHTML += '</svg>'
+    spanHTML += '</span>'
+
+
+    ######### Matariales #########
+    
+    materialsHTML = ""
+                                
+    itemMaterials = ItemMaterial.objects.filter(item=item).order_by('id')
+    materialsHTML += ''
+    
+    for itemMaterial in itemMaterials:
+
+        fileUrl = ''
+        style = 'style="display:none"'
+        qty = ''
+        img = ''
+        fileName = ''
+
+        if itemMaterial.file:
+            fileUrl = itemMaterial.file.url
+            fileName = itemMaterial.name
+            img = '<img class="preview" src="' + fileUrl + '" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload">'
+
+            if fileUrl[-4:] == '.pdf':
+                img += '<img alt="" class="w-60px me-3" src="/static/images/pdf.svg" alt=""><a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a>'
+
+            elif fileUrl[-5:] == '.docx' or fileUrl[-4:] == '.doc':
+                img += '<img alt="" class="w-60px me-3" src="/static/images/doc.svg" alt=""><a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a>'
+
+            elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
+                img += '<img alt="" class="w-60px me-3" src="/static/images/xls.svg" alt=""><a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a>'
+            
+            else:
+                img = '<img class="preview" src="' + fileUrl + '" alt="Preview"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none"><img src="/static/images/upload.svg" alt="">'
+
+            
+        if itemMaterial.qty:
+            qty = itemMaterial.qty
+
+        materialsHTML += '<tr class="baseRow">'
+        materialsHTML += '<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial" value="' + itemMaterial.notes + '"></td>'
+        materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'        
+        materialsHTML += '<td valign="top" class="text-center"><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>'
+        materialsHTML += '<td valign="top" class="text-center">' + img + '</div></td>'
+        materialsHTML += '<td valign="top" class="text-center">'
+        materialsHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        materialsHTML += spanHTML
+
+        materialsHTML += '</div>'
+        materialsHTML += '</td>'
+        materialsHTML += '</tr>'
+
+    ##############################
+
+    ########## Imagenes ##########
+
+
+    itemImages = ItemImage.objects.filter(item=item).order_by('id')
+    imagesHTML = ''
+    
+    for itemImag in itemImages:
+
+        fileUrl = '';
+        style = 'style="display:none"';
+        qty = ''
+
+        if itemImag.file:
+            fileUrl = itemImag.file.url
+            style = ''
+        
+        imagesHTML += '<tr class="baseRowImage">'
+        imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
+        imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>'
+        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>'
+        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
+        imagesHTML += spanHTML																								
+        imagesHTML += '</div>'
+        imagesHTML += '</td>'
+        imagesHTML += '</tr>'
+
+
+    itemImages = ItemFile.objects.filter(item=item).order_by('id')
+        
+    for itemImag in itemImages:
+
+        fileUrl = ''
+        fileName = ''
+        style = 'style="display:none"'
+        img = ''
+
+        if itemImag.file:
+            fileUrl = itemImag.file.url
+            fileName = itemImag.name
+            style = ''
+
+            if fileUrl[-4:] == '.pdf':
+                img = '<img alt="" class="w-60px me-3" src="/static/images/pdf.svg" alt=""><br/>'
+
+            elif fileUrl[-5:] == '.docx' or fileUrl[-4:] == '.doc':
+                img = '<img alt="" class="w-60px me-3" src="/static/images/doc.svg" alt=""><br/>'
+
+            elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
+                img = '<img alt="" class="w-60px me-3" src="/static/images/xls.svg" alt=""><br/>'
+            
+            else:
+                img = '<img src="/static/images/upload.svg" alt=""><br/>'
+
+
+        imagesHTML += '<tr class="baseRowImage">'
+        imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
+        imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]">'
+        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload" ' + style + '>' + img +'<a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a></div></td>'
+        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
+        imagesHTML += spanHTML																								
+        imagesHTML += '</div>'
+        imagesHTML += '</td>'
+        imagesHTML += '</tr>'
+
+    ###########################
+  
+
+    response_data = {}    
+
+    if item:
+        response_data = {
+            'category': item.group.subcategory.category.id,
+            'subCategory': item.group.subcategory.id,
+            'group': item.group.id,
+            'place': item.place.id,
+            'qty': item.qty,
+            'date': item.date_proposed.strftime("%Y-%m-%d"),
+            'notes': item.notes,
+            'attributes': attributeHTML,
+            'materials': materialsHTML,
+            'images': imagesHTML,
+        }
+
+    return JsonResponse(response_data)
+
+
+
+#Funcion para agregar una WO
+@login_required
+def addWorkOrder(request):
+    #Consulta los decoradores desde la base de datos
+    proyectId = request.POST.get('p')    
+    result = newWO(request, proyectId)
+                    
+    # Devolvemos la lista de ascociates como respuesta JSON
+    return JsonResponse({'result': result})
+
 
 ###############################
 ### Elementos dependientes  ###
 ###############################
 
+#Consulta ejecutada al crear proyecto
 @login_required
 def selectAscociate(request):
     #Consulta los decoradores desde la base de datos
@@ -543,8 +730,8 @@ def selectAscociate(request):
     selected_values = selected_values_str.split(',')
     selected_values = [int(id_value) for id_value in selected_values]     
 
-    supervisors = Decorator.objects.filter(id__in =selected_values,is_supervisor=1)
-    decorators = Decorator.objects.filter(supervisor__in = supervisors).order_by('name')
+    supervisors = ProyectDecorator.objects.filter(id__in =selected_values,is_supervisor=1)
+    decorators = ProyectDecorator.objects.filter(supervisor__in = supervisors).order_by('name')
 
     decoratorsHTML = ''
 
@@ -556,6 +743,7 @@ def selectAscociate(request):
     return JsonResponse({'result': decoratorsHTML})
 
 
+#Consulta ejecutada al crear un item
 @login_required
 def selectSubcategory(request):
     #Consulta las subcategorias desde la base de datos
@@ -575,29 +763,29 @@ def selectSubcategory(request):
     return JsonResponse({'result': subcategoryHTML})
 
 
+#Consulta ejecutada al crear un item
 @login_required
 def selectGroup(request):
-    #Consulta las subcategorias desde la base de datos
-    category_value = request.POST.get('categorySelect')
+    #Consulta las subcategorias desde la base de datos    
     subcategory_value = request.POST.get('subcategorySelect')
     groupHTML = ''
 
-    if subcategory_value == '':
-        subcategory_value = 0
+    if subcategory_value != '':        
 
-    try:
-        groups = Group.objects.filter(category = Category.objects.get(id = category_value), subcategory = Subcategory.objects.get(id = subcategory_value)).order_by('order','name')
-       
-        for group in groups:          
-            groupHTML += '<option value=' + str(group.id) + '>' + group.name + '</option>'
+        try:
+            groups = Group.objects.filter(subcategory = Subcategory.objects.get(id = subcategory_value)).order_by('order','name')
+        
+            for group in groups:          
+                groupHTML += '<option value=' + str(group.id) + '>' + group.name + '</option>'
 
-    except ValueError:
-        messages.error(request, 'Server error. Please contact to administrator!')
+        except ValueError:
+            messages.error(request, 'Server error. Please contact to administrator!')
                     
     # Devolvemos la lista de ascociates como respuesta JSON
     return JsonResponse({'result': groupHTML})
 
 
+#Consulta ejecutada al crear un item
 @login_required
 def selectAttibutes(request):
     #Consulta las subcategorias desde la base de datos
@@ -606,7 +794,7 @@ def selectAttibutes(request):
 
     try:
 
-        attributes = Category_Attribute.objects.filter(category = Category.objects.get(id = selected_value)).order_by('order','attribute')
+        attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = selected_value)).order_by('order','attribute')
         
         for attribute in attributes:          
             attributeHTML += '<div class="row mb-2">'
@@ -620,281 +808,74 @@ def selectAttibutes(request):
     return JsonResponse({'result': attributeHTML})
 
 
+#Consulta ejecutada en la vista del proyecto, para ver toda la información de las WO's junto con los items.
 @login_required
-def selectItems(request):
+def selectWOs(request):
     #Consulta los items desde la base de datos
-    selected_value = request.POST.get('proyect_id')        
-    itemsHTML = funct_data_items(request, selected_value)    
+    proyectId = request.POST.get('p')
+    wosHTML = getDataWOs(request, proyectId)
                     
     # Devolvemos la lista de ascociates como respuesta JSON
-    return JsonResponse({'result': itemsHTML})
+    return JsonResponse({'result': wosHTML})
 
 
-@login_required
-def selectItem(request):
-    
-    proyect_id = request.POST.get('p', None)
-    item_id = request.POST.get('i', None)
 
-    proyect = Proyect.objects.get(id=proyect_id)
-    item = Item.objects.get(id = item_id, proyect = proyect)
-
-    ######### Atributos ##########
-
-    attributes = Category_Attribute.objects.filter(category = Category.objects.get(id = item.category.id)).order_by('order','attribute')
-
-    attributeHTML = ""
-        
-    for attribute in attributes:
-        attributeHTML += '<div class="row mb-2">'
-        attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + attribute.attribute.name + ':</div></div>'
-        notes = ''
-        value = []
-  
-        if Item_Attribute.objects.filter(item = item, attribute = attribute.attribute).exists():
-            value = Item_Attribute.objects.filter(item = item, attribute = attribute.attribute).values('notes').first()  
-            notes = str(value['notes'])
-        
-        attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '" value="' + notes + '"/></div></div>'
-    
-    ##############################
-
-    spanHTML = '<span class="svg-icon svg-icon-2">'
-    spanHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-    spanHTML += '<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />'
-    spanHTML += '<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />'
-    spanHTML += '<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />'
-    spanHTML += '</svg>'
-    spanHTML += '</span>'
-
-    ######### Matariales #########
-
-    files = None
-
-    materialsHTML = ""
-                                
-    itemMaterials = Item_Images.objects.filter(item=item, type = 2).order_by('id')
-    materialsHTML += ''
-    
-    for itemMaterial in itemMaterials:
-
-        fileUrl = '';
-        style = 'style="display:none"';
-        qty = ''
-
-        if itemMaterial.file:
-            fileUrl = itemMaterial.file.url
-            style = ''
-
-        if itemMaterial.qty:
-            qty = itemMaterial.qty
-
-        materialsHTML += '<tr class="baseRow">'
-        materialsHTML += '<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial" value="' + itemMaterial.notes + '"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>'
-        materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'
-        materialsHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" style="display:none"><img src="/static/images/upload.svg" alt=""></div></td>'       
-        materialsHTML += '<td valign="top" class="text-center">'
-        materialsHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
-        materialsHTML += spanHTML        
-        materialsHTML += '</div>'
-        materialsHTML += '</td>'
-        materialsHTML += '</tr>'
-
-
-    itemMaterials = Item_Files.objects.filter(item=item, type = 2).order_by('id')
-    materialsHTML += ''
-    
-    for itemMaterial in itemMaterials:
-
-        fileUrl = ''
-        fileName = ''
-        style = 'style="display:none"'
-        img = ''
-
-        if itemMaterial.file:
-            fileUrl = itemMaterial.file.url
-            style = ''
-
-            if fileUrl[-4:] == '.pdf':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/pdf.svg" alt=""><br/>'
-
-            elif fileUrl[-5:] == '.docx' or fileUrl[-4:] == '.doc':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/doc.svg" alt=""><br/>'
-
-            elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/xls.svg" alt=""><br/>'
-            
-            else:
-                img = '<img src="/static/images/upload.svg" alt=""><br/>'
-
-        if itemMaterial.qty:
-            qty = itemMaterial.qty
-
-        materialsHTML += '<tr class="baseRow">'
-        materialsHTML += '<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial" value="' + itemMaterial.notes + '"><br/><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>'
-        materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'                    
-        materialsHTML += '<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload" ' + style + '>' + img +'<a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a></div></td>'                
-        materialsHTML += '<td valign="top" class="text-center">'
-        materialsHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
-        materialsHTML += spanHTML
-        materialsHTML += '</div>'
-        materialsHTML += '</td>'
-        materialsHTML += '</tr>'
-
-    ##############################
-
-    ########## Imagenes ##########
-
-
-    itemImages = Item_Images.objects.filter(item=item, type = 1).order_by('id')
-    imagesHTML = ''
-    
-    for itemImag in itemImages:
-
-        fileUrl = '';
-        style = 'style="display:none"';
-        qty = ''
-
-        if itemImag.file:
-            fileUrl = itemImag.file.url
-            style = ''
-        
-        imagesHTML += '<tr class="baseRowImage">'
-        imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea><br/><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>'
-        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>'
-        imagesHTML += '<td valign="top" class="text-center">'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
-        imagesHTML += spanHTML																								
-        imagesHTML += '</div>'
-        imagesHTML += '</td>'
-        imagesHTML += '</tr>'
-
-
-    itemImages = Item_Files.objects.filter(item=item, type = 1).order_by('id')
-        
-    for itemImag in itemImages:
-
-        fileUrl = ''
-        fileName = ''
-        style = 'style="display:none"'
-        img = ''
-
-        if itemImag.file:
-            fileUrl = itemImag.file.url
-            fileName = itemImag.name
-            style = ''
-
-            if fileUrl[-4:] == '.pdf':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/pdf.svg" alt=""><br/>'
-
-            elif fileUrl[-5:] == '.docx' or fileUrl[-4:] == '.doc':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/doc.svg" alt=""><br/>'
-
-            elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
-                img = '<img alt="" class="w-80px me-3" src="/static/images/xls.svg" alt=""><br/>'
-            
-            else:
-                img = '<img src="/static/images/upload.svg" alt=""><br/>'
-
-
-        imagesHTML += '<tr class="baseRowImage">'
-        imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea><br/><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>'
-        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload" ' + style + '>' + img +'<a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a></div></td>'
-        imagesHTML += '<td valign="top" class="text-center">'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
-        imagesHTML += spanHTML																								
-        imagesHTML += '</div>'
-        imagesHTML += '</td>'
-        imagesHTML += '</tr>'
-
-    ###########################
-  
-
-    response_data = {}    
-
-    if item:
-        response_data = {
-            'category': item.category.id,
-            'subCategory': item.subcategory.id,
-            'group': item.group.id,
-            'place': item.place.id,
-            'qty': item.qty,
-            'date': item.date_proposed.strftime("%Y-%m-%d"),
-            'notes': item.notes,
-            'attributes': attributeHTML,
-            'materials': materialsHTML,
-            'images': imagesHTML,
-        }
-
-    return JsonResponse(response_data)
 
 ###################################
 ## Funciones para obtener datos ###
 ###################################
 
-def funct_data_proyect(filters):
+#Consulta realizada desde el Panel
+def getDataProyect(filters):
 
-    proyects_data = []
+    proyectsData = []
 
+    #Se aplican los filtros o se traer las wo's por defecto
     if filters:
         proyects = Proyect.objects.filter(filters).order_by('-id')        
     else:
         proyects = Proyect.objects.all().order_by('-id')
-
-
-    # Creamos una lista con los datos de cada proyecto
     
-    fecha_actual = datetime.now()
+    dateNow = datetime.now()
 
+    #Se recorre cada WO
     for proyect in proyects:
-
-        # parsed_date = ''
-        allDay = False
-
-        # try:
-        #     if len(proyect.date) == 17:
-        #         parsed_date = proyect.date
-        #         parsed_date = str(datetime.strptime(parsed_date, "%Y-%m-%d, %H:%M"))
-            
-        #     elif len(proyect.date) == 10:            
-        #         allDay = True
-        #         parsed_date = str(datetime.strptime(proyect.date + ', 00:00', "%Y-%m-%d, %H:%M"))
-        #     else:
-        #         parsed_date = '1900-01-01, 00:00'    
-                
-        # except ValueError:
-        #     parsed_date = '1900-01-01, 00:00'
         
-        #######################################
-        
-        decorators = Decorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
+        allDay = False 
+
+        #Se busca los datos de los decoradores        
+        decorators = ProyectDecorator.objects.filter(proyects = proyect, is_supervisor = 1).order_by('name')
         decoratorsStr = ''
 
         for decorator in decorators:              
             decoratorsStr += decorator.name + ' '
 
-        #######################################
+        
+        #Se busca las WO del proyecto
+        workorders= WorkOrder.objects.filter(proyect = proyect)
 
-        items = Item.objects.filter(proyect = proyect).order_by('category')
+        #Se busca los items de la WO, y se ordenan las categorias
+        items = Item.objects.filter(workorder__in = workorders).order_by('group__subcategory__category__name')
         categoryList = []
         categoryStr = ''
         
         for item in items:
-            if item.category.name not in categoryList:
-                categoryList.append(item.category.name)
+            #Manejamos esta excepción puesto que no todos los items alcanzaron a tener su grupo
+            try:
+                if item.group.subcategory.category.name not in categoryList:
+                    categoryList.append(item.group.subcategory.category.name)
+            except:
+                pass
         
         for category in categoryList:            
             categoryStr += category + ','
 
-        categoryStr = categoryStr[:-1]
-        #######################################
+        categoryStr = categoryStr[:-1]        
+        qty_items = items.count()
 
-        qty_wo = Item.objects.filter(proyect = proyect).count()
-
-        #######################################
-        
-        materials_images = Item_Images.objects.filter(item__in = items, type = 2)
-        materials_files = Item_Files.objects.filter(item__in = items, type = 2)
+        #Se busca los materiales para dejarlos disponibles para una búsqueda rápida        
+        materials_images = ItemImage.objects.filter(item__in = items)
+        materials_files = ItemFile.objects.filter(item__in = items)
     
         # Extraer las notas de las consultas
         notes_img = materials_images.values_list('notes', flat=True)
@@ -907,17 +888,14 @@ def funct_data_proyect(filters):
         sorted_notes = sorted(combined_notes)
 
         # Convertir las notes únicos en un string
-        materials = ', '.join(str(note) for note in sorted_notes)
+        materials = ', '.join(str(note) for note in sorted_notes)        
 
+        dateCreation = proyect.creation_date
+        dateCreation = dateCreation.replace(tzinfo=None)
+        dateNow = dateNow.replace(tzinfo=None)
+        difference = dateNow - dateCreation
 
-        #######################################
-
-        fecha_creacion = proyect.creation_date
-        fecha_creacion = fecha_creacion.replace(tzinfo=None)
-        fecha_actual = fecha_actual.replace(tzinfo=None)
-        difference = fecha_actual - fecha_creacion
-
-        proyects_data.append({
+        proyectsData.append({
             'id': proyect.id,
             'customerName': proyect.customer.name,
             'address': proyect.customer.address,
@@ -925,20 +903,552 @@ def funct_data_proyect(filters):
             'state_u': proyect.customer.state,
             'zipcode': proyect.customer.zipcode,
             'apartment': proyect.customer.apartment,            
-            'creationDate': fecha_creacion.strftime("%Y-%m-%d"),
+            'creationDate': dateCreation.strftime("%Y-%m-%d"),
             'email': proyect.customer.email,
-            'state_id': proyect.state.id,
-            'state': proyect.state.name,
+            'state_id': workorders[0].state.id, #Esto traerá problemas cuandos ea mas de 1, ojo!!
+            'state': workorders[0].state.name, #Esto traerá problemas cuandos ea mas de 1, ojo!!
             'allDay': allDay,
             'difference': difference.days,
             'decorators': decoratorsStr,
-            'qty_wo': qty_wo,
+            'qty_items': qty_items,
             'categories': categoryStr,
             'materials': materials
         })
     
-    return proyects_data
+    return proyectsData
     
+
+#Consulta realizada en la vista del proyecto, para ver las WO´s
+def getDataWOs(request, proyect_id):
+
+    proyect = Proyect.objects.get(id=proyect_id)
+    workOrders = WorkOrder.objects.filter(proyect = proyect).order_by('id')
+    workOrdersHTML = ""
+
+    stateNewName = ""
+    stateNewDescription = ""        
+    woN = 0
+            
+    for wo in workOrders:
+
+        woN += 1
+
+        try:
+            stateNewName = State.objects.get(id = wo.state.id + 1).name
+            stateNewDescription = State.objects.get(id = wo.state.id + 1).description                        
+        except:
+            pass
+
+
+        workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
+        workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
+        workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12" style="border:1px solid white; border-width:1px;">' #BORDE ITEM
+        
+        #Titulo
+        workOrdersHTML += '<div class="card-header pt-5">'
+        workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
+        workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
+        
+        #Subtitulo
+        workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + wo.state.description + '</span>'
+        workOrdersHTML += '</h3>'
+
+        workOrdersHTML += '<div class="card-toolbar">'
+        
+        if wo.state.id < 10:
+
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + stateNewName + '</a>'
+            workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
+
+        workOrdersHTML += '</div>'
+
+        workOrdersHTML += '</div>'
+        #Fin Titulo
+
+        #Lista de Items
+        workOrdersHTML += '<div class="card-body">'
+
+        if wo.state.id == 1:
+
+            workOrdersHTML += '<div class="col-xl-2 fv-row">'
+            workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
+            workOrdersHTML += '</div>'
+
+
+        if wo.state.id == 2:
+
+            workOrdersHTML += '<div class="col-xl-2 fv-row">'
+            workOrdersHTML += '<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+            workOrdersHTML += '</div>'
+
+        if wo.state.id >= 3 and wo.state.id <= 9:
+
+            workOrdersHTML += '<div class="col-xl-2 fv-row">'
+            workOrdersHTML += '<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
+            workOrdersHTML += '</div>'
+
+        if wo.state.id >= 5:
+
+            workOrdersHTML += '<div class="col-xl-2 fv-row">'
+            workOrdersHTML += '<a href="generate_pdf/proyect_id=' + str(wo.proyect.id) + '" class="fs-7 text-hover-primary" target="_blank">Download WO</a>'
+            workOrdersHTML += '</div>'
+
+                
+        #Detalle de los items
+        workOrdersHTML += '<div id="itemsDetails_' + str(wo.id) + '">'
+        workOrdersHTML += getDataItems(request, wo.id)
+        workOrdersHTML += '</div>'
+
+        #Comentarios genéricos por etapa/estado
+        workOrdersHTML += getDataComments(request, wo.id, 0)
+
+        workOrdersHTML += '</div>'
+        #Fin item
+
+        workOrdersHTML += '</div>' #Fin BORDE ITEM
+        workOrdersHTML += '</div>' #FIN CONTENEDOR EXTERNO
+        workOrdersHTML += '</div>' #FIN WO
+
+    
+    items =  Item.objects.filter(workorder__in = workOrders)
+
+    if len(items) > 0:
+    
+        workOrdersHTML += '<div class="d-flex justify-content-star flex-shrink-0">'
+        workOrdersHTML += '<a class="btn btn-link fs-7" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
+        workOrdersHTML += '</div>'        
+
+    return workOrdersHTML
+
+
+#Consulta realizada mientras se consultan las WO´s. Aquí se obtiene el detalle.
+def getDataItems(request, workOrderId):
+    																									    
+    itemsHTML = ""
+
+    try:
+
+        workOrder = WorkOrder.objects.get(id=workOrderId)
+        items = Item.objects.filter(workorder = workOrder).order_by('id')
+        itemN = 0
+        
+        for item in items:
+
+            fecha_propuesta = ''
+            fecha_fin = ''
+            code = ''
+            group = ''
+            itemN+= 1
+
+            try:
+                if item.date_proposed:
+
+                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y-%m-%d')
+
+                if item.date_end:
+                    fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
+
+                if workOrder.proyect.code:
+                    code = workOrder.proyect.code + '-' + str(itemN)
+
+                else:
+                    code = str(itemN)
+            
+            except ValueError:
+                messages.error('Server error. Date not exist!')
+            
+
+            itemsHTML += '<div class="row itemCount_' + str(workOrderId) + ' mb-10" style="border: 1px solid #d7d9dc; border-radius: .475rem">' #fila item
+            itemsHTML += '<div class="col-lg-12">'  #contenedor generico
+
+            #Inicio Fila 1
+            itemsHTML += '<div class="row">'
+                        
+            #Celda (1, 1)
+            itemsHTML += '<div class="col-lg-11" style="border:1px solid white; border-width:1px;">'
+            
+            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b>'
+            itemsHTML += '<div class="h-3px w-100 bg-primary col-lg-4"></div>'
+            itemsHTML += '</div>'         
+
+            itemsHTML += '</div>'
+            
+
+            ## Celda (1, 2) (acciones estado) ##
+            itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
+
+            if item.workorder.state.id in (1,2,3,4):
+                                                        
+                 itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
+                 itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+                 itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+                 itemsHTML += '</div>'
+            
+            itemsHTML += '</div>'
+            
+            if item.group:
+                group = item.group.name            
+
+            #Inicio div 1.2
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+            #Inicio Fila 1.2
+            itemsHTML += '<div class="row">'
+            
+
+            
+            ##############################################################################################################
+            ############################################## Celda (cabecera) ##############################################
+            ##############################################################################################################
+
+
+            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<table><tbody>'                
+            itemsHTML += '<tr><td><b>Category:</b> ' + item.group.subcategory.category.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.group.subcategory.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
+            itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
+            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
+            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
+            itemsHTML += '</tbody></table>'
+            itemsHTML += '</div>'          
+            
+
+            ##############################################################################################################
+            ############################################# Celda (atributos) ##############################################
+            ##############################################################################################################
+
+            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'            
+            itemsHTML += '<table><tbody>'
+
+            attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
+            for attribute in attributes:
+                itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
+
+            itemsHTML += '</tbody></table>'
+            itemsHTML += '</div>'       
+            
+
+            ##############################################################################################################
+            ############################################ Celda (materiales) ##############################################
+            ##############################################################################################################
+            
+            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<h6>Materials:</h6>'
+            itemsHTML += '<table><tbody>'    
+                        
+            materials = ItemMaterial.objects.filter(item = item).order_by('name')                        
+
+            icon = '<span class="svg-icon svg-icon-primary svg-icon-1x"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">'
+            icon += '<defs/>'
+            icon += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
+            icon += '<rect x="0" y="0" width="24" height="24"/>'
+            icon += '<path d="M15.9497475,3.80761184 L13.0246125,6.73274681 C12.2435639,7.51379539 12.2435639,8.78012535 13.0246125,9.56117394 L14.4388261,10.9753875 C15.2198746,11.7564361 16.4862046,11.7564361 17.2672532,10.9753875 L20.1923882,8.05025253 C20.7341101,10.0447871 20.2295941,12.2556873 18.674559,13.8107223 C16.8453326,15.6399488 14.1085592,16.0155296 11.8839934,14.9444337 L6.75735931,20.0710678 C5.97631073,20.8521164 4.70998077,20.8521164 3.92893219,20.0710678 C3.1478836,19.2900192 3.1478836,18.0236893 3.92893219,17.2426407 L9.05556629,12.1160066 C7.98447038,9.89144078 8.36005124,7.15466739 10.1892777,5.32544095 C11.7443127,3.77040588 13.9552129,3.26588995 15.9497475,3.80761184 Z" fill="#000000"/>'
+            icon += '<path d="M16.6568542,5.92893219 L18.0710678,7.34314575 C18.4615921,7.73367004 18.4615921,8.36683502 18.0710678,8.75735931 L16.6913928,10.1370344 C16.3008685,10.5275587 15.6677035,10.5275587 15.2771792,10.1370344 L13.8629656,8.7228208 C13.4724413,8.33229651 13.4724413,7.69913153 13.8629656,7.30860724 L15.2426407,5.92893219 C15.633165,5.5384079 16.26633,5.5384079 16.6568542,5.92893219 Z" fill="#000000" opacity="0.3"/>'
+            icon += '</g>'
+            icon += '</svg></span>'
+
+            for material in materials:
+
+                qty = ''
+                if material.qty:
+                    qty = ' / ' + material.qty
+
+                itemsHTML += '<tr><td>' + icon + ' ' + material.notes + qty + '</td>'
+
+                if workOrder.state.id == 4:
+
+                    itemsHTML += '<td>'
+                    itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
+                    itemsHTML += '<input class="form-check-input materialOK" type="checkbox">'
+                    itemsHTML += '</div>'
+                    itemsHTML += '</td>'
+
+                itemsHTML += '</tr>'
+
+            itemsHTML += '</tbody></table>'    
+
+
+
+            # if proyect.state.id == 5 or proyect.state.id == 6:
+                
+            #     itemsHTML += '<br/><div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+            #     itemsHTML += '<table><tbody>'                
+            #     itemsHTML += '<tr><td><b>Responsable:</b></td><td>' + item.responsible.name + '</td></tr>'
+            #     itemsHTML += '<tr><td><b>Due date:</b></td><td>' + fecha_fin + '</td></tr>'
+            #     itemsHTML += '</tbody></table>'
+            #     itemsHTML += '</div>'
+            
+
+            itemsHTML += '</div>'
+
+
+            ##############################################################################################################
+            ############################################## Celda (acciones) ##############################################
+            ##############################################################################################################
+           
+            itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
+
+            if workOrder.state.id == 2:                
+
+                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
+                itemsHTML += '</div>'
+
+
+            if workOrder.state.id >= 3:
+
+                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
+                itemsHTML += '</div>'
+
+            if workOrder.state.id == 5:
+
+                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
+                itemsHTML += '</div>'
+            
+            itemsHTML += '</div>'   
+
+            ## Fin Fila 1.2 ##
+            itemsHTML += '</div>'                        
+            ## Fin div 1.w ##
+            itemsHTML += '</div>'
+                  
+            
+            ## Fin Fila 2 ##
+            itemsHTML += '</div>'
+
+            #Fin Fila 3
+            #Ver detalle
+            itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
+            itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
+
+            itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
+            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+            itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+            itemsHTML += '</svg>'
+            itemsHTML += '</span>'
+
+            itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
+            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+            itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
+            itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+            itemsHTML += '</svg>'
+            itemsHTML += '</span>'
+			
+            itemsHTML += '</div>'
+            itemsHTML += '<h6 class="text-gray-700 cursor-pointer mb-0">See more details</h6>'
+            itemsHTML += '</div>'
+
+            itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+
+            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+            ##############################################################################################################
+            ############################################## Celda (archivos) ##############################################
+            ##############################################################################################################
+
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'            
+            itemsHTML += '<div class="row">'        
+            itemsHTML += '<div class="col-xl-12">'                        
+
+            files = ItemFile.objects.filter(item = item)            
+
+            if len(files) > 0 or len(materials) > 0:
+                itemsHTML += '<div class="d-flex align-items-center border p-5">'
+                itemsHTML += '<ul class="text-start">'
+
+                for file in files:
+
+                    itemsHTML += '<li>'
+                                        
+                    if file.file.url[-4:] == '.pdf':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                    if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                    if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
+                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+                                                    
+                    itemsHTML += '<span>'
+                    itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
+                    itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
+                    itemsHTML += '</<span>' 
+
+                    itemsHTML += '</li>'
+
+                for material in materials:
+
+                    try:
+                    
+                        if material.file:
+
+                            if material.file.url[-4:] in ('.pdf','.doc','.xls') or material.file.url[-5:] in ('.docx','.xlsx'):
+
+                                itemsHTML += '<li>'
+                                                    
+                                if material.file.url[-4:] == '.pdf':
+                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                                if material.file.url[-5:] == '.docx' or material.file.url[-4:] == '.doc':
+                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                                if material.file.url[-5:] == '.xlsx' or material.file.url[-4:] == '.xls':
+                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+                                                                
+                                itemsHTML += '<span>'
+                                itemsHTML += '<a href="' + material.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + material.name + '</a>'
+                                itemsHTML += '<div class="text-gray-400">' + material.notes + '</div>'
+                                itemsHTML += '</<span>' 
+
+                                itemsHTML += '</li>'
+                    
+                    except:
+                        pass
+                    
+
+                itemsHTML += '</ul>'
+                itemsHTML += '</div>'         
+                                                                                                                                            
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            itemsHTML += '</div>'
+            #############
+
+            itemsHTML += '</div>'
+
+
+            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+            ##############################################################################################################
+            ############################################## Celda (imagenes) ##############################################
+            ##############################################################################################################
+
+            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
+            itemsHTML += '<section class="grid-gallery-section">'
+            
+            # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
+            # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
+            # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
+            # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
+            # itemsHTML += '</div>'
+            
+            itemsHTML += '<div class="grid-gallery">'
+            itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
+
+            images = ItemImage.objects.filter(item = item)
+            for image in images:
+
+                type_imp = 'Image'
+
+                if image.file:
+                                    
+                    itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                    itemsHTML += '<div class="gallery-image-area" style="width:80%">'
+                    
+                    itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
+                    itemsHTML += '<div class="gallery-overly">'
+                    
+                    itemsHTML += '<div class="image-details">'                                
+                    itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
+                    itemsHTML += '</div>'
+                    
+                    itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
+                    itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                    itemsHTML += '</a>'
+
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+
+
+            for material in materials:
+
+                type_imp = 'Material'
+                    
+                if material.file:
+                    try:
+                        if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
+
+                            itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                            itemsHTML += '<div class="gallery-image-area" style="width:80%">'
+
+                            itemsHTML += '<img src="' + material.file.url + '" class="grid-thumbnail-image" alt="' + material.name + '"><br/>"' + material.notes + '"'
+                            itemsHTML += '<div class="gallery-overly">'
+
+                            itemsHTML += '<div class="image-details">'
+                            itemsHTML += '<span class="image-title">' + type_imp + '</span>'
+                            itemsHTML += '</div>'
+
+                            itemsHTML += '<a class="grid-image-zoom" href="' + material.file.url + '" data-fancybox-group="grid-gallery" title="' + material.notes + '">'
+                            itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                            itemsHTML += '</a>'
+
+                            itemsHTML += '</div>'
+                            itemsHTML += '</div>'
+                            itemsHTML += '</div>' 
+
+                    except:
+                        pass
+                         
+
+            itemsHTML += '</div>'
+            itemsHTML += '</section>'
+            
+            itemsHTML += '</div>'                                    
+            #############            
+            
+            itemsHTML += '</div>' 
+
+            itemsHTML += '</div>' #div Detalle    
+
+
+            ##############################################################################################################
+            ############################################## Comentarios Items#### #########################################
+            ##############################################################################################################
+
+            
+            itemsHTML += getDataComments(request, workOrder.id, item.id)
+
+            #Aprobar cotizacion
+            if workOrder.state.id == 3:              
+                
+                itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                itemsHTML += '<div class="card bg-light-primary card-xl-stretch mb-xl-8">'
+                itemsHTML += '<div class="card-body my-3">'                
+                itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
+                itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                itemsHTML += '<label class="form-check-label ms-3" for="quote">Do you approve the quote?</label>'
+                itemsHTML += '</div>'             
+
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+                
+            
+            itemsHTML += '</div>'       # Final Final contenedor generico      
+            itemsHTML += '</div>'  # Final row item
+        
+
+
+    except ValueError:
+        messages.error('Server error. Please contact to administrator!')
+        
+    return itemsHTML
+
+
+
+
+
+
+
+
+
 
 def funct_data_customer(filtersCustomer, caso):
 
@@ -1000,416 +1510,35 @@ def funct_data_event(filters):
     return event_data
 
 
-def funct_data_items(request, proyect_id):
+
+
+#Consulta realizada para obtener los datos de cada uno de los comentarios.
+def getDataComments(request, workOrderId, itemId):
     
-    itemsHTML = ""
-
-    try:
-
-        proyect = Proyect.objects.get(id=proyect_id)
-
-        items = Item.objects.filter(proyect = proyect).order_by('id')
-        itemN = 0
-        
-        for item in items:
-
-            fecha_propuesta = ''
-            fecha_fin = ''
-            code = ''
-            group = ''
-            itemN+= 1
-
-            try:
-                if item.date_proposed:
-
-                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y-%m-%d')
-
-                if item.date_end:
-                    fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-
-                if proyect.code:
-                    code = proyect.code + '-' + str(itemN)
-
-                else:
-                    code = str(itemN)
-            
-            except ValueError:
-                messages.error('Server error. Date not exist!')
-            
-
-            itemsHTML += '<div class="row itemCount" style="border: 1px solid #d7d9dc; border-radius: .475rem">' #fila item
-            itemsHTML += '<div class="col-lg-12">'  #contenedor generico
-
-            #Inicio Fila 1
-            itemsHTML += '<div class="row">'
-                        
-            #Celda (1, 1)
-            itemsHTML += '<div class="col-lg-11" style="border:1px solid white; border-width:1px;">'
-            
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b>'
-            itemsHTML += '<div class="h-3px w-100 bg-primary col-lg-4"></div>'
-            itemsHTML += '</div>'         
-
-            itemsHTML += '</div>'
-            
-
-            ## Celda (1, 2) (acciones) ##
-            itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
-
-            if proyect.state.id in (1,2,3,4):
-                                                        
-                itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(proyect_id) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
-                itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="del(' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-                itemsHTML += '</div>'
-            
-            itemsHTML += '</div>'
-
-
-
-
-            
-
-            if item.group:
-                group = item.group.name            
-
-            #Inicio div 1.2
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
-            #Inicio Fila 1.2
-            itemsHTML += '<div class="row">'
-            
-
-            ## Celda 1 (cabecera) ##
-            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<table><tbody>'                
-            itemsHTML += '<tr><td><b>Category:</b> ' + item.category.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
-            itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
-            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
-            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
-            itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'          
-            #############
-
-            ## Celda 2 (atributos) ##                        
-            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'            
-            itemsHTML += '<table><tbody>'
-
-            attributes = Item_Attribute.objects.filter(item = Item.objects.get(id=item.id))
-            for attribute in attributes:
-                itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
-
-            itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'       
-            #############
-
-            ## Celda 3 (materiales) ##                        
-            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<h6>Materials:</h6>'
-            itemsHTML += '<table><tbody>'    
-
-            sorted_notes = []
-            notes_img = ()
-            notes_fil = ()
-            qty_img = ()
-                        
-            materials_images = Item_Images.objects.filter(item = item, type = 2)
-            materials_files = Item_Files.objects.filter(item = item, type = 2)
-
-            if materials_images:        
-                # Extraer las notas y cantidades (qty) de las consultas
-                notes_img, qty_img = zip(*materials_images.values_list('notes', 'qty'))  # Para Item_Images
-
-            if materials_files:                        
-                notes_fil = materials_files.values_list('notes', flat=True)  # Solo las notas de Item_Files
-
-            # Combinar las notas de ambas listas
-            combined_notes = set(notes_img) | set(notes_fil)  # Unión de los sets de notas
-
-            # Ordenar las notas alfabéticamente
-            sorted_notes = sorted(combined_notes)
-
-            # Si también quieres asociar las notas con su qty correspondiente de `Item_Images`
-            sorted_notes_qty = []
-
-            # Añadir las notas con su qty si es que provienen de `Item_Images`
-            for note in sorted_notes:
-                if note in notes_img:
-                    idx = notes_img.index(note)
-                    sorted_notes_qty.append((note, qty_img[idx]))
-                else:
-                    sorted_notes_qty.append((note, None))  # Si no tiene `qty`, asignamos `None`
-
-            icon = '<span class="svg-icon svg-icon-primary svg-icon-1x"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">'
-            icon += '<defs/>'
-            icon += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
-            icon += '<rect x="0" y="0" width="24" height="24"/>'
-            icon += '<path d="M15.9497475,3.80761184 L13.0246125,6.73274681 C12.2435639,7.51379539 12.2435639,8.78012535 13.0246125,9.56117394 L14.4388261,10.9753875 C15.2198746,11.7564361 16.4862046,11.7564361 17.2672532,10.9753875 L20.1923882,8.05025253 C20.7341101,10.0447871 20.2295941,12.2556873 18.674559,13.8107223 C16.8453326,15.6399488 14.1085592,16.0155296 11.8839934,14.9444337 L6.75735931,20.0710678 C5.97631073,20.8521164 4.70998077,20.8521164 3.92893219,20.0710678 C3.1478836,19.2900192 3.1478836,18.0236893 3.92893219,17.2426407 L9.05556629,12.1160066 C7.98447038,9.89144078 8.36005124,7.15466739 10.1892777,5.32544095 C11.7443127,3.77040588 13.9552129,3.26588995 15.9497475,3.80761184 Z" fill="#000000"/>'
-            icon += '<path d="M16.6568542,5.92893219 L18.0710678,7.34314575 C18.4615921,7.73367004 18.4615921,8.36683502 18.0710678,8.75735931 L16.6913928,10.1370344 C16.3008685,10.5275587 15.6677035,10.5275587 15.2771792,10.1370344 L13.8629656,8.7228208 C13.4724413,8.33229651 13.4724413,7.69913153 13.8629656,7.30860724 L15.2426407,5.92893219 C15.633165,5.5384079 16.26633,5.5384079 16.6568542,5.92893219 Z" fill="#000000" opacity="0.3"/>'
-            icon += '</g>'
-            icon += '</svg></span>'
-
-            for index, material in enumerate(sorted_notes):
-
-                qty = ''
-                if sorted_notes_qty[index][1]:
-                    qty = ' / ' + sorted_notes_qty[index][1]
-
-                itemsHTML += '<tr><td>' + icon + ' ' + material + qty + '</td>'
-
-                if proyect.state.id == 4:
-
-                    itemsHTML += '<td>'
-                    itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
-                    itemsHTML += '<input class="form-check-input materialOK" type="checkbox">'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</td>'
-
-                itemsHTML += '</tr>'
-
-            itemsHTML += '</tbody></table>'           
-            
-
-            itemsHTML += '</div>'
-            #############
-
-
-
-            ## Celda 4 (acciones) ##                        
-            itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
-
-            if proyect.state.id == 2:                
-
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(proyect_id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
-                itemsHTML += '</div>'
-
-
-            if proyect.state.id >= 3:
-
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(proyect_id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
-                itemsHTML += '</div>'
-
-            if proyect.state.id in (4,5):
-
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(proyect_id) + ',' + str(item.id) + ',0,1)">To schedule (+)</a>'
-                itemsHTML += '</div>'
-            
-            itemsHTML += '</div>'   
-
-            
-
-
-
-            ## Fin Fila 1.2 ##
-            itemsHTML += '</div>'                        
-            ## Fin div 1.w ##
-            itemsHTML += '</div>'
-                  
-            
-            ## Fin Fila 2 ##
-            itemsHTML += '</div>'
-
-            #Fin Fila 3
-            #Ver detalle
-            itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
-            itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
-
-            itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
-            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-            itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-            itemsHTML += '</svg>'
-            itemsHTML += '</span>'
-
-            itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
-            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-            itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
-            itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-            itemsHTML += '</svg>'
-            itemsHTML += '</span>'
-			
-            itemsHTML += '</div>'
-            itemsHTML += '<h6 class="text-gray-700 cursor-pointer mb-0">See more details</h6>'
-            itemsHTML += '</div>'
-
-
-
-            itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
-
-            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-
-            ## Celda (archivos) ##
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'            
-            itemsHTML += '<div class="row">'        
-            itemsHTML += '<div class="col-xl-12">'                        
-
-            files = Item_Files.objects.filter(item = Item.objects.get(id=item.id))
-
-            if len(files) > 0:                
-                itemsHTML += '<div class="d-flex align-items-center border p-5">'
-                itemsHTML += '<ul class="text-start">'
-
-                for file in files:
-
-                    itemsHTML += '<li>'
-                                        
-                    if file.file.url[-4:] == '.pdf':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
-
-                    if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
-
-                    if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
-                                                    
-                    itemsHTML += '<span>'
-                    itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
-                    itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
-                    itemsHTML += '</<span>' 
-
-                    itemsHTML += '</li>'
-
-                itemsHTML += '</ul>'
-                itemsHTML += '</div>'
-
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
-            #############
-
-            itemsHTML += '</div>'
-
-
-            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-
-            ## Celda (imagenes) ##
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
-            itemsHTML += '<section class="grid-gallery-section">'
-            
-            # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
-            # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
-            # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
-            # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
-            # itemsHTML += '</div>'
-            
-            itemsHTML += '<div class="grid-gallery">'
-            itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
-
-            images = Item_Images.objects.filter(item = Item.objects.get(id=item.id))
-            for image in images:
-
-                type_imp = ''
-                target = ''
-
-                if image.file:
-                
-                    if image.type == 1:
-                        type_imp = 'Image'
-
-                    elif image.type == 2:
-                        type_imp = 'Material'
-
-                    itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                    itemsHTML += '<div class="gallery-image-area" style="width:80%">'
-                    
-                    
-                    itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
-                    itemsHTML += '<div class="gallery-overly">'
-                    
-                    itemsHTML += '<div class="image-details">'                                
-                    itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
-                    itemsHTML += '</div>'
-                    
-                    itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
-                    itemsHTML += '<div class="gallery-zoom-icon"></div>'
-                    itemsHTML += '</a>'
-
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-
-                # itemsHTML += '<tr><td><div class="image-container"><img src="" alt="' + image.name + '" class="preview"></div></td><td>' + image.notes + '</td></tr>'
-
-            itemsHTML += '</div>'
-            itemsHTML += '</section>'
-            
-            itemsHTML += '</div>'                                    
-            #############            
-            
-            itemsHTML += '</div>' 
-
-            itemsHTML += '</div>' #div Detalle    
-
-            
-            itemsHTML += funct_data_comments(request, proyect_id, item.id)
-
-            
-            if proyect.state.id == 3:              
-                
-                itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                itemsHTML += '<div class="card bg-light-primary card-xl-stretch mb-xl-8">'
-                itemsHTML += '<div class="card-body my-3">'                
-                itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
-                itemsHTML += '<input class="form-check-input approve" type="checkbox">'
-                itemsHTML += '<label class="form-check-label ms-3" for="quote">Do you approve the quote?</label>'
-                itemsHTML += '</div>'             
-
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-
-            #if proyect.state.id == 5 or proyect.state.id == 5:
-                
-                
-            
-            itemsHTML += '</div>'       # Final Final contenedor generico      
-            itemsHTML += '</div><br/>'  # Final row item
-
-        
-        itemsHTML += funct_data_comments(request, proyect_id, 0)
-
-
-
-
-
-    except ValueError:
-        messages.error('Server error. Please contact to administrator!')
-        
-    return itemsHTML
-
-
-def funct_data_comments(request, proyect_id, item_Id):
-    
-    proyect = Proyect.objects.get(id=proyect_id)            
+    workorder = WorkOrder.objects.get(id=workOrderId)            
     itemsHTML = ''    
     itemTxt = ''
 
-    itemCSs = None
-    itemCSF = None
+    itemCSs = None #Comentario texto
+    itemCSF = None #Comentario archivos
 
     stateName = ""
 
-    if int(item_Id) != 0:
-        item = Item.objects.get(proyect=proyect, id=item_Id)
+    if int(itemId) != 0:
+        item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
-            itemCSs = Item_Comment_State.objects.filter(item=item).order_by('id')            
+            itemCSs = ItemCommentState.objects.filter(item=item).order_by('id')            
     else:        
-        itemCSs = Comment_State.objects.filter(proyect=proyect).order_by('id')
+        itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('id')
 
                     
     for itemCS in itemCSs:
 
-        if int(item_Id) != 0:        
-            itemCSF = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS).order_by('id')
+        if int(itemId) != 0:        
+            itemCSF = ItemCommentStateFile.objects.filter(item_comment_state = itemCS).order_by('id')
         else:            
-            itemCSF = Comment_State_Files.objects.filter(comment_state = itemCS).order_by('id')
+            itemCSF = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS).order_by('id')
 
         if itemCS:
             itemTxt = itemCS.notes
@@ -1420,16 +1549,20 @@ def funct_data_comments(request, proyect_id, item_Id):
         itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
         # itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
 
-        if int(item_Id) != 0:
+        state = 'state_'
+
+        if int(itemId) != 0:
             itemsHTML += '<div class="col-xl-11 fv-row text-start">'
+            state += str(itemCS.state.id)
         else:
             itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+            state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
         
         if stateName == "" or itemCS.state.name != stateName:
             itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + itemCS.state.name + ':</div>'
             stateName = itemCS.state.name             
             
-        itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 state_' + str(itemCS.state.id) + '">' + itemTxt
+        itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + itemTxt
         
         if itemCSF:            
             itemsHTML += '<ul class="text-start">'
@@ -1445,8 +1578,8 @@ def funct_data_comments(request, proyect_id, item_Id):
                 
         user_session = request.user
 
-        if user == user_session and proyect.state == itemCS.state:
-            itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(proyect_id) + ',' + str(item_Id) + ',' + str(itemCS.id) + ',0)">Edit</a>'
+        if user == user_session and workorder.state == itemCS.state:
+            itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a>'
 
         itemsHTML += '</div>'
         
@@ -1565,8 +1698,9 @@ def funct_data_events(proyect_id):
 ## Funciones para guardar datos ###
 ###################################
 
+#Instancia para guardar cada evento que ocurre en la WO.
 @login_required
-def saveEvent(request, type_event_id, proyect_id, description):
+def saveEvent(request, type_event_id, workOrderId, description):
 
     # EVENTOS = [
     #         (0, 'Other'),
@@ -1579,37 +1713,33 @@ def saveEvent(request, type_event_id, proyect_id, description):
     #     ]
     try:
 
-        proyect = Proyect.objects.get(id = proyect_id)
+        wo = WorkOrder.objects.get(id = workOrderId)
 
         Event.objects.create(   type_event_id=type_event_id,                                        
-                                proyect=proyect, 
+                                workorder=wo, 
                                 description = description,
                                 user=request.user.id)
         
     except Proyect.DoesNotExist:        
         messages.error('Server error. Please contact to administrator!')
     
-
+#Instancia para guardar los datos del item.
 @login_required
 def saveItem(request):
 
     item_id = 0
 
     if request.method == 'POST':
-        proyect_id = request.POST.get('proyect_id')        
-        category_id = request.POST.get('category') 
-        subcategory_id = request.POST.get('subcategory')
+        workorder_id = request.POST.get('wo_id')        
         group_id = request.POST.get('group')
         place_id = request.POST.get('place')
         qty = request.POST.get('qty')
         notes = request.POST.get('notes')
         date_proposed = request.POST.get('date_proposed')
             
-        try:
+        try:            
             
-            item_save = Item.objects.create(proyect = Proyect.objects.get(id=proyect_id),
-                                            category = Category.objects.get(id=category_id),
-                                            subcategory = Subcategory.objects.get(id=subcategory_id),
+            item_save = Item.objects.create(workorder = WorkOrder.objects.get(id=workorder_id),                                            
                                             group = Group.objects.get(id=group_id),
                                             place = Place.objects.get(id=place_id),
                                             qty = qty,
@@ -1619,7 +1749,7 @@ def saveItem(request):
                                             modification_by_user = request.user.id)
             item_id = item_save.id
 
-            saveEvent(request, 3, proyect_id, None)
+            saveEvent(request, 3, workorder_id, None)
 
 
             ################################### Se recorren los atributos ###################################
@@ -1634,7 +1764,7 @@ def saveItem(request):
 
                         attribute_id = int(key[len(prefijo):])
 
-                        Item_Attribute.objects.create(  item = Item.objects.get(id=item_id),
+                        ItemAttribute.objects.create(  item = Item.objects.get(id=item_id),
                                                         attribute = Attribute.objects.get(id=attribute_id),
                                                         notes = value)
 
@@ -1647,8 +1777,7 @@ def saveItem(request):
             materials = request.POST.getlist('material[]')
             materialsQTY = request.POST.getlist('materialQTY[]')
             materialsF = request.FILES.getlist('materialFile[]')
-            materialsFileOK = request.POST.getlist('materialFileOk[]')
-            type_num = 2 # Materiales
+            materialsFileOK = request.POST.getlist('materialFileOk[]')            
             indexFile = 0
             
 
@@ -1666,27 +1795,27 @@ def saveItem(request):
                         
                         if file:
                             if validateTypeFile(file.content_type):
-                                # Abrir la imagen usando PIL
-                                imagen = Image.open(file)
+                                pass
+                            else:
+                                file = None
+                                name = ''
 
                         if materialsQTY[index]:
                             qty = materialsQTY[index]
 
-                        Item_Images.objects.create(item = Item.objects.get(id=item_id),
-                                                   file = file,
-                                                   name = fileName,
-                                                   qty = qty,
-                                                   type = type_num,
-                                                   notes = material)
+                        ItemMaterial.objects.create(   item = Item.objects.get(id=item_id),
+                                                        file = file,
+                                                        name = fileName,
+                                                        qty = qty,                                                   
+                                                        notes = material)
 
                     except OSError: #Guardarlo como archivo adjunto
                         
-                        Item_Files.objects.create(item = Item.objects.get(id=item_id),
-                                                  file = file,
-                                                  name = fileName,
-                                                  qty = qty,
-                                                  type = type_num,
-                                                  notes = material)
+                        ItemMaterial.objects.create(   item = Item.objects.get(id=item_id),
+                                                        file = None,
+                                                        name = '',
+                                                        qty = qty,                                                  
+                                                        notes = material)
                             
                     except:
                         messages.error(request, 'Text images not found!')
@@ -1696,8 +1825,7 @@ def saveItem(request):
 
             images = request.POST.getlist('image[]')
             imagesF = request.FILES.getlist('imageFile[]')
-            imagesFileOk = request.POST.getlist('imageFileOk[]')
-            type_num = 1 # Imagenes
+            imagesFileOk = request.POST.getlist('imageFileOk[]')            
             indexFile = 0
             
 
@@ -1720,18 +1848,16 @@ def saveItem(request):
                                 # Abrir la imagen usando PIL
                                 imagen = Image.open(file)
 
-                        Item_Images.objects.create( item = Item.objects.get(id=item_id),
+                        ItemImage.objects.create( item = Item.objects.get(id=item_id),
                                                     file = file,
-                                                    name = fileName,
-                                                    type = type_num,
+                                                    name = fileName,                                                    
                                                     notes = notes)
 
                     except OSError: #Guardarlo como archivo adjunto
                     
-                        Item_Files.objects.create(  item = Item.objects.get(id=item_id),
+                        ItemFile.objects.create(  item = Item.objects.get(id=item_id),
                                                     file = file,
                                                     name = fileName,
-                                                    type = type_num,
                                                     notes = notes)
 
                     except:
@@ -1745,49 +1871,38 @@ def saveItem(request):
     return JsonResponse({'result': item_id})
 
 
+#Instancia para guardar los comentarios, genéricos o particulaes.
 @login_required
 def saveItemComment(request):
     
     if request.method == 'POST':
-        proyect_id = request.POST.get('id1')
-        item_id = request.POST.get('id2')
-        comment_id = request.POST.get('id3')
+        workOrderId = request.POST.get('id1')
+        itemId = request.POST.get('id2')
+        commentId = request.POST.get('id3')
         notes = request.POST.get('notes')
         date_end = request.POST.get('date_end')
         responsible_id = request.POST.get('responsable')
 
-        proyect = Proyect.objects.get(id=proyect_id)
-        item = Item.objects.filter(proyect = proyect, id=item_id).first()
+        workorder = WorkOrder.objects.get(id=workOrderId)
+        item = Item.objects.filter(workorder = workorder, id=itemId).first()
 
-
-            # if date_end:
-            #     item.date_end = date_end
-            #     item.save()
-
-            # if responsible_id:
-
-            #     if int(responsible_id):
-
-            #         if Responsible.objects.get(id=responsible_id):                                    
-            #             item.responsible = Responsible.objects.get(id=responsible_id)
-            #             item.save()
-                        
-        if item: #A nivel de item
+        #A nivel de item       
+        if item: 
             
-            item_coment_save = Item_Comment_State.objects.filter(id=comment_id, item=item, state=proyect.state).first()
+            #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
+            item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
 
             if item_coment_save:
-                    
-                    item_coment_save.notes = notes
-                    item_coment_save.modification_by_user = request.user.id
-                    item_coment_save.save()
+                item_coment_save.notes = notes
+                item_coment_save.modification_by_user = request.user.id
+                item_coment_save.save()
 
             else:                                    
-                    item_coment_save = Item_Comment_State.objects.create(item = item,
-                                                                         state = proyect.state,
-                                                                         notes = notes,
-                                                                         created_by_user = request.user.id,
-                                                                         modification_by_user = request.user.id)
+                item_coment_save = ItemCommentState.objects.create( item = item,
+                                                                    state = workorder.state,
+                                                                    notes = notes,
+                                                                    created_by_user = request.user.id,
+                                                                    modification_by_user = request.user.id)
                                        
             ################################### Se recorren los archivos ###################################
 
@@ -1798,7 +1913,7 @@ def saveItemComment(request):
                 if validateTypeFile(file.content_type):
                     try:
                         
-                        Item_Comment_State_Files.objects.create(item_comment_state = item_coment_save,
+                        ItemCommentStateFile.objects.create(item_comment_state = item_coment_save,
                                                                 file = file,
                                                                 name = file.name)
                     except:                
@@ -1810,9 +1925,11 @@ def saveItemComment(request):
                     
         else:
 
-            if int(item_id) == 0:
+            #Comentario genérico
+            if int(itemId) == 0:
 
-                item_coment_save = Comment_State.objects.filter(id=comment_id, state=proyect.state).first()
+                #Si el comentarioId generico existe, entonces se edita. En caso contrario, se crea.
+                item_coment_save = WorkOrderCommentState.objects.filter(id=commentId, state=workorder.state).first()
 
                 if item_coment_save:
                     item_coment_save.notes = notes
@@ -1821,11 +1938,11 @@ def saveItemComment(request):
 
                 else:                                    
                     
-                    item_coment_save = Comment_State.objects.create(proyect = proyect,
-                                                                    state = proyect.state,
-                                                                    notes = notes,
-                                                                    created_by_user = request.user.id,
-                                                                    modification_by_user = request.user.id)
+                    item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
+                                                                            state = workorder.state,
+                                                                            notes = notes,
+                                                                            created_by_user = request.user.id,
+                                                                            modification_by_user = request.user.id)
                         
                 ################################### Se recorren los archivos ###################################
 
@@ -1836,21 +1953,28 @@ def saveItemComment(request):
                     if validateTypeFile(file.content_type):
                         try:
                             
-                            Comment_State_Files.objects.create( comment_state = item_coment_save,
-                                                                file = file,
-                                                                name = file.name)
+                            WorkOrderCommentStateFile.objects.create(   workorder_comment_state = item_coment_save,
+                                                                        file = file,
+                                                                        name = file.name)
                         except:                
                             messages.error(request, 'Server error. Please contact to administrator!')
                             return JsonResponse({'result': "Server error. Please contact to administrator."})
                         
                 
                 return JsonResponse({'result': "OK"})
+            
+            else:
+
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return JsonResponse({'result': "Server error. Please contact to administrator."})
+        
 
 
 ##################################
 ## Funciones para borrar datos ###
 ##################################
 
+#Funcion ejecutada en la vista del proyecto, para borrar un item específico.
 @login_required
 def deleteItem(request):
     item_id = request.POST.get('i') 
@@ -1861,7 +1985,7 @@ def deleteItem(request):
         item.delete()
         status = 1
 
-        saveEvent(request, 4, item.proyect.id, None) ## Borrar item
+        saveEvent(request, 4, item.workorder.id, None) ## Borrar item
 
     except ValueError:
         status = -1
@@ -1869,10 +1993,10 @@ def deleteItem(request):
 
     return JsonResponse({'result': status})
 
-
+#Funcion ejecutada en el panel, para borrar un proyecto en particular.
 @login_required
 def deleteProyect(request):
-    proyect_id = request.POST.get('i') 
+    proyect_id = request.POST.get('p') 
     status = 0
 
     try:
@@ -1886,31 +2010,31 @@ def deleteProyect(request):
 
     return JsonResponse({'result': status})
 
-
+#Funcion ejecutada en los comentarios, para ser eliminados del sistema
 @login_required
 def deleteComment(request):    
-    item_cst_id = request.POST.get('t')
-    item_id = request.POST.get('e')
-    proyect_id = request.POST.get('p')
+    itemCommentId = request.POST.get('t')
+    itemId = request.POST.get('e')
+    workorderId = request.POST.get('w')
     status = 0
 
     try:
+        #Si es un item específico
+        if int(itemId) != 0:
 
-        if int(item_id) != 0:
+            itemCS = ItemCommentState.objects.get(id = itemCommentId)            
 
-            itemCS = Item_Comment_State.objects.get(id = item_cst_id)            
-
-            if itemCS.item.proyect.id == int(proyect_id) and itemCS.item.id == int(item_id): #Si pertenece al proyecto-item, se borra
+            if itemCS.item.workorder.id == int(workorderId) and itemCS.item.id == int(itemId): #Si pertenece al wo-item, se borra
                 itemCS.delete()        
                 status = 1
             else:
                 status = 2
-
+        #Si es un comentario genérico
         else:
 
-            itemCS = Comment_State.objects.get(id = item_cst_id)            
+            itemCS = WorkOrderCommentState.objects.get(id = itemCommentId)            
 
-            if itemCS.proyect.id == int(proyect_id): #Si pertenece al proyecto, se borra
+            if itemCS.workorder.id == int(workorderId): #Si pertenece a la wo, se borra
                 itemCS.delete()        
                 status = 1
             else:
@@ -1924,24 +2048,38 @@ def deleteComment(request):
 
     return JsonResponse({'result': status})
 
-
+#Funcion ejecutada a la hora de borrar un archivo de un comentario.
 @login_required
 def deleteItemCommentFile(request):
     id = request.POST.get('i') 
-    item_cst_id = request.POST.get('t')
-    item_id = request.POST.get('e')
-    proyect_id = request.POST.get('p')
+    itemCstId = request.POST.get('t')
+    itemId = request.POST.get('e')
+    workOrderId = request.POST.get('w')
     status = 0
 
     try:
-        itemCS = Item_Comment_State.objects.get(id = item_cst_id)
-        itemCSF = Item_Comment_State_Files.objects.get(id = id, item_comment_state = itemCS)
 
-        if itemCSF.item_comment_state.item.proyect.id == int(proyect_id) and itemCSF.item_comment_state.item.id == int(item_id): #Si pertenece al proyecto, se borra
-            itemCSF.delete()        
-            status = 1
+        if int(itemId) != 0:
+
+            itemCS = ItemCommentState.objects.get(id = itemCstId)
+            itemCSF = ItemCommentStateFile.objects.get(id = id, item_comment_state = itemCS)
+
+            if itemCSF.item_comment_state.item.workorder.id == int(workOrderId) and itemCSF.item_comment_state.item.id == int(itemId): #Si pertenece al wo-item, se borra
+                itemCSF.delete()        
+                status = 1
+            else:
+                status = 2
+
         else:
-            status = 2
+
+            itemCS = WorkOrderCommentState.objects.get(id = itemCstId)
+            itemCSF = WorkOrderCommentStateFile.objects.get(id = id, workorder_comment_state = itemCS)
+
+            if itemCSF.workorder_comment_state.workorder.id == int(workOrderId) and itemCSF.workorder_comment_state.workorder.id == int(workOrderId): #Si pertenece a la wo, se borra
+                itemCSF.delete()        
+                status = 1
+            else:
+                status = 2
 
         # saveEvent(request, 4, item.proyect.id, None) ## Borrar item
 
@@ -1955,20 +2093,21 @@ def deleteItemCommentFile(request):
 ## Funciones para editar datos ###
 ##################################
 
+#Funcion utilizada para avanzar de estado/etapa
 @login_required
 def updateStatus(request):
-    proyect_id = request.POST.get('i') 
+    workOrderId = request.POST.get('w') 
     status = 0
 
     try:
-        proyect = Proyect.objects.get(id = proyect_id)
-        proyect.state = State.objects.get(id = (proyect.state.id + 1))
-        proyect.save()
+        workOrder = WorkOrder.objects.get(id = workOrderId)
+        workOrder.state = State.objects.get(id = (workOrder.state.id + 1))
+        workOrder.save()
 
-        description = "Change to status:" + proyect.state.name
+        description = "Change to status:" + workOrder.state.name
 
         Event.objects.create(   type_event_id = 6,                                        
-                                proyect=proyect, 
+                                workorder=workOrder, 
                                 description = description,
                                 user=request.user.id)
 
@@ -1986,9 +2125,10 @@ def updateStatus(request):
 ## Funciones para ver modales ###
 ##################################
 
-def modal_comment(proyect_id, item_Id, comment_id, case):
+#Modal desarrollado para todo tipo de comentarios, ya sea generales o particulares.
+def modalComment(workOrderId, itemId, commentId, case):
     
-    proyect = Proyect.objects.get(id=proyect_id)            
+    workorder = WorkOrder.objects.get(id=workOrderId)            
     itemsHTML = ''    
     itemTxt = ''    
     fecha_fin = ''
@@ -1996,23 +2136,22 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
     item = None    
     files = None
 
-    itemId = "0";
-    itemCSId = "0";
+    itemCSId = "0"
     
     #Por item
-    if int(item_Id) != 0:
+    if int(itemId) != 0:
             
-        item = Item.objects.get(proyect=proyect, id=item_Id)
+        item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
             
             itemId = str(item.id)
-            itemCS = Item_Comment_State.objects.filter(id=comment_id, item=item).first() 
+            itemCS = ItemCommentState.objects.filter(id=commentId, item=item).first() 
                         
             if itemCS:
                 itemCSId = str(itemCS.id)
                 itemTxt = itemCS.notes
-                files = Item_Comment_State_Files.objects.filter(item_comment_state = itemCS)
+                files = ItemCommentStateFile.objects.filter(item_comment_state = itemCS)
 
             if item.date_end:
                 fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
@@ -2020,12 +2159,12 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
     #General
     else:
 
-        itemCS = Comment_State.objects.filter(id=comment_id, proyect=proyect).first() 
+        itemCS = WorkOrderCommentState.objects.filter(id=commentId, workorder=workorder).first() 
 
         if itemCS:
             itemCSId = str(itemCS.id)
             itemTxt = itemCS.notes
-            files = Comment_State_Files.objects.filter(comment_state = itemCS)
+            files = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS)
                 
             
     itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
@@ -2034,13 +2173,13 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
     
     if int(case) == 0: #Para comentarios
     
-        itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Comments:</div>'
+        itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
         itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt + '</textarea><br/>'
         
         if files:        
             itemsHTML += '<ul class="text-start">'        
             for file in files:
-                itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>  <a href="" onClick="delFile(this, ' + str(file.id) + ', ' + itemCSId + ', ' + itemId + ', ' + str(proyect.id) + ',event)"<i class="fa fa-trash"></i></a>'
+                itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>  <a href="" onClick="delFile(this, ' + str(file.id) + ', ' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)"<i class="fa fa-trash"></i></a>'
             itemsHTML += "</ul>"
                 
         itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
@@ -2049,7 +2188,7 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
 
     if int(case) == 1: #Para agendar, en etapas 5 y 6
 
-        if proyect.state.id == 5 or proyect.state.id == 6:
+        if workorder.state.id == 5 or workorder.state.id == 6:
 
             responsibles = Responsible.objects.filter(status = 1).order_by('name')
             
@@ -2064,11 +2203,11 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
                     itemsHTML += '<option value=' + str(responsible.id) + '>' + responsible.name + '</option>'
 
             itemsHTML += '</select>'
-            itemsHTML += '</div>'
+            itemsHTML += '</div><br/>'
 
                         
             itemsHTML += '<div class="col-xl-6 fv-row">'
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">End date:</div>'
+            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Due date:</div>'
             itemsHTML += '<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">'
             itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
             itemsHTML += '<path opacity="0.3" d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z" fill="black" />'
@@ -2080,6 +2219,10 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
 
 
             
+            # itemsHTML += '<div id="color-picker-container">'
+            # itemsHTML += '<input type="text" id="color-picker" placeholder="Choose a color">'
+            # itemsHTML += '<div id="selected-color" style="display:none"></div>'
+
 
 
 
@@ -2088,7 +2231,7 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
 
     itemsHTML += '<div class="col-md-3">'
 
-    itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(proyect_id) + ',' + itemId + ',' + str(comment_id) + ')">Save</button>'                
+    itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(workorder.id) + ',' + itemId + ',' + str(commentId) + ')">Save</button>'                
     itemsHTML += '</div>'
     itemsHTML += '<div class="col-md-9">'                                    
     itemsHTML += '<div class="divItemMsg alert alert-warning text-start p-2 mb-1" style="display:none">Please, enter a comment.</div>'
@@ -2099,7 +2242,7 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
     itemsHTML += '</form>'
 
     if itemCS:
-        itemsHTML += '<script>$("#modalCommentDelete").show(); $("#modalCommentDelete").click(function() { delComm(' + itemCSId + ', ' + itemId + ', ' + str(proyect.id) + ',event)});</script>'
+        itemsHTML += '<script>$("#modalCommentDelete").show(); $("#modalCommentDelete").click(function() { delComm(' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)});</script>'
     else:
         itemsHTML += '<script>$("#modalCommentDelete").hide();</script>'
 
@@ -2115,7 +2258,7 @@ def modal_comment(proyect_id, item_Id, comment_id, case):
 ## Funciones para validar ###
 ##################################
 
-
+#Funcion usada para validar tipos de archivos
 def validateTypeFile(value):
 
     isfileValidate = False
@@ -2138,8 +2281,8 @@ def validateTypeFile(value):
 ## Funciones varias ###
 ##################################
 
-
-def retornarAdvance(value):
+#Retorna el % de avance del proyecto
+def retornAdvance(value):
 
     adv = 0
     factor = 11 #11.11
@@ -2147,8 +2290,8 @@ def retornarAdvance(value):
     
     return adv
 
-
-def funct_table_decorators(decorators):
+#Retorna la tabla html con los datos del decorador/ayudante
+def getDecoratorsTable(decorators):
     
     # Creamos una lista con los datos de cada proyecto
 
@@ -2183,6 +2326,40 @@ def funct_table_decorators(decorators):
         decoratorsHTML += '</tbody></table>'
 
     return decoratorsHTML
+
+#Retorna el nombre del estado, junto con su clase css
+def getStateName(stateId):
+    
+    state = State.objects.get(id = stateId)
+
+    name = state.name
+    description = state.description
+
+    stateHTML = ''
+
+    #stateHTML += '<i class="fas fa-question-circle" data-bs-toggle="tooltip" title="' + description + '"></i>'
+
+    stateHTML += '<div class="fs-6 fw-bold p-2 badge-state-' + str(stateId) + '">'
+    stateHTML += name
+    stateHTML += '</div>'
+
+    return stateHTML																									
+
+
+#Retorna el nombre del estado, junto con su clase css
+def newWO(request, proyectId):
+
+    try:
+        work_order = WorkOrder.objects.create(  proyect = Proyect.objects.get(id = proyectId),
+                                                state = State.objects.get(id = 1),                                                        
+                                                created_by_user = request.user.id)
+
+        work_order.save()
+
+        return work_order.id
+        
+    except:
+        return -1
 
 
 def timeline_body(date_str, name, email, description, stateId):
@@ -2259,7 +2436,7 @@ def generate_pdf(request, proyect_id):
         code = project.code if str(project.code) != "" else "--"
         htmlCabecera += "<tr><th>Code:</th><td>" + str(code) + "</td></tr>"
 
-        decorators = Decorator.objects.filter(proyects = project)
+        decorators = ProyectDecorator.objects.filter(proyects = project)
 
         if decorators:
 
@@ -2331,7 +2508,7 @@ def generate_pdf(request, proyect_id):
                 htmlCabecera1 += "<tr><td class='td_item' style='text-align: left; vertical-align: top;'>Notes:</td><td>" + str(notes) + "</td></tr>"
                 htmlCabecera1 += "</table>"
 
-                attributes = Item_Attribute.objects.filter(item = item)
+                attributes = ItemAttribute.objects.filter(item = item)
                 htmlCabecera2 = ""
 
                 if attributes:
@@ -2350,7 +2527,7 @@ def generate_pdf(request, proyect_id):
 
                 htmlCabecera += "</table>"
 
-                images= Item_Images.objects.filter(item = item)
+                images= ItemImage.objects.filter(item = item)
 
                 if images:
                     
