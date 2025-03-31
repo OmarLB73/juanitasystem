@@ -934,9 +934,10 @@ def getDataWOs(request, proyect_id):
         woN += 1
 
         try:
-            stateName = State.objects.get(id = wo.state.id).buttonName
+            buttonName = State.objects.get(id = wo.state.id).buttonName
+            stateDescription = State.objects.get(id = wo.state.id).description
             stateNewName = State.objects.get(id = wo.state.id + 1).name
-            stateNewDescription = State.objects.get(id = wo.state.id + 1).description                        
+                               
         except:
             pass
 
@@ -958,7 +959,7 @@ def getDataWOs(request, proyect_id):
         
         if wo.state.id < 10:
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + stateName + '</a>'
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateDescription + '">' + buttonName + '</a>'
             workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
         workOrdersHTML += '</div>'
