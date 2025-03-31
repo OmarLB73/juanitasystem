@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, ProyectDecorator, Place, Attribute, CategoryAttribute, Group, UIElement
+from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, ProyectDecorator, Place, Attribute, CategoryAttribute, Group, UIElement, WorkOrder
 
 
 class TypeAdmin(admin.ModelAdmin):
@@ -148,7 +148,7 @@ class SubcategoryAdmin(admin.ModelAdmin):
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'category_name', 'subcategory_name','status','modification_by_user_text','modification_date')
     # Aquí definas específicamente los campos que quieres que aparezcan en el formulario
-    fields = ('category_name', 'subcategory', 'order','name','status')  # Excluyendo 'status' y 'order'
+    fields = ('subcategory', 'order','name','status')  # Excluyendo 'status' y 'order'
     ordering = ['subcategory__category__name', 'subcategory__name']
     list_filter = ('subcategory',)
     search_fields = ['name', 'subcategory__name', 'subcategory__category__name']
@@ -262,6 +262,38 @@ class UIElementAdmin(admin.ModelAdmin):
     search_fields = ['key','label_text']
 
 
+class WorkOrderAdmin(admin.ModelAdmin):
+    list_display = ['proyect_address','state_name','status','modification_by_user_text','modification_date']
+    fields = ['proyect','state','status']
+    #ordering = ['proyect_address','state__name']
+    search_fields = ['proyect_address', 'state_name']
+
+    def proyect_address(self, obj):
+        return obj.proyect.customer.address
+    proyect_address.admin_order_field = 'proyect__address'
+
+    def state_name(self, obj):
+        return obj.state.name
+    state_name.admin_order_field = 'state__name'
+
+    def modification_by_user_text(self, obj):
+        user = User.objects.filter(id=obj.modification_by_user).first()
+        return user.username if user else "Unknown"        
+    modification_by_user_text.short_description = 'Modification by user'
+
+    def save_model(self, request, obj, form, change):
+        if obj.created_by_user == None:
+            obj.created_by_user = request.user.id  # Asigna el usuario logueado
+        if obj.modification_by_user == None:
+            obj.modification_by_user = request.user.id  # Asigna el usuario logueado
+        obj.save()
+
+    def save_model(self, request, obj, form, change):
+        if obj.created_by_user == None:
+            obj.created_by_user = request.user.id  # Asigna el usuario logueado
+        if obj.modification_by_user == None:
+            obj.modification_by_user = request.user.id  # Asigna el usuario logueado
+        obj.save()
 
 
 admin.site.register(Type, TypeAdmin)
@@ -277,4 +309,5 @@ admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(CategoryAttribute, CategoryAttributeAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(UIElement, UIElementAdmin)
+admin.site.register(WorkOrder, WorkOrderAdmin)
 

@@ -108,12 +108,16 @@
 							<!--begin::Card-->
 							<div class="card card-custom gutter-b">
 
+								{% if labels.TITLE_PROYECT_VIEW != None %}
 								<div class="card-header pt-5">
 									<h3 class="card-title align-items-start flex-column">
 										<span class="card-label fw-bolder fs-3 mb-1">{{ labels.TITLE_PROYECT_VIEW }}</span>
+										{% if labels.SUBTITLE_PROYECT_VIEW != None %}
 									<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PROYECT_VIEW }}</span>
+									{% endif %}
 									</h3>
 								</div>
+								{% endif %}
 								<div class="card-body p-5">
 
 									
@@ -1007,9 +1011,10 @@
 								$('#selectSubcategory').val(i);  // Establecer el valor
 							}
 
-							if(g > 0){
-								loadGroup(g)
-							}
+							// if(g > 0){
+							// 	loadGroup(g)
+							// }
+							loadGroup($('#selectSubcategory option:first').val())
 
 						},
 						error: function(xhr, status, error) {
@@ -1188,8 +1193,8 @@
 
 				$('#modalItem').hide();
 
-				$('#inputQty').html('');
-				$('#date_proposed_id').html('');
+				$('#inputQty').val('');
+				$('#date_proposed_id').val('');
 
 				$('#selectSubcategory').html('');
 				$('#divAttributes').html('');
@@ -1719,6 +1724,26 @@
 						});	
 					}
 				});
+
+			}
+
+			function app(t,i){
+				$.ajax({					
+					
+					url: "{% url 'saveQuote_url' %}",  // La URL que manejará la consulta AJAX
+					method: 'POST',
+					data: {
+						'i': i,
+						't': $(t).prop('checked'),				
+					},
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						
+					},
+				});	
 
 			}
 		

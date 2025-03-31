@@ -149,7 +149,9 @@ class WorkOrder(models.Model):
     description = models.TextField(blank=True, null=True, max_length=2000)            
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
-    creation_date = models.DateTimeField(auto_now_add=True, null=True)    
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)   
+    modification_by_user = models.IntegerField(null=True, blank=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f'{self.proyect.customer.address} - {self.proyect.customer.name}'
@@ -180,8 +182,11 @@ class Subcategory(models.Model):
     modification_by_user = models.IntegerField(null=True, blank=True)
     modification_date = models.DateTimeField(auto_now=True, null=True)
 
+    class Meta:
+        ordering = ['name']  # Ordena por 'name' alfabéticamente por defecto
+
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} (Category: {self.category.name})'
 
 
 class Group(models.Model):
@@ -433,7 +438,7 @@ class WorkOrderCommentStateFile(models.Model):
 
 class UIElement(models.Model):
     key = models.CharField(max_length=100, unique=True)  # Un identificador único para cada etiqueta/título
-    label_text = models.CharField(max_length=255)  # El texto que representa la etiqueta o título
+    label_text = models.CharField(max_length=255, null=True, blank=True)  # El texto que representa la etiqueta o título
     language_code = models.CharField(max_length=10, default='en')  # El código de idioma, para soportar múltiples idiomas
     
     def __str__(self):
