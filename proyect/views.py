@@ -922,7 +922,7 @@ def getDataProyect(filters):
 def getDataWOs(request, proyect_id):
 
     proyect = Proyect.objects.get(id=proyect_id)
-    workOrders = WorkOrder.objects.filter(proyect = proyect).order_by('id')
+    workOrders = WorkOrder.objects.filter(proyect = proyect, status = 1).order_by('id')
     workOrdersHTML = ""
 
     stateNewName = ""
@@ -934,6 +934,7 @@ def getDataWOs(request, proyect_id):
         woN += 1
 
         try:
+            stateName = State.objects.get(id = wo.state.id).buttonName
             stateNewName = State.objects.get(id = wo.state.id + 1).name
             stateNewDescription = State.objects.get(id = wo.state.id + 1).description                        
         except:
@@ -957,7 +958,7 @@ def getDataWOs(request, proyect_id):
         
         if wo.state.id < 10:
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + stateNewName + '</a>'
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + stateName + '</a>'
             workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
         workOrdersHTML += '</div>'
@@ -1219,7 +1220,41 @@ def getDataItems(request, workOrderId):
             ## Fin Fila 2 ##
             itemsHTML += '</div>'
 
-            #Fin Fila 3
+
+
+            ##############################################################################################################
+            ############################################## Comentarios Items#### #########################################
+            ##############################################################################################################
+
+            
+            itemsHTML += getDataComments(request, workOrder.id, item.id)
+
+            #Aprobar cotizacion
+            if workOrder.state.id == 3:              
+                
+                itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                itemsHTML += '<div class="card bg-light-success rounded border-success border border-dashed p-1">'
+                itemsHTML += '<div class="card-body my-1">'                
+                
+                itemsHTML += '<h6>Do you approve the quote?</h6>'
+                itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                
+                checked = ''
+                if int(item.status) == 2:
+                    checked = 'checked="checked"'
+                
+                itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                
+                
+                itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                itemsHTML += '</div>'            
+
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+
+
+            #Inicio Fila 4
             #Ver detalle
             itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
             itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
@@ -1407,27 +1442,7 @@ def getDataItems(request, workOrderId):
             itemsHTML += '</div>' #div Detalle    
 
 
-            ##############################################################################################################
-            ############################################## Comentarios Items#### #########################################
-            ##############################################################################################################
-
             
-            itemsHTML += getDataComments(request, workOrder.id, item.id)
-
-            #Aprobar cotizacion
-            if workOrder.state.id == 3:              
-                
-                itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                itemsHTML += '<div class="card bg-light-primary card-xl-stretch mb-xl-8">'
-                itemsHTML += '<div class="card-body my-3">'                
-                itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
-                itemsHTML += '<input class="form-check-input approve" type="checkbox">'
-                itemsHTML += '<label class="form-check-label ms-3" for="quote">Do you approve the quote?</label>'
-                itemsHTML += '</div>'             
-
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
 
                 
             
@@ -1442,81 +1457,11 @@ def getDataItems(request, workOrderId):
     return itemsHTML
 
 
-
-
-
-
-
-
-
-
-def funct_data_customer(filtersCustomer, caso):
-
-    customer_data = []
-
-    if filtersCustomer is None:
-        customers = Customer.objects.all()
-    else:
-        customers = Customer.objects.filter(filtersCustomer)
-
-    # Creamos una lista con los datos de cada proyecto
-    for customer in customers:      
-        
-        proyects = Proyect.objects.filter(customer = customer)
-        proyectId = ''
-
-        for proyect in proyects:
-            proyectId = str(proyect.id)
-
-        if (caso == 1 and proyectId != '') or caso == 2:
-
-            customer_data.append({
-                'id': customer.id,
-                'customerName': customer.name,
-                'address': customer.address,
-                'city': customer.city,
-                'state_u': customer.state,
-                'zipcode': customer.zipcode,
-                'apartment': customer.apartment,                        
-                'email': customer.email,
-                'phone': customer.phone,
-                'customerDescription': customer.description,
-                'customerNotes': customer.notes,
-                'id_proyect': proyectId,
-            })
-    
-    return customer_data
-
-
-def funct_data_event(filters):
-    
-    event_data = []
-
-    if filters is None:
-        events = Event.objects.all()
-    else:
-        events = Event.objects.filter(filters)
-
-    # Creamos una lista con los datos de cada proyecto
-    for event in events:      
-                                
-        event_data.append({
-            'type_event_id': event.type_event_id,
-            'description': event.description,
-            'user_id': event.user.id,
-            'creation_date': event.creation_date
-        })
-    
-    return event_data
-
-
-
-
 #Consulta realizada para obtener los datos de cada uno de los comentarios.
 def getDataComments(request, workOrderId, itemId):
     
     workorder = WorkOrder.objects.get(id=workOrderId)            
-    itemsHTML = ''    
+    itemsHTML = '<br/>'    
     itemTxt = ''
 
     itemCSs = None #Comentario texto
@@ -1590,6 +1535,71 @@ def getDataComments(request, workOrderId, itemId):
         itemsHTML += '</div>'
 
     return itemsHTML
+
+
+
+
+
+
+
+def funct_data_customer(filtersCustomer, caso):
+
+    customer_data = []
+
+    if filtersCustomer is None:
+        customers = Customer.objects.all()
+    else:
+        customers = Customer.objects.filter(filtersCustomer)
+
+    # Creamos una lista con los datos de cada proyecto
+    for customer in customers:      
+        
+        proyects = Proyect.objects.filter(customer = customer)
+        proyectId = ''
+
+        for proyect in proyects:
+            proyectId = str(proyect.id)
+
+        if (caso == 1 and proyectId != '') or caso == 2:
+
+            customer_data.append({
+                'id': customer.id,
+                'customerName': customer.name,
+                'address': customer.address,
+                'city': customer.city,
+                'state_u': customer.state,
+                'zipcode': customer.zipcode,
+                'apartment': customer.apartment,                        
+                'email': customer.email,
+                'phone': customer.phone,
+                'customerDescription': customer.description,
+                'customerNotes': customer.notes,
+                'id_proyect': proyectId,
+            })
+    
+    return customer_data
+
+
+def funct_data_event(filters):
+    
+    event_data = []
+
+    if filters is None:
+        events = Event.objects.all()
+    else:
+        events = Event.objects.filter(filters)
+
+    # Creamos una lista con los datos de cada proyecto
+    for event in events:      
+                                
+        event_data.append({
+            'type_event_id': event.type_event_id,
+            'description': event.description,
+            'user_id': event.user.id,
+            'creation_date': event.creation_date
+        })
+    
+    return event_data
 
 
 def funct_data_events(proyect_id):
@@ -1969,6 +1979,24 @@ def saveItemComment(request):
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
         
 
+#Instancia para cambiar estado del item
+@login_required
+def saveQuote(request):
+
+    itemId = request.POST.get('i')        
+    checked = request.POST.get('t')
+    status = 1
+    
+    if checked == 'true':
+        status = 2
+
+    item = Item.objects.get(id=itemId)
+    item.status = status
+    item.modification_by_user = request.user.id
+    item.modification_date = datetime.now()
+    item.save()
+
+    return JsonResponse({'result': "OK"})
 
 ##################################
 ## Funciones para borrar datos ###
@@ -2352,7 +2380,8 @@ def newWO(request, proyectId):
     try:
         work_order = WorkOrder.objects.create(  proyect = Proyect.objects.get(id = proyectId),
                                                 state = State.objects.get(id = 1),                                                        
-                                                created_by_user = request.user.id)
+                                                created_by_user = request.user.id,
+                                                modification_by_user = request.user.id)
 
         work_order.save()
 

@@ -29,6 +29,7 @@ urlpatterns = [
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
     path('saveItemComment/', views.saveItemComment, name='saveItemComment_url'),
+    path('saveQuote/', views.saveQuote, name='saveQuote_url'),
 
 
     path('addWorkOrder/', views.addWorkOrder, name='addWorkOrder_url'),

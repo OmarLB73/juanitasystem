@@ -1,6 +1,6 @@
 digraph model_graph {
   // Dotfile by Django-Extensions graph_models
-  // Created: 2025-03-22 19:13
+  // Created: 2025-03-24 00:37
   // Cli Options: proyect -o diagrama.dot --exclude-models=auth.User
 
   fontname = "Roboto"
@@ -21,6 +21,48 @@ digraph model_graph {
 
   // Labels
 
+
+  proyect_models_ItemAttachment [label=<
+    <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
+    <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
+    <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
+    ItemAttachment
+    </B></FONT></TD></TR>
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>item</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">creation_date</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">DateTimeField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">name</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">notes</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">TextField</FONT>
+    </TD></TR>
+  
+  
+    </TABLE>
+    >]
 
   proyect_models_Type [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
@@ -100,6 +142,14 @@ digraph model_graph {
     <FONT FACE="Roboto"><B>id</B></FONT>
     </TD><TD ALIGN="LEFT">
     <FONT FACE="Roboto"><B>AutoField</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">color</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT COLOR="#7B7B7B" FACE="Roboto">CharField</FONT>
     </TD></TR>
   
   
@@ -792,11 +842,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Decorator [label=<
+  proyect_models_ProyectDecorator [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Decorator
+    ProyectDecorator
     </B></FONT></TD></TR>
   
   
@@ -1144,11 +1194,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Category_Attribute [label=<
+  proyect_models_CategoryAttribute [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Category_Attribute
+    CategoryAttribute
     </B></FONT></TD></TR>
   
   
@@ -1356,11 +1406,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Item_Attribute [label=<
+  proyect_models_ItemAttribute [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Attribute
+    ItemAttribute
     </B></FONT></TD></TR>
   
   
@@ -1438,34 +1488,34 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Item_Image [label=<
+  proyect_models_ItemImage [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Image
+    ItemImage<BR/>&lt;<FONT FACE="Roboto"><I>ItemAttachment</I></FONT>&gt;
     </B></FONT></TD></TR>
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>id</B></FONT>
+    <FONT FACE="Roboto"><I><B>id</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>AutoField</B></FONT>
+    <FONT FACE="Roboto"><I><B>AutoField</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>item</B></FONT>
+    <FONT FACE="Roboto"><I><B>item</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    <FONT FACE="Roboto"><I><B>ForeignKey (id)</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto">creation_date</FONT>
+    <FONT FACE="Roboto"><I>creation_date</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto">DateTimeField</FONT>
+    <FONT FACE="Roboto"><I>DateTimeField</I></FONT>
     </TD></TR>
   
   
@@ -1479,51 +1529,51 @@ digraph model_graph {
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">name</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>name</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">CharField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>CharField</I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">notes</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>notes</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">TextField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>TextField</I></FONT>
     </TD></TR>
   
   
     </TABLE>
     >]
 
-  proyect_models_Item_Material [label=<
+  proyect_models_ItemMaterial [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Material
+    ItemMaterial<BR/>&lt;<FONT FACE="Roboto"><I>ItemAttachment</I></FONT>&gt;
     </B></FONT></TD></TR>
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>id</B></FONT>
+    <FONT FACE="Roboto"><I><B>id</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>AutoField</B></FONT>
+    <FONT FACE="Roboto"><I><B>AutoField</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>item</B></FONT>
+    <FONT FACE="Roboto"><I><B>item</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    <FONT FACE="Roboto"><I><B>ForeignKey (id)</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto">creation_date</FONT>
+    <FONT FACE="Roboto"><I>creation_date</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto">DateTimeField</FONT>
+    <FONT FACE="Roboto"><I>DateTimeField</I></FONT>
     </TD></TR>
   
   
@@ -1537,17 +1587,17 @@ digraph model_graph {
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">name</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>name</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">CharField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>CharField</I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">notes</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>notes</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">TextField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>TextField</I></FONT>
     </TD></TR>
   
   
@@ -1562,34 +1612,34 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Item_File [label=<
+  proyect_models_ItemFile [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_File
+    ItemFile<BR/>&lt;<FONT FACE="Roboto"><I>ItemAttachment</I></FONT>&gt;
     </B></FONT></TD></TR>
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>id</B></FONT>
+    <FONT FACE="Roboto"><I><B>id</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>AutoField</B></FONT>
+    <FONT FACE="Roboto"><I><B>AutoField</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto"><B>item</B></FONT>
+    <FONT FACE="Roboto"><I><B>item</B></I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto"><B>ForeignKey (id)</B></FONT>
+    <FONT FACE="Roboto"><I><B>ForeignKey (id)</B></I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT FACE="Roboto">creation_date</FONT>
+    <FONT FACE="Roboto"><I>creation_date</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT FACE="Roboto">DateTimeField</FONT>
+    <FONT FACE="Roboto"><I>DateTimeField</I></FONT>
     </TD></TR>
   
   
@@ -1603,28 +1653,28 @@ digraph model_graph {
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">name</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>name</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">CharField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>CharField</I></FONT>
     </TD></TR>
   
   
   
     <TR><TD ALIGN="LEFT" BORDER="0">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">notes</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>notes</I></FONT>
     </TD><TD ALIGN="LEFT">
-    <FONT COLOR="#7B7B7B" FACE="Roboto">TextField</FONT>
+    <FONT COLOR="#7B7B7B" FACE="Roboto"><I>TextField</I></FONT>
     </TD></TR>
   
   
     </TABLE>
     >]
 
-  proyect_models_Item_Comment [label=<
+  proyect_models_ItemComment [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Comment
+    ItemComment
     </B></FONT></TD></TR>
   
   
@@ -1678,11 +1728,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Item_Comment_State [label=<
+  proyect_models_ItemCommentState [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Comment_State
+    ItemCommentState
     </B></FONT></TD></TR>
   
   
@@ -1752,11 +1802,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_Item_Comment_State_File [label=<
+  proyect_models_ItemCommentStateFile [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    Item_Comment_State_File
+    ItemCommentStateFile
     </B></FONT></TD></TR>
   
   
@@ -1802,11 +1852,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_WorkOrder_Comment_State [label=<
+  proyect_models_WorkOrderCommentState [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    WorkOrder_Comment_State
+    WorkOrderCommentState
     </B></FONT></TD></TR>
   
   
@@ -1876,11 +1926,11 @@ digraph model_graph {
     </TABLE>
     >]
 
-  proyect_models_WorkOrder_Comment_State_File [label=<
+  proyect_models_WorkOrderCommentStateFile [label=<
     <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
     <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
     <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
-    WorkOrder_Comment_State_File
+    WorkOrderCommentStateFile
     </B></FONT></TD></TR>
   
   
@@ -1926,10 +1976,55 @@ digraph model_graph {
     </TABLE>
     >]
 
+  proyect_models_UIElement [label=<
+    <TABLE BGCOLOR="white" BORDER="1" CELLBORDER="0" CELLSPACING="0">
+    <TR><TD COLSPAN="2" CELLPADDING="5" ALIGN="CENTER" BGCOLOR="#1b563f">
+    <FONT FACE="Roboto" COLOR="white" POINT-SIZE="10"><B>
+    UIElement
+    </B></FONT></TD></TR>
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto"><B>id</B></FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto"><B>BigAutoField</B></FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">key</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">label_text</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+  
+    <TR><TD ALIGN="LEFT" BORDER="0">
+    <FONT FACE="Roboto">language_code</FONT>
+    </TD><TD ALIGN="LEFT">
+    <FONT FACE="Roboto">CharField</FONT>
+    </TD></TR>
+  
+  
+    </TABLE>
+    >]
+
 
 
 
   // Relations
+
+  proyect_models_ItemAttachment -> proyect_models_Item
+  [label=" item (itemattachment)"] [arrowhead=none, arrowtail=dot, dir=both];
 
   proyect_models_Proyect -> proyect_models_Type
   [label=" type (proyect)"] [arrowhead=none, arrowtail=dot, dir=both];
@@ -1949,20 +2044,20 @@ digraph model_graph {
   proyect_models_Group -> proyect_models_Subcategory
   [label=" subcategory (group)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Decorator -> proyect_models_Decorator
+  proyect_models_ProyectDecorator -> proyect_models_ProyectDecorator
   [label=" supervisor (assistant)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Decorator -> proyect_models_Proyect
+  proyect_models_ProyectDecorator -> proyect_models_Proyect
   [label=" proyects (proyects)"] [arrowhead=dot arrowtail=dot, dir=both];
 
   proyect_models_Event -> proyect_models_WorkOrder
   [label=" workorder (event)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Category_Attribute -> proyect_models_Category
-  [label=" category (category_attribute)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_CategoryAttribute -> proyect_models_Category
+  [label=" category (categoryattribute)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Category_Attribute -> proyect_models_Attribute
-  [label=" attribute (category_attribute)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_CategoryAttribute -> proyect_models_Attribute
+  [label=" attribute (categoryattribute)"] [arrowhead=none, arrowtail=dot, dir=both];
 
   proyect_models_Item -> proyect_models_WorkOrder
   [label=" workorder (item)"] [arrowhead=none, arrowtail=dot, dir=both];
@@ -1976,41 +2071,50 @@ digraph model_graph {
   proyect_models_Item -> proyect_models_Responsible
   [label=" responsible (item)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Attribute -> proyect_models_Item
-  [label=" item (item_attribute)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemAttribute -> proyect_models_Item
+  [label=" item (itemattribute)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Attribute -> proyect_models_Attribute
-  [label=" attribute (item_attribute)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemAttribute -> proyect_models_Attribute
+  [label=" attribute (itemattribute)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Image -> proyect_models_Item
-  [label=" item (item_image)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemImage -> proyect_models_Item
+  [label=" item (itemimage)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Material -> proyect_models_Item
-  [label=" item (item_material)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemImage -> proyect_models_ItemAttachment
+  [label=" abstract\ninheritance"] [arrowhead=empty, arrowtail=none, dir=both];
 
-  proyect_models_Item_File -> proyect_models_Item
-  [label=" item (item_file)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemMaterial -> proyect_models_Item
+  [label=" item (itemmaterial)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Comment -> proyect_models_Item
-  [label=" item (item_comment)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemMaterial -> proyect_models_ItemAttachment
+  [label=" abstract\ninheritance"] [arrowhead=empty, arrowtail=none, dir=both];
 
-  proyect_models_Item_Comment_State -> proyect_models_Item
-  [label=" item (item_comment_state)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemFile -> proyect_models_Item
+  [label=" item (itemfile)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_Item_Comment_State -> proyect_models_State
-  [label=" state (item_comment_state)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemFile -> proyect_models_ItemAttachment
+  [label=" abstract\ninheritance"] [arrowhead=empty, arrowtail=none, dir=both];
 
-  proyect_models_Item_Comment_State_File -> proyect_models_Item_Comment_State
-  [label=" item_comment_state (item_comment_state_file)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemComment -> proyect_models_Item
+  [label=" item (itemcomment)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_WorkOrder_Comment_State -> proyect_models_WorkOrder
-  [label=" workorder (workorder_comment_state)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemCommentState -> proyect_models_Item
+  [label=" item (itemcommentstate)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_WorkOrder_Comment_State -> proyect_models_State
-  [label=" state (workorder_comment_state)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemCommentState -> proyect_models_State
+  [label=" state (itemcommentstate)"] [arrowhead=none, arrowtail=dot, dir=both];
 
-  proyect_models_WorkOrder_Comment_State_File -> proyect_models_WorkOrder_Comment_State
-  [label=" workorder_comment_state (workorder_comment_state_file)"] [arrowhead=none, arrowtail=dot, dir=both];
+  proyect_models_ItemCommentStateFile -> proyect_models_ItemCommentState
+  [label=" item_comment_state (itemcommentstatefile)"] [arrowhead=none, arrowtail=dot, dir=both];
+
+  proyect_models_WorkOrderCommentState -> proyect_models_WorkOrder
+  [label=" workorder (workordercommentstate)"] [arrowhead=none, arrowtail=dot, dir=both];
+
+  proyect_models_WorkOrderCommentState -> proyect_models_State
+  [label=" state (workordercommentstate)"] [arrowhead=none, arrowtail=dot, dir=both];
+
+  proyect_models_WorkOrderCommentStateFile -> proyect_models_WorkOrderCommentState
+  [label=" workorder_comment_state (workordercommentstatefile)"] [arrowhead=none, arrowtail=dot, dir=both];
 
 
 }
