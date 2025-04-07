@@ -15,6 +15,9 @@
 	<link href="{% static 'css/plugins.bundle.css' %}" rel="stylesheet" type="text/css" />
 	<link href="{% static 'css/style.bundle.css' %}" rel="stylesheet" type="text/css" />
 
+	<link href="{% static 'css/galery/gallery.css' %}" rel="stylesheet" type="text/css" />
+	<link href="{% static 'css/galery/jquery.fancybox.css' %}" rel="stylesheet" type="text/css" />
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	
 	<meta name="csrf-token" content="{{ csrf_token }}">
@@ -101,6 +104,7 @@
 					<!--end::Toolbar-->
 					<!--begin::Post-->
 					<div class="post d-flex flex-column-fluid" id="kt_post">
+						
 						<!--begin::Container-->
 						<div id="kt_content_container" class="container-xxl">
 
@@ -113,15 +117,21 @@
 									<div class="card card-xxl-stretch mb-8 mb-xl-12">
 
 										<!--begin::Header-->
+										{% if labels.TITLE_PANEL != None %}
 										<div class="card-header pt-5">
 											<h3 class="card-title align-items-start flex-column">
 												<span class="card-label fw-bolder fs-3 mb-1">{{ labels.TITLE_PANEL }}</span>
+												{% if labels.SUBTITLE_PANEL != None %}
 											<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PANEL }}</span>
+											{% endif %}
 											</h3>
 										</div>
+										{% endif %}
 										<!--end::Header-->
+
 										<!--begin::Body-->
 										<div>
+											
 											<div class="tab-content">
 												<!--begin::Form-->
 												<form id="formSearch" method="POST">
@@ -142,10 +152,10 @@
 														<!--end::Compact form-->
 														<!--begin::Advance form-->
 														<div class="collapse_" id="kt_advanced_search_form">
-																														
+																																													
 															<div class="row mb-6">
 															
-																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
 																	<div class="row">       
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">Date from</label>
@@ -172,7 +182,7 @@
 																	</div>
 																</div>
 
-																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">Date until</label>
@@ -199,7 +209,23 @@
 																	</div>
 																</div>
 
-																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																<div class="col-lg-4" style="border:1px solid white; border-width:1px;">
+																	<div class="row">
+																		<div class="col-xl-12">
+																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_DECORATOR }}</label>
+																			<!--begin::Select-->																			
+																			<select class="form-select form-select-solid" data-kt-select2="false" name="decorator" id="selectDecorator">
+																				<option value="0"></option>
+																				{% for decorator in decorators %}
+																				<option value="{{ decorator.id }}" {% if decorator.id == decorator_id  %}selected{% endif %}>{{ decorator.name }}</option>
+																				{% endfor %}
+																			</select>
+																			<!--end::Select-->
+																		</div>
+																	</div>
+																</div>
+
+																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_TYPE }}</label>
@@ -215,7 +241,7 @@
 																	</div>
 																</div>
 
-																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_STATUS }}</label>
@@ -274,14 +300,23 @@
 												<!--end::Form-->
 
 
-												<div class="card card-flush mt-6 mt-xl-9">
-													<!--begin::Card body-->
-													<div class="card-body pt-0">
+												<div class="card card-flush mt-6 mt-xl-1">
 
-														<div class="table-responsive">
+													<div id="please_wait_message" style="text-align: center; padding: 20px;">
+														<div class="spinner-border text-primary" role="status">
+															<span class="sr-only">Loading...</span>
+														</div>
+														<span class="ml-2">Please wait, loading data...</span>
+													</div>
+
+
+													<!--begin::Card body-->
+													<div class="card-body pt-0 page-loading">																											
+
+														<div id="table-responsive" class="table-responsive">
 
 															<!--begin: Datatable-->
-															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable">
+															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable" style="display:none">
 																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
 																	<tr>																																	
 																		<th title="Field #3">{{ labels.LABEL_DECORATOR }}</th>
@@ -291,7 +326,7 @@
 																		<th title="Field #5">Ant</th>
 																		<th title="Field #5">Description</th>
 																		<th title="Field #6">Qty WO</th>
-																		<th title="Field #7">Status</th>																		
+																		<th title="Field #7" class="max-w-100px">Status</th>																		
 																		<th class="min-w-100px text-end">Actions</th>
 																		<th style="display:none"></th>
 																		
@@ -314,32 +349,12 @@
 																		<td class="text-start text fs-8">{{ proyect.difference }}</td>
 																		<td class="text-start text fs-8">{{ proyect.categories }}</td>
 																		<td class="text-start text fs-8">{{ proyect.qty_items }}</td>
-																		<td class="text-start fs-8"><a href="{% url 'view_url' proyect_id=proyect.id %}" </a>
-																		{% if proyect.state_id == 1 %}
-																			<span class="fw-bold p-2 mb-3 badge-state-1">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 2 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-2">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 3 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-3">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 4 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-4">{{ proyect.state }}</span>																		
-																		{% elif proyect.state_id == 5 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-5">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 6 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-6">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 7 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-7">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 8 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-8">{{ proyect.state }}</span>
-																		{% elif proyect.state_id == 9 %}
-																			<span class="fw-bold p-2 mb-3 badge badge-state-9">{{ proyect.state }}</span>
-																		{% else %}
-																			<span class="badge badge-light">{{ proyect.state }}</span>
-																		{% endif %}
+																		<td class="text-start fs-8">
+																			{{ proyect.statesHTML|safe }}																																											
 																		</td>
 																		<td class='text-center text-end fs-8'>
 																			<div class="d-flex justify-content-end flex-shrink-0">
-																				<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" >
+																				<a href="javascript:viewProyect({{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" >
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen019.svg-->
 																					<span class="svg-icon svg-icon-3" title="View">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="View">
@@ -501,9 +516,51 @@
 		<!--end::Page-->
 	</div>
 	<!--end::Root-->
+	
+	<!--begin::Modal Proyect View-->								
+		
+		<!--begin::Container-->
+		<div class="container-xxl">
+			<!--begin::Modal - Select Location-->
+			<div class="modal fade " id="modalProyect" tabindex="-1" >
+				<!--begin::Modal dialog-->
+				<div class="modal-dialog " style="max-width: 90% !important;">
+	
+					<div class="modal-content">
+						<!--begin::Modal header-->
+						<div class="modal-header border-0 justify-content-end">					
+							<!--begin::Close-->
+							<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+								<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+								<span class="svg-icon svg-icon-1">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+										<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+										<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+									</svg>
+								</span>
+								<!--end::Svg Icon-->
+							</div>
+							<!--end::Close-->
+						</div>
+						<!--end::Modal header-->
+						<!--begin::Modal body-->
+						<div id="divViewProyect" class="modal-body pt-0 pb-20 px-lg-17">
+
+
+							
+							
+						</div>
+						<!--end::Modal body-->
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+
+	
+	
 	<!--begin::Drawers-->
-
-
 	<!--begin::Activities drawer (logs de actividades)-->
 	<div id="kt_activities" class="bg-body" data-kt-drawer="true" data-kt-drawer-name="activities"
 		data-kt-drawer-activate="true" data-kt-drawer-overlay="true"
@@ -878,57 +935,6 @@
 	<!--end::Activities drawer-->
 
 
-	<!--begin::Modals-->
-	<!--begin::Modal - Invite Friends (Agregar decorador)-->
-	<div class="modal fade" id="kt_modal_invite_friends" tabindex="-1" aria-hidden="true">
-		<!--begin::Modal dialog-->
-		<div class="modal-dialog mw-650px">
-			<!--begin::Modal content-->
-			<div class="modal-content">
-				<!--begin::Modal header-->
-				<div class="modal-header pb-0 border-0 justify-content-end">
-					<!--begin::Close-->
-					<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
-						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
-						<span class="svg-icon svg-icon-1">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-								fill="none">
-								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1"
-									transform="rotate(-45 6 17.3137)" fill="black" />
-								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)"
-									fill="black" />
-							</svg>
-						</span>
-						<!--end::Svg Icon-->
-					</div>
-					<!--end::Close-->
-				</div>
-				<!--begin::Modal header-->
-				<!--begin::Modal body-->
-				<div class="modal-body scroll-y mx-5 mx-xl-18 pt-0 pb-15">
-					<!--begin::Heading-->
-					<div class="text-center mb-13">
-						<!--begin::Title-->
-						<h1 class="mb-3">Agregar decorador</h1>
-						<!--end::Title-->
-						<!--begin::Description-->
-						<div class="text-muted fw-bold fs-5">En desarrollo
-							<a href="#" class="link-primary fw-bolder">:)</a>
-						</div>
-						<!--end::Description-->
-					</div>
-					<!--end::Heading-->
-
-				</div>
-				<!--end::Modal body-->
-			</div>
-			<!--end::Modal content-->
-		</div>
-		<!--end::Modal dialog-->
-	</div>
-	<!--end::Modal - Invite Friend-->
-	<!--end::Modals-->
-
 	<!--begin::Scrolltop-->
 	<div id="kt_scrolltop" class="scrolltop" data-kt-scrolltop="true">
 		<!--begin::Svg Icon | path: icons/duotune/arrows/arr066.svg-->
@@ -981,8 +987,7 @@
 					</div>
 					<!--end::Edit-->
 					<!--begin::Edit-->
-					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="kt_modal_view_event_delete">
-						<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+					<!-- <div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="kt_modal_view_event_delete">						
 						<span class="svg-icon svg-icon-2">
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
 								<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
@@ -990,8 +995,7 @@
 								<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
 							</svg>
 						</span>
-						<!--end::Svg Icon-->
-					</div>
+					</div> -->
 					<!--end::Edit-->
 					<!--begin::Close-->
 					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Hide Event" data-bs-dismiss="modal">
@@ -1078,6 +1082,11 @@
 	<script src="{% static 'js/fullcalendar/fullcalendar.bundle.js' %}"></script>
 	<script src="{% static 'js/datatable/datatables.bundle.js' %}"></script>
 
+	<script src="{% static 'js/galery/jquery.fancybox.js' %}"></script>
+	<script src="{% static 'js/galery/gallery.js' %}"></script>
+
+	<script src="{% static 'js/galery/masonry.pkgd.min.js' %}"></script>
+
 
 	<script>
 
@@ -1147,7 +1156,7 @@
     					myModal.show();
 
 						document.getElementById('kt_modal_view_event_edit').addEventListener('click', function() {														
-    						window.location.href = "/proyect/view/" + info.event.groupId; // Combinar URL de Django con el ID
+    						window.location.href = "/proyect/view/" + info.event.extendedProps.p; // Combinar URL de Django con el ID
 						});
 
 
@@ -1159,7 +1168,7 @@
 						document.getElementById('tooltipDateMd').textContent = formattedDate;
 						document.getElementById('id1').value = info.event.groupId;
 						document.getElementById('id2').value = info.event.id;
-						loadIC(info.event.groupId, info.event.id);
+						loadIC(info.event.groupId, info.event.id, 1);
 					}
 
 
@@ -1177,11 +1186,14 @@
 							
 							calendar.addEvent({
 								id: agendy.id,
-								groupId: agendy.groupId,
+								groupId: agendy.w,
 								title: agendy.title,
 								start: agendy.start,
 								description: agendy.description,
 								color: agendy.color,
+								extendedProps: {
+									p: agendy.p,
+								}
 								
 							});						
 	
@@ -1198,29 +1210,48 @@
 		}
 
 		
-		$(document).ready(function() {
+		$(document).ready(function() {	
+			
+			$('#kt_datatable').hide();
+			
+			setTimeout(function() {
+				// Aquí simulas la respuesta del servidor. En un caso real, se actualizaría la tabla con los nuevos datos.
+				// Por ejemplo, con AJAX, usarías algo como:
+				// $.ajax({...});
+
+				// Luego de recibir la respuesta, ocultamos el mensaje de carga y mostramos la tabla.
+				$('#please_wait_message').hide();
+				$('#kt_datatable').show();
+
+				var table = $('#kt_datatable').DataTable({		
+					"order": [[3, 'desc']],
+					"language": {
+						"emptyTable": "No results found."
+					},		
+				});
+
+				$('#globalSearch').on('keyup change', function() {
+					table.search(this.value).draw();  // Filtra la tabla con el valor del input
+				});
+
+			}, 1000); // Simulación de carga (2 segundos)
+
 
 			$("#dateFrom").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
 			$("#dateUntil").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
 			
 			loadCalendar();
-			
-			var table = $('#kt_datatable').DataTable({		
-				"order": [[3, 'desc']] 
-			});
-
-			$('#globalSearch').on('keyup change', function() {
-				table.search(this.value).draw();  // Filtra la tabla con el valor del input
-			});
-
-
+									
 			$("#reset").click(function() {
 				$("#dateFrom").val("");
 				$("#dateUntil").val("");
 				$("#globalSearch").val("");
 				$("#selectType").prop("selectedIndex", 0);
 				$("#selectState").prop("selectedIndex", 0);
+				$("#selectDecorator").prop("selectedIndex", 0);
 			});
+
+					
 
         });
 
@@ -1285,7 +1316,7 @@
 		}
 
 		
-		function loadIC(y, t){
+		function loadIC(y, t, m){
 			
 			$.ajax({
 				url: "{% url 'getDataComment_url' %}",  // La URL que manejará la consulta AJAX
@@ -1293,6 +1324,7 @@
 				data: {
 					'id1': y,
 					'id2': t,
+					'id4': m,
 				},		
 				success: function(response) {
 					$('#saveItemComment').html(response.result);
@@ -1306,12 +1338,11 @@
 		}
 
 
-		function saveIC(i){
-
-			var p = $('#id1').val()				
+		function saveIR(w,i){
+								
 			var formData = new FormData();  // Creamos un objeto FormData vacío
-			formData.append('id1', p);
-			formData.append('id2', i);
+			formData.append('id1', w);
+			formData.append('id2', i);				
 			// Serializamos los datos del formulario (excepto los archivos)
 			var serializedData = $('#formItem_' + String(i)).serialize();
 						
@@ -1325,7 +1356,7 @@
 			});
 
 			var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
-
+			
 			if (inputFile && inputFile.files.length > 0) {
 
 				for (var i = 0; i < inputFile.files.length; i++) {
@@ -1340,15 +1371,13 @@
 				processData: false,  // Esto es importante para enviar archivos correctamente
 				contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
 				beforeSend: function(xhr, settings) {
-					// Añadir el token CSRF en las cabeceras					
+					// Añadir el token CSRF en las cabeceras
 					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
 				},
 				success: function(response) {
-					if(response.result = "OK"){
-						
-						const divWithClass = $('#formItem_'+ String(i) +' .divItemMsg');
-						divWithClass.show();
-						divWithClass.fadeOut(5000);
+					if(response.result = "OK"){								
+						loadCalendar();
+						$('#kt_modal_view_event').modal('hide');												
 					}						
 				},
 				error: function() {
@@ -1356,9 +1385,10 @@
 				}
 			});
 
-			}
 
-
+		}
+		
+		
 		function initializeFlatpickr() {
 			// Aplicar flatpickr a los inputs con la clase 'date-picker'
 			$(".date-picker").flatpickr({
@@ -1401,6 +1431,44 @@
 
 				}
 			});	
+		}
+
+
+		function viewProyect(p){			
+			$("#divViewProyect").val("");
+			$('#modalProyect').modal('show');
+
+			$.ajax({
+				
+				url: "{% url 'getSelectWOs_url' %}",  // La URL que manejará la consulta AJAX
+				method: 'POST',
+				data: {
+					'p': p,
+					'm': 2 // El valor que se envía al servidor
+				},
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {
+					// Rellena los campos con los datos obtenidos de la respuesta
+					$('#divViewProyect').html(response.result);
+					$('.grid-gallery').masonry_gallery();			
+					$('html, body').animate({ scrollTop: 0 }, 'fast');					
+					showImgs();
+				},
+				error: function(xhr, status, error) {
+					console.error("Error server: " + error, event.error);
+				}
+			});
+
+
+		}
+
+		function showImgs(){										
+			$('.showImg').each(function() {					
+				$(this).click();
+			});
 		}
 
 

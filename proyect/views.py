@@ -5,7 +5,7 @@ from django.contrib import messages
 from datetime import datetime # dar formato a la fecha
 from django.shortcuts import redirect # redireccionar a páginas
 from django.contrib.auth.decorators import login_required #para controlar las sesiones
-from django.db.models import Q # permite realizar consultas complejas
+from django.db.models import Q, Count # permite realizar consultas complejas / Count permite agrupar consultas
 from django.urls import reverse #evita doble envio de formulario
 
 # from django.core.files.storage import FileSystemStorage #para las imagenes
@@ -23,7 +23,9 @@ from django.conf import settings #Para el PDF, manejar las rutas
 from django.http import HttpRequest #Para las sesiones
 
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement, AttributeOption, ItemAttributeNote #Aquí importamos a los modelos que necesitamos
+
+import ast #Usado para pasar una lista string a lista de verdad
 
 @login_required
 def panel_view(request):
@@ -31,9 +33,11 @@ def panel_view(request):
     #Consulta los proyectos/tipos/estados desde la base de datos    
     types = Type.objects.filter(status=1).order_by('id')
     states = State.objects.filter(status=1).order_by('id')
+    decorators = ProyectDecorator.objects.filter(is_supervisor = 1).order_by('name')
 
     type_id = 0
     state_id = 0
+    decorator_id = 0
     date_from = ''
     date_until = ''    
     condiciones = Q()
@@ -44,6 +48,7 @@ def panel_view(request):
         date_until = request.POST.get('dateUntil')
         type_id = int(request.POST.get('type'))
         state_id = int(request.POST.get('state'))
+        decorator_id = int(request.POST.get('decorator'))
 
         if date_from != '':
             try:
@@ -65,7 +70,10 @@ def panel_view(request):
             condiciones &= Q(type__id = type_id) ##igual a fk
 
         if state_id != 0:
-            condiciones &= Q(workorder__state__id = state_id) ##igual a fk    
+            condiciones &= Q(workorder__state__id = state_id) ##igual a fk
+
+        if decorator_id != 0:
+            condiciones &= Q(decoratorProyects__id = decorator_id) ##igual a fk            
 
 
     proyects_data = getDataProyect(condiciones)
@@ -79,8 +87,10 @@ def panel_view(request):
                                                   'date_until': date_until,
                                                   'type_id': type_id,
                                                   'state_id': state_id,
+                                                  'decorator_id': decorator_id,
                                                   'types': types,
                                                   'states': states,
+                                                  'decorators': decorators,
                                                   'labels': labels})    
 
 
@@ -118,7 +128,7 @@ def proyect_new(request):
         #Se busca si existe el cliente
         condicionesCustomer = Q()
         condicionesCustomer = Q(address__icontains = address) & Q(city__icontains = city) & Q(state__icontains = state) & Q(zipcode__icontains = zipcode) & Q(apartment__icontains = apartment)
-        customer_data = funct_data_customer(condicionesCustomer, 1)
+        customer_data = getDataCustomer(condicionesCustomer, 1)
 
         # Si la direccion no existe por si acaso
         if len(customer_data) == 0:  
@@ -286,7 +296,7 @@ def proyect_view(request, proyect_id):
     except State.DoesNotExist:
         state_new_name = ''
 
-    workOrdersHtml = getDataWOs(request, proyect_id)    
+    workOrdersHtml = getDataWOs(request, proyect_id,1)    
 
     decoratorsHTML = getDecoratorsTable(decorators)
     ascociatesHTML = getDecoratorsTable(ascociates)
@@ -364,6 +374,7 @@ def getDataDecorator(request):
     return JsonResponse({'result': decoratorsHTML})
 
 
+#Consulta ejecutada para validar la existencia de la direccion
 @login_required
 def getAddress(request):
 
@@ -380,7 +391,7 @@ def getAddress(request):
 
         if address.strip() != '' and len(address) >= 3:
             condicionesCustomer = Q(address__icontains = address) & (Q(city__icontains = city) | Q(state__icontains = state) | Q(zipcode__icontains = zipcode) | Q(apartment__icontains = apartment))
-            customer_data = funct_data_customer(condicionesCustomer, 1)
+            customer_data = getDataCustomer(condicionesCustomer, 1)
 
     messageHtml = ""
    
@@ -430,6 +441,7 @@ def getAddress(request):
     return JsonResponse({'result': messageHtml, 'msg': exist})
 
 
+# ##Consulta realizada en el panel, para obtener los datos para el calendario
 @login_required
 def getDataCalendar(request):
     #Consulta los items desde la BD    
@@ -441,57 +453,19 @@ def getDataCalendar(request):
         if item.date_end:
 
             fecha = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-            color = '',
+            color = item.responsible.color
 
-            if item.proyect.state.id == 4:
-                color = '#50cd89'
+            # if item.workorder.state.id == 4:
+            #     color = '#50cd89'
 
-            if item.proyect.state.id == 5:
-                color = '#7239ea'
+            # if item.workorder.state.id == 5:
+            #     color = '#7239ea'
 
-            if item.proyect.state.id == 6:
-                color = 'fc-event-solid-dark'
+            # if item.workorder.state.id == 6:
+            #     color = 'fc-event-solid-dark'
 
-            if item.proyect.state.id == 7:
-                color = 'fc-event-solid-dark'
-                    
-            events.append({
-                'id': item.id,
-                'title':  item.proyect.customer.address,
-                'start': fecha,
-                'description': item.proyect.customer.name,
-                'color': color,
-                'groupId': "/proyect/view/" + str(item.proyect.id),
-            })
-                
-    # Devolvemos la lista de proyectos como respuesta JSON
-    return JsonResponse({'calendar': events})
-
-
-@login_required
-def getDataCalendar(request):
-    #Consulta los items desde la BD    
-    items = Item.objects.filter(date_end__isnull=False)
-    events = []
-
-    for item in items:
-
-        if item.date_end:
-
-            fecha = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-            color = '',
-
-            if item.workorder.state.id == 4:
-                color = '#50cd89'
-
-            if item.workorder.state.id == 5:
-                color = '#7239ea'
-
-            if item.workorder.state.id == 6:
-                color = 'fc-event-solid-dark'
-
-            if item.workorder.state.id == 7:
-                color = 'fc-event-solid-dark'
+            # if item.workorder.state.id == 7:
+            #     color = 'fc-event-solid-dark'
                     
             events.append({
                 'id': item.id,
@@ -499,12 +473,14 @@ def getDataCalendar(request):
                 'start': fecha,
                 'description': item.workorder.proyect.customer.name,
                 'color': color,
-                'groupId': str(item.workorder.id),
+                'p': str(item.workorder.proyect.id),
+                'w': str(item.workorder.id),
             })
                 
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'calendar': events})
     
+
 #Funcion para agregar/editar comentarios generales o particulares
 @login_required
 def getDataComment(request):
@@ -796,10 +772,30 @@ def selectAttibutes(request):
 
         attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = selected_value)).order_by('order','attribute')
         
-        for attribute in attributes:          
+        for attribute in attributes:
             attributeHTML += '<div class="row mb-2">'
             attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + attribute.attribute.name + ':</div></div>'
-            attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '"/></div></div>'
+
+            if attribute.attribute.multiple:
+                                
+                options = AttributeOption.objects.filter(attribute = attribute.attribute)
+                attributeHTML += '<div class="col-xl-8"><select class="form-select form-select-sm form-select-solid selectAttribute" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="true" name="attribute_' + str(attribute.attribute.id) + '" multiple>'
+                
+                for option in options:
+                    
+                    if option.file:
+                        attributeHTML += '<option value=' + str(option.id) + ' data-image="' + str(option.file.url) + '">' + option.name + '</option>'
+                    else:
+                        attributeHTML += '<option value=' + str(option.id) + ' data-image="/static/images/no-image.png">' + option.name + '</option>'
+
+                attributeHTML += '</select></div>'
+
+            else:
+                attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '"/></div>'
+
+            attributeHTML += '</div>'
+
+
 
     except ValueError:
         messages.error(request, 'Server error. Please contact to administrator!')
@@ -813,7 +809,8 @@ def selectAttibutes(request):
 def selectWOs(request):
     #Consulta los items desde la base de datos
     proyectId = request.POST.get('p')
-    wosHTML = getDataWOs(request, proyectId)
+    mode = request.POST.get('m')
+    wosHTML = getDataWOs(request, proyectId, int(mode))
                     
     # Devolvemos la lista de ascociates como respuesta JSON
     return JsonResponse({'result': wosHTML})
@@ -852,10 +849,19 @@ def getDataProyect(filters):
 
         
         #Se busca las WO del proyecto
-        workorders= WorkOrder.objects.filter(proyect = proyect)
+        # statesHTML = '<select class="form-select form-select-solid" data-kt-select2="false">'
+        statesHTML = ''
+        workordersStates = WorkOrder.objects.filter(proyect = proyect, status = 1).values('state__id', 'state__name').annotate(count=Count('state__id')).order_by('state__id')
+
+        for wo in workordersStates:
+            # statesHTML += '<option><span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + '">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span></option>'
+            statesHTML += '<span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + '">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span><br/>'
+
+        # statesHTML += '</select>'
+
 
         #Se busca los items de la WO, y se ordenan las categorias
-        items = Item.objects.filter(workorder__in = workorders).order_by('group__subcategory__category__name')
+        items = Item.objects.filter(workorder__in = WorkOrder.objects.filter(proyect = proyect, status = 1)).order_by('group__subcategory__category__name')
         categoryList = []
         categoryStr = ''
         
@@ -874,21 +880,9 @@ def getDataProyect(filters):
         qty_items = items.count()
 
         #Se busca los materiales para dejarlos disponibles para una búsqueda rápida        
-        materials_images = ItemImage.objects.filter(item__in = items)
-        materials_files = ItemFile.objects.filter(item__in = items)
-    
-        # Extraer las notas de las consultas
-        notes_img = materials_images.values_list('notes', flat=True)
-        notes_fil = materials_files.values_list('notes', flat=True)
-
-        # Combinar ambas listas de IDs y eliminar duplicados
-        combined_notes = set(notes_img) | set(notes_fil)  # Unión de los sets
-
-        # Ordenar alfabéticamente
-        sorted_notes = sorted(combined_notes)
-
+        materials = ItemMaterial.objects.filter(item__in = items).values_list('notes', flat=True) #flat=True: no devuelve una lista de tuplas, sino una lista plana
         # Convertir las notes únicos en un string
-        materials = ', '.join(str(note) for note in sorted_notes)        
+        materialsString = ", ".join(materials)        
 
         dateCreation = proyect.creation_date
         dateCreation = dateCreation.replace(tzinfo=None)
@@ -905,26 +899,26 @@ def getDataProyect(filters):
             'apartment': proyect.customer.apartment,            
             'creationDate': dateCreation.strftime("%Y-%m-%d"),
             'email': proyect.customer.email,
-            'state_id': workorders[0].state.id, #Esto traerá problemas cuandos ea mas de 1, ojo!!
-            'state': workorders[0].state.name, #Esto traerá problemas cuandos ea mas de 1, ojo!!
+            'statesHTML': statesHTML, #Esto traerá problemas cuandos ea mas de 1, ojo!!            
             'allDay': allDay,
             'difference': difference.days,
             'decorators': decoratorsStr,
             'qty_items': qty_items,
             'categories': categoryStr,
-            'materials': materials
+            'materials': materialsString
         })
     
     return proyectsData
     
 
 #Consulta realizada en la vista del proyecto, para ver las WO´s
-def getDataWOs(request, proyect_id):
+def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
 
     proyect = Proyect.objects.get(id=proyect_id)
     workOrders = WorkOrder.objects.filter(proyect = proyect, status = 1).order_by('id')
     workOrdersHTML = ""
 
+    buttonName = ''
     stateNewName = ""
     stateNewDescription = ""        
     woN = 0
@@ -934,9 +928,13 @@ def getDataWOs(request, proyect_id):
         woN += 1
 
         try:
-            buttonName = State.objects.get(id = wo.state.id).buttonName
-            stateDescription = State.objects.get(id = wo.state.id).description
-            stateNewName = State.objects.get(id = wo.state.id + 1).name
+
+            if mode == 1:
+
+                buttonName = State.objects.get(id = wo.state.id).buttonName
+                stateNewName = State.objects.get(id = wo.state.id + 1).name
+                stateNewDescription = State.objects.get(id = wo.state.id + 1).description
+                
                                
         except:
             pass
@@ -957,9 +955,9 @@ def getDataWOs(request, proyect_id):
 
         workOrdersHTML += '<div class="card-toolbar">'
         
-        if wo.state.id < 10:
+        if wo.state.id < 10 and mode == 1: #Solo si se edita
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateDescription + '">' + buttonName + '</a>'
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + buttonName + '</a>'
             workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
         workOrdersHTML += '</div>'
@@ -970,39 +968,42 @@ def getDataWOs(request, proyect_id):
         #Lista de Items
         workOrdersHTML += '<div class="card-body">'
 
-        if wo.state.id == 1:
 
-            workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
-            workOrdersHTML += '</div>'
+        if mode == 1: # Solo si se edita
+
+            if wo.state.id == 1:
+
+                workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
+                workOrdersHTML += '</div>'
 
 
-        if wo.state.id == 2:
+            if wo.state.id == 2:
 
-            workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            workOrdersHTML += '<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
-            workOrdersHTML += '</div>'
+                workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+                workOrdersHTML += '</div>'
 
-        if wo.state.id >= 3 and wo.state.id <= 9:
+            if wo.state.id >= 3 and wo.state.id <= 9:
 
-            workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            workOrdersHTML += '<a class="btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
-            workOrdersHTML += '</div>'
+                workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
+                workOrdersHTML += '</div>'
 
         if wo.state.id >= 5:
 
             workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            workOrdersHTML += '<a href="generate_pdf/proyect_id=' + str(wo.proyect.id) + '" class="fs-7 text-hover-primary" target="_blank">Download WO</a>'
+            workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
             workOrdersHTML += '</div>'
 
                 
         #Detalle de los items
         workOrdersHTML += '<div id="itemsDetails_' + str(wo.id) + '">'
-        workOrdersHTML += getDataItems(request, wo.id)
+        workOrdersHTML += getDataItems(request, wo.id, mode)
         workOrdersHTML += '</div>'
 
         #Comentarios genéricos por etapa/estado
-        workOrdersHTML += getDataComments(request, wo.id, 0)
+        workOrdersHTML += getDataComments(request, wo.id, 0, mode)
 
         workOrdersHTML += '</div>'
         #Fin item
@@ -1014,17 +1015,17 @@ def getDataWOs(request, proyect_id):
     
     items =  Item.objects.filter(workorder__in = workOrders)
 
-    if len(items) > 0:
+    if len(items) > 0 and mode == 1: # Solo si se edita:
     
         workOrdersHTML += '<div class="d-flex justify-content-star flex-shrink-0">'
-        workOrdersHTML += '<a class="btn btn-link fs-7" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
+        workOrdersHTML += '<a class="btn btn-link fs-6" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
         workOrdersHTML += '</div>'        
 
     return workOrdersHTML
 
 
 #Consulta realizada mientras se consultan las WO´s. Aquí se obtiene el detalle.
-def getDataItems(request, workOrderId):
+def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
     																									    
     itemsHTML = ""
 
@@ -1036,8 +1037,7 @@ def getDataItems(request, workOrderId):
         
         for item in items:
 
-            fecha_propuesta = ''
-            fecha_fin = ''
+            fecha_propuesta = ''            
             code = ''
             group = ''
             itemN+= 1
@@ -1045,10 +1045,7 @@ def getDataItems(request, workOrderId):
             try:
                 if item.date_proposed:
 
-                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y-%m-%d')
-
-                if item.date_end:
-                    fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
+                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y/%m/%d')                
 
                 if workOrder.proyect.code:
                     code = workOrder.proyect.code + '-' + str(itemN)
@@ -1077,17 +1074,21 @@ def getDataItems(request, workOrderId):
             
 
             ## Celda (1, 2) (acciones estado) ##
-            itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
 
-            if item.workorder.state.id in (1,2,3,4):
-                                                        
-                 itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
-                 itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
-                 itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-                 itemsHTML += '</div>'
+            if mode == 1: #edicion
+
+                itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
+
+                if item.workorder.state.id in (1,2,3,4):
+                                                            
+                    itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
+                    itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+                    itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+                    itemsHTML += '</div>'
+                
+                itemsHTML += '</div>'
             
-            itemsHTML += '</div>'
-            
+
             if item.group:
                 group = item.group.name            
 
@@ -1104,16 +1105,33 @@ def getDataItems(request, workOrderId):
 
 
             itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<table><tbody>'                
+            itemsHTML += '<table><tbody>'
             itemsHTML += '<tr><td><b>Category:</b> ' + item.group.subcategory.category.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.group.subcategory.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
             itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
             itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
             itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
-            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'        
+            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'
+            
+            if workOrder.state.id >= 5:
+
+                responsibleName = ''
+                dueDate = ''
+
+                if item.responsible:
+                    responsibleName = item.responsible.name
+
+                if item.date_end:
+                    dueDate = timezone.localtime(item.date_end).strftime('%Y/%m/%d %I:%M %p')
+                
+
+                itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
+                itemsHTML += '<tr><td><b>Due date:</b> ' + dueDate + '</td></tr>'
+
+
             itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'          
+            itemsHTML += '</div>'
             
 
             ##############################################################################################################
@@ -1125,7 +1143,22 @@ def getDataItems(request, workOrderId):
 
             attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
             for attribute in attributes:
-                itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
+                
+                if attribute.attribute.multiple:                    
+                    itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> '
+
+                    attributenotes = ItemAttributeNote.objects.filter(itemattribute = attribute)
+                    for note in attributenotes:
+                        # itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<img src=\'' + note.attributeoption.file.url + '\' style=\'width: 100px; height: 100px;\'"></i>, '
+                        itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
+                        #itemsHTML = f"{note.attributeoption.name} <i class='fas fa-question-circle' data-bs-toggle='tooltip' data-bs-html='true' data-bs-title='<img src=\"{note.attributeoption.file.url}\" style=\"width: 50px; height: 50px; object-fit: cover;\">'></i>, "
+
+                    itemsHTML = itemsHTML[:-2]
+                    
+                    itemsHTML += '</td></tr>'
+
+                else:
+                    itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
 
             itemsHTML += '</tbody></table>'
             itemsHTML += '</div>'       
@@ -1158,7 +1191,7 @@ def getDataItems(request, workOrderId):
 
                 itemsHTML += '<tr><td>' + icon + ' ' + material.notes + qty + '</td>'
 
-                if workOrder.state.id == 4:
+                if workOrder.state.id == 4 and mode == 1: #edicion:
 
                     itemsHTML += '<td>'
                     itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
@@ -1188,29 +1221,31 @@ def getDataItems(request, workOrderId):
             ##############################################################################################################
             ############################################## Celda (acciones) ##############################################
             ##############################################################################################################
+
+            if mode == 1: #edicion:
            
-            itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
 
-            if workOrder.state.id == 2:                
+                if workOrder.state.id == 2:                
 
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
+                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
+                    itemsHTML += '</div>'
+
+
+                if workOrder.state.id >= 3:
+
+                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
+                    itemsHTML += '</div>'
+
+                if workOrder.state.id == 5:
+
+                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
+                    itemsHTML += '</div>'
+                
                 itemsHTML += '</div>'
-
-
-            if workOrder.state.id >= 3:
-
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
-                itemsHTML += '</div>'
-
-            if workOrder.state.id == 5:
-
-                itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                itemsHTML += '<a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
-                itemsHTML += '</div>'
-            
-            itemsHTML += '</div>'   
 
             ## Fin Fila 1.2 ##
             itemsHTML += '</div>'                        
@@ -1228,7 +1263,7 @@ def getDataItems(request, workOrderId):
             ##############################################################################################################
 
             
-            itemsHTML += getDataComments(request, workOrder.id, item.id)
+            itemsHTML += getDataComments(request, workOrder.id, item.id, mode)
 
             #Aprobar cotizacion
             if workOrder.state.id == 3:              
@@ -1287,13 +1322,17 @@ def getDataItems(request, workOrderId):
             ############################################## Celda (archivos) ##############################################
             ##############################################################################################################
 
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'            
-            itemsHTML += '<div class="row">'        
-            itemsHTML += '<div class="col-xl-12">'                        
+            
 
-            files = ItemFile.objects.filter(item = item)            
+            files = ItemFile.objects.filter(item = item)
+            materials = ItemMaterial.objects.filter(item = item, file__isnull = False).exclude(file='').order_by('name')        
 
             if len(files) > 0 or len(materials) > 0:
+
+                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="row">'
+                itemsHTML += '<div class="col-xl-12">'
+
                 itemsHTML += '<div class="d-flex align-items-center border p-5">'
                 itemsHTML += '<ul class="text-start">'
 
@@ -1350,9 +1389,9 @@ def getDataItems(request, workOrderId):
                 itemsHTML += '</ul>'
                 itemsHTML += '</div>'         
                                                                                                                                             
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
-            itemsHTML += '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
+                itemsHTML += '</div>'
             #############
 
             itemsHTML += '</div>'
@@ -1459,7 +1498,7 @@ def getDataItems(request, workOrderId):
 
 
 #Consulta realizada para obtener los datos de cada uno de los comentarios.
-def getDataComments(request, workOrderId, itemId):
+def getDataComments(request, workOrderId, itemId, mode):
     
     workorder = WorkOrder.objects.get(id=workOrderId)            
     itemsHTML = '<br/>'    
@@ -1508,7 +1547,7 @@ def getDataComments(request, workOrderId, itemId):
             itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + itemCS.state.name + ':</div>'
             stateName = itemCS.state.name             
             
-        itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + itemTxt
+        itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + str(itemTxt)
         
         if itemCSF:            
             itemsHTML += '<ul class="text-start">'
@@ -1524,7 +1563,7 @@ def getDataComments(request, workOrderId, itemId):
                 
         user_session = request.user
 
-        if user == user_session and workorder.state == itemCS.state:
+        if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
             itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a>'
 
         itemsHTML += '</div>'
@@ -1538,12 +1577,8 @@ def getDataComments(request, workOrderId, itemId):
     return itemsHTML
 
 
-
-
-
-
-
-def funct_data_customer(filtersCustomer, caso):
+#Consulta realizar al crear un proyecto, para obtener todos los proyectos de tal cliente
+def getDataCustomer(filtersCustomer, caso):
 
     customer_data = []
 
@@ -1581,7 +1616,8 @@ def funct_data_customer(filtersCustomer, caso):
     return customer_data
 
 
-def funct_data_event(filters):
+#Funciones Obsoletas
+def obs_funct_data_event(filters):
     
     event_data = []
 
@@ -1603,7 +1639,7 @@ def funct_data_event(filters):
     return event_data
 
 
-def funct_data_events(proyect_id):
+def obs_funct_data_events(proyect_id):
     
     notesHTML = ""
     
@@ -1768,16 +1804,29 @@ def saveItem(request):
             data = request.POST
 
             prefijo = "attribute_"
+            options = []
 
             for key, value in data.items():
                 if key.startswith(prefijo) and value.strip() != "":
                     try:
 
-                        attribute_id = int(key[len(prefijo):])
+                        attribute_id = int(key[len(prefijo):])                        
+                        attribute = Attribute.objects.get(id=attribute_id)
 
-                        ItemAttribute.objects.create(  item = Item.objects.get(id=item_id),
-                                                        attribute = Attribute.objects.get(id=attribute_id),
-                                                        notes = value)
+                        itemattribute = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
+                                                                        attribute = attribute,
+                                                                        notes = value)
+
+                        if attribute.multiple:
+                            options = request.POST.getlist(key)
+                                            
+                            for option in options:
+                                ItemAttributeNote.objects.create(   itemattribute = itemattribute,
+                                                                    attributeoption = AttributeOption.objects.get(id= option))
+                        
+
+                        
+
 
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
@@ -1895,44 +1944,62 @@ def saveItemComment(request):
         responsible_id = request.POST.get('responsable')
 
         workorder = WorkOrder.objects.get(id=workOrderId)
-        item = Item.objects.filter(workorder = workorder, id=itemId).first()
+        item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
 
         #A nivel de item       
         if item: 
+
+            if notes: #comentario
             
-            #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
-            item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
+                #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
+                item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
 
-            if item_coment_save:
-                item_coment_save.notes = notes
-                item_coment_save.modification_by_user = request.user.id
-                item_coment_save.save()
+                if item_coment_save:
+                    item_coment_save.notes = notes
+                    item_coment_save.modification_by_user = request.user.id
+                    item_coment_save.save()
 
-            else:                                    
-                item_coment_save = ItemCommentState.objects.create( item = item,
-                                                                    state = workorder.state,
-                                                                    notes = notes,
-                                                                    created_by_user = request.user.id,
-                                                                    modification_by_user = request.user.id)
-                                       
-            ################################### Se recorren los archivos ###################################
+                else:                                    
+                    item_coment_save = ItemCommentState.objects.create( item = item,
+                                                                        state = workorder.state,
+                                                                        notes = notes,
+                                                                        created_by_user = request.user.id,
+                                                                        modification_by_user = request.user.id)
+                                        
+                ################################### Se recorren los archivos ###################################
 
-            files = request.FILES.getlist('files[]')
+                files = request.FILES.getlist('files[]')
 
-            for file in files:
-                
-                if validateTypeFile(file.content_type):
-                    try:
-                        
-                        ItemCommentStateFile.objects.create(item_comment_state = item_coment_save,
-                                                                file = file,
-                                                                name = file.name)
-                    except:                
-                        messages.error(request, 'Server error. Please contact to administrator!')
-                        return JsonResponse({'result': "Server error. Please contact to administrator."})
+                for file in files:
                     
+                    if validateTypeFile(file.content_type):
+                        try:
+                            
+                            ItemCommentStateFile.objects.create(item_comment_state = item_coment_save,
+                                                                    file = file,
+                                                                    name = file.name)
+                        except:                
+                            messages.error(request, 'Server error. Please contact to administrator!')
+                            return JsonResponse({'result': "Server error. Please contact to administrator."})
+                        
+                
+                return JsonResponse({'result': "OK"})
             
-            return JsonResponse({'result': "OK"})
+            else:
+
+                if date_end and responsible_id: # Si se esta agendando
+
+                    if date_end != '':
+                        item.date_end = date_end
+
+                    if int(responsible_id) != 0:
+                        resp = Responsible.objects.get(id = responsible_id)
+                        if resp:
+                            item.responsible = resp
+
+                item.save()
+
+                return JsonResponse({'result': "OK"})
                     
         else:
 
@@ -2155,7 +2222,7 @@ def updateStatus(request):
 ##################################
 
 #Modal desarrollado para todo tipo de comentarios, ya sea generales o particulares.
-def modalComment(workOrderId, itemId, commentId, case):
+def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1: calendario/responsable
     
     workorder = WorkOrder.objects.get(id=workOrderId)            
     itemsHTML = ''    
@@ -2197,13 +2264,13 @@ def modalComment(workOrderId, itemId, commentId, case):
                 
             
     itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
-    itemsHTML += '<div class="col-xl-12 fv-row text-start">'    
+    itemsHTML += '<div class="col-xl-12 fv-row text-start">'      
     itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
     
     if int(case) == 0: #Para comentarios
     
         itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
-        itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + itemTxt + '</textarea><br/>'
+        itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(itemTxt) + '</textarea><br/>'
         
         if files:        
             itemsHTML += '<ul class="text-start">'        
@@ -2212,24 +2279,47 @@ def modalComment(workOrderId, itemId, commentId, case):
             itemsHTML += "</ul>"
                 
         itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+
+        itemsHTML += '<div class="row">'
+
+        itemsHTML += '<div class="col-md-3">'
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(workorder.id) + ',' + itemId + ',' + commentId + ')">Save</button>'                
+        itemsHTML += '</div>'    
+        
+        itemsHTML += '<div class="col-md-9">'                                    
+        itemsHTML += '<div class="divItemMsg alert alert-warning text-start p-2 mb-1" style="display:none">Please, enter a comment.</div>'                
+        itemsHTML += '</div>'                                
                                 
-    itemsHTML += '<div class="row">'
+        itemsHTML += '</div>'
+    
 
     if int(case) == 1: #Para agendar, en etapas 5 y 6
 
         if workorder.state.id == 5 or workorder.state.id == 6:
 
+            itemsHTML += '<div class="row">'
+
             responsibles = Responsible.objects.filter(status = 1).order_by('name')
             
             itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Responsible:</div>'
-            itemsHTML += '<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="True" name="responsable" >'
-            itemsHTML += '<option value="0">---</option>'            
+            itemsHTML += '<select id="selectResponsible" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="true" name="responsable" >'
+            itemsHTML += '<option value="0" data-color="gris" selected></option>'
+
+            responsibleId = 0
+
+            if item.responsible:
+                responsibleId = item.responsible.id
 
             for responsible in responsibles:
-                if item.responsible.id == responsible.id:
-                    itemsHTML += '<option value=' + str(responsible.id) + ' selected>' + responsible.name + '</option>'
+                if responsibleId == responsible.id:
+                    itemsHTML += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '" selected>' + responsible.name + '</option>'
                 else:
-                    itemsHTML += '<option value=' + str(responsible.id) + '>' + responsible.name + '</option>'
+                    # itemsHTML += '<option value=' + str(responsible.id) + '>' + responsible.name + '</option>'
+                    itemsHTML += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '">' + responsible.name + '</option>'
+
+                    # <span><span class="circle" style="background-color:' + $(data.element).data('color') + ';"></span>' + data.text + '</span>
+
+                    
 
             itemsHTML += '</select>'
             itemsHTML += '</div><br/>'
@@ -2252,23 +2342,16 @@ def modalComment(workOrderId, itemId, commentId, case):
             # itemsHTML += '<input type="text" id="color-picker" placeholder="Choose a color">'
             # itemsHTML += '<div id="selected-color" style="display:none"></div>'
 
-
-
-
             itemsHTML += '</div><br/>'
 
+            itemsHTML += '<div class="row">'
 
-    itemsHTML += '<div class="col-md-3">'
+            itemsHTML += '<div class="col-md-3">'
+            itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIR(' + str(workorder.id) + ',' + itemId + ')">Save</button>'                
+            itemsHTML += '</div>'                            
+    
+            itemsHTML += '</div>'
 
-    itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(workorder.id) + ',' + itemId + ',' + str(commentId) + ')">Save</button>'                
-    itemsHTML += '</div>'
-    itemsHTML += '<div class="col-md-9">'                                    
-    itemsHTML += '<div class="divItemMsg alert alert-warning text-start p-2 mb-1" style="display:none">Please, enter a comment.</div>'
-            
-    itemsHTML += '</div>'                                
-    itemsHTML += '</div>'
-                                
-    itemsHTML += '</form>'
 
     if itemCS:
         itemsHTML += '<script>$("#modalCommentDelete").show(); $("#modalCommentDelete").click(function() { delComm(' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)});</script>'
@@ -2276,6 +2359,7 @@ def modalComment(workOrderId, itemId, commentId, case):
         itemsHTML += '<script>$("#modalCommentDelete").hide();</script>'
 
     
+    itemsHTML += '</form>'
     itemsHTML += '</div>'
     itemsHTML += '</div>'
 
@@ -2418,15 +2502,15 @@ def timeline_body(date_str, name, email, description, stateId):
     return timeline_cont
 
 
-def generate_pdf(request, proyect_id):
+def generate_pdf(request, workorderId):
     try:
-        project = Proyect.objects.get(id=proyect_id)
+        wo = WorkOrder.objects.get(id=workorderId)
     except Proyect.DoesNotExist:
         raise Http404("El proyecto no existe")
     
     htmlCabecera = ""
     
-    if project:
+    if wo:
 
         #Cabecera cliente
 
@@ -2434,24 +2518,24 @@ def generate_pdf(request, proyect_id):
         
         address = ''
 
-        if project.customer.address != "":
-            address += project.customer.address
+        if wo.proyect.customer.address != "":
+            address += wo.proyect.customer.address
 
-        if project.customer.apartment != "":
-            address += "," + project.customer.apartment
+        if wo.proyect.customer.apartment != "":
+            address += "," + wo.proyect.customer.apartment
 
-        if project.customer.city != "":
-            address += "," + project.customer.city
+        if wo.proyect.customer.city != "":
+            address += "," + wo.proyect.customer.city
 
-        if project.customer.state != "":
-            address += "," + project.customer.state
+        if wo.proyect.customer.state != "":
+            address += "," + wo.proyect.customer.state
 
-        if project.customer.zipcode != "":
-            address += "," + project.customer.zipcode
+        if wo.proyect.customer.zipcode != "":
+            address += "," + wo.proyect.customer.zipcode
         
-        name = project.customer.name if str(project.customer.name) != "" else "--"
-        phone = project.customer.phone if str(project.customer.phone) != "" else "--"
-        email = project.customer.email if str(project.customer.email) != "" else "--"
+        name = wo.proyect.customer.name if str(wo.proyect.customer.name) != "" else "--"
+        phone = wo.proyect.customer.phone if str(wo.proyect.customer.phone) != "" else "--"
+        email = wo.proyect.customer.email if str(wo.proyect.customer.email) != "" else "--"
 
         htmlCabecera += "<tr><th>Address:</th><td>" + address + "</td></tr>"
         htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td></tr>"      
@@ -2463,10 +2547,10 @@ def generate_pdf(request, proyect_id):
         #Cabecera proyecto
         htmlCabecera += "<table class='table_wo'>"
 
-        code = project.code if str(project.code) != "" else "--"
+        code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
         htmlCabecera += "<tr><th>Code:</th><td>" + str(code) + "</td></tr>"
 
-        decorators = ProyectDecorator.objects.filter(proyects = project)
+        decorators = ProyectDecorator.objects.filter(proyects = wo.proyect)
 
         if decorators:
 
@@ -2492,7 +2576,7 @@ def generate_pdf(request, proyect_id):
 
         #Cabecera proyecto
 
-        items = Item.objects.filter(proyect = project).order_by("id")                        
+        items = Item.objects.filter(workorder = wo).order_by("id")                        
                 
         if items:
             
@@ -2504,11 +2588,11 @@ def generate_pdf(request, proyect_id):
                 htmlCabecera += "<tr><th colspan='2'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
                 n+=1
 
-                category = item.category.name if str(item.category.name) != "" else "--"
+                category = item.group.subcategory.category.name if str(item.group.subcategory.category.name) != "" else "--"
                 
                 subcategory = "--"
-                if item.subcategory.name:
-                    subcategory = item.subcategory.name if str(item.subcategory.name) != "" else "--"
+                if item.group.subcategory.name:
+                    subcategory = item.group.subcategory.name if str(item.group.subcategory.name) != "" else "--"
                 
                 group = "--"
                 if item.group:
@@ -2595,7 +2679,7 @@ def generate_pdf(request, proyect_id):
     html = template.render(context)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="WorkOrder_{}.pdf"'.format(proyect_id)
+    response['Content-Disposition'] = 'attachment; filename="WorkOrder_{}.pdf"'.format(workorderId)
 
     pisa_status = pisa.CreatePDF(html, dest=response)
 

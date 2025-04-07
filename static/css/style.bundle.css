@@ -7029,7 +7029,7 @@ fieldset:disabled .btn {
     border-left-color: #fff
 }
 
-.tooltip-inner {
+.tooltip-inner { /* AJUSTE */
     max-width: 200px;
     padding: .75rem 1rem;
     color: #3f4254;

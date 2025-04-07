@@ -663,7 +663,7 @@
 							<!--end::Modal Item-->
 
 							<!--begin::Modal Comment-->							
-							<div class="modal fade" id="modalComment" tabindex="-1" aria-hidden="true">
+							<div class="modal fade" id="modalComment" tabindex="-1" aria-hidden="true"> <!-- aria-hidden="true" -->
 								<!--begin::Modal dialog-->
 								<div class="modal-dialog modal-dialog-centered mw-650px">
 									<!--begin::Modal content-->
@@ -1079,6 +1079,7 @@
 						success: function(response) {
 							// Rellena los campos con los datos obtenidos de la respuesta
 							$('#divAttributes').html(response.result);
+							initializeSelect2();
 						},
 						error: function(xhr, status, error) {
 							console.error("Error server: " + error, event.error);							
@@ -1099,7 +1100,8 @@
 						url: "{% url 'getSelectWOs_url' %}",  // La URL que manejará la consulta AJAX
 						method: 'POST',
 						data: {
-							'p': selectValue  // El valor que se envía al servidor
+							'p': selectValue,
+							'm': 1  // El valor que se envía al servidor
 						},
 						beforeSend: function(xhr, settings) {
 							// Añadir el token CSRF en las cabeceras
@@ -1271,6 +1273,65 @@
 			}
 
 
+			function createColorCircle(color) {
+				return $('<span></span>')
+				.addClass('rounded-circle me-2') // Añade clases para darle estilo al círculo
+				.css({
+					'background-color': color,
+					'width': '10px',
+					'height': '10px',
+					'display': 'inline-block',
+					'margin-right': '8px' // Espacio entre el círculo y el texto
+				});
+			}
+
+			function createImageTag(imageUrl) {
+				return $('<img />') // Crea un nuevo elemento <img>
+				.attr('src', imageUrl) // Establece la URL de la imagen
+				.css({
+					'width': '30px', // Establece un tamaño adecuado para la imagen
+					'height': '30px', // Ajusta la altura de la imagen
+					'margin-right': '8px', // Espacio entre la imagen y el texto
+					'border-radius': '10%' // Puedes redondear la imagen si lo deseas
+				});
+			}
+
+
+			function initializeSelect2() {
+				// Seleccionamos todos los elementos <select> con la clase "select2"
+				$('.selectAttribute').select2({
+					minimumResultsForSearch: Infinity,
+					templateResult: function(data) {
+						var imageUrl = $(data.element).data('image'); // Obtener la URL de la imagen
+						var container = $('<span></span>').css('display', 'flex').css('align-items', 'center');
+
+						if (imageUrl) {
+							// Crear un elemento <img> con la URL de la imagen
+							var image = createImageTag(imageUrl);
+							container.append(image);  // Añadimos la imagen
+						}
+
+						container.append(data.text);  // Añadimos el texto de la opción
+						return container;
+					},
+					templateSelection: function(data) {
+						var imageUrl = $(data.element).data('image'); // Obtener la URL de la imagen
+						var container = $('<span></span>').css('display', 'flex').css('align-items', 'center');
+
+						if (imageUrl) {
+							// Crear un elemento <img> con la URL de la imagen
+							var image = createImageTag(imageUrl);
+							container.append(image);  // Añadimos la imagen
+						}
+
+						container.append(data.text);  // Añadimos el texto de la opción seleccionada
+						return container;
+					}
+				});
+			}
+
+		
+			
 			function loadIC(w, t, i,c){
 
 				$('#saveItemComment').html('');
@@ -1287,7 +1348,44 @@
 					success: function(response) {
 						$('#saveItemComment').html(response.result);
 						initializeFlatpickr();
-						pickeColorReload();
+						// pickeColorReload();						
+						
+						if(c == 1){							
+																					
+							$('#selectResponsible').select2({
+								minimumResultsForSearch: Infinity,
+								templateResult: function(data) {									
+									var color = $(data.element).data('color'); // Obtener el color de la opción
+									if (color) {
+										// Crear un elemento de círculo con el color indicado
+										var circle = createColorCircle(color);
+										
+										var container = $('<span></span>')
+											.append(circle)  // Añadimos el círculo
+											.append(data.text);  // Añadimos el texto de la opción
+
+										return container;
+
+									}
+
+									return data.text;  // Si no hay color, solo devolvemos el texto
+								},
+								templateSelection: function(data) {
+									var color = $(data.element).data('color'); // Obtener el color de la opción
+									if (color) {
+										// Crear un elemento de círculo con el color indicado
+										var circle = createColorCircle(color);
+										
+										var container = $('<span></span>')
+											.append(circle)  // Añadimos el círculo
+											.append(data.text);  // Añadimos el texto de la opción
+
+										return container;
+
+									}
+								}
+							});
+						}
 					},
 					error: function() {
 						console.error("Error server: " + error, event.error);
@@ -1303,6 +1401,7 @@
 								
 				if(texto != ""){					
 					var formData = new FormData();  // Creamos un objeto FormData vacío
+					formData.append('id1', 0);
 					formData.append('id1', w);
 					formData.append('id2', i);
 					formData.append('id3', c);
@@ -1363,6 +1462,63 @@
 			}
 
 
+			function saveIR(w,i){
+								
+				var formData = new FormData();  // Creamos un objeto FormData vacío
+				formData.append('id1', w);
+				formData.append('id2', i);				
+				// Serializamos los datos del formulario (excepto los archivos)
+				var serializedData = $('#formItem_' + String(i)).serialize();
+							
+				// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+				var params = serializedData.split('&');
+				params.forEach(function(param) {
+					var keyValue = param.split('=');
+					var key = decodeURIComponent(keyValue[0]);
+					var value = decodeURIComponent(keyValue[1] || '');
+					formData.append(key, value);
+				});
+
+				var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
+				
+				if (inputFile && inputFile.files.length > 0) {
+
+					for (var i = 0; i < inputFile.files.length; i++) {
+						formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
+					}
+				}
+
+				$.ajax({
+					type: "POST",
+					url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
+					data: formData,
+					processData: false,  // Esto es importante para enviar archivos correctamente
+					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						if(response.result = "OK"){								
+							loadWOs();
+							$('#modalComment').modal('hide');
+							
+							$('#messageSave').show();								
+							$('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>date</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');								
+							setTimeout(function() {
+								$('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+							}, 3000); 
+						}						
+					},
+					error: function() {
+						console.error("Error server: " + error, event.error);
+					}
+				});
+
+
+			}
+
+			
 			function delFile(o,i,t,e,w,v){
 
 				v.preventDefault();
@@ -1726,6 +1882,7 @@
 				});
 
 			}
+
 
 			function app(t,i){
 				$.ajax({					

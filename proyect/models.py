@@ -140,7 +140,6 @@ class Proyect(models.Model):
         return f'{self.customer.address} - {self.customer.name}'
     
 
-
 class WorkOrder(models.Model):
     id = models.AutoField(primary_key=True)    
     proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
@@ -226,7 +225,7 @@ class ProyectDecorator(models.Model):
     proyects = models.ManyToManyField(
         Proyect,      
         blank=True,
-        related_name='proyects')
+        related_name='decoratorProyects')
     id_user = models.IntegerField(default=0)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
@@ -263,7 +262,8 @@ class Place(models.Model):
 class Attribute(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)    
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)    
+    multiple = models.BooleanField(default=False)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -274,12 +274,28 @@ class Attribute(models.Model):
         return f'{self.name}'
 
 
+class AttributeOption(models.Model):
+    id = models.AutoField(primary_key=True)
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)    
+    description = models.TextField(null=True, blank=True)    
+    file = models.ImageField(upload_to='attributes', blank=True, null=True)  # Nuevo campo de imagen
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    created_by_user = models.IntegerField(null=True, blank=True)
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+    modification_by_user = models.IntegerField(null=True, blank=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+   
+    def __str__(self):
+        return f'{self.name}'
+
+
+
 class CategoryAttribute(models.Model):
     id = models.AutoField(primary_key=True)        
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
-    order = models.IntegerField(default=1)
-    file = models.ImageField(upload_to='attributes', blank=True, null=True)  # Nuevo campo de imagen
+    order = models.IntegerField(default=1)    
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -299,7 +315,7 @@ class Item(models.Model):
     notes = models.TextField(blank=True, null=True, max_length=2000)
     date_proposed = models.DateTimeField(null=True)
     date_end = models.DateTimeField(null=True)
-    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True, default=0)
+    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -320,12 +336,17 @@ class ItemAttribute(models.Model):
     id = models.AutoField(primary_key=True)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)        
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)    
-    notes = models.CharField(blank=True, null=True, max_length=150)
-    status = models.IntegerField(choices=ESTADOS,  default=1)
-    created_by_user = models.IntegerField(null=True, blank=True)
+    notes = models.CharField(blank=True, null=True, max_length=150)    
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)   
+
+    def __str__(self):
+        return f'{self.id}'
+    
+class ItemAttributeNote(models.Model):
+    id = models.AutoField(primary_key=True)
+    itemattribute = models.ForeignKey(ItemAttribute, on_delete=models.CASCADE)
+    attributeoption = models.ForeignKey(AttributeOption, on_delete=models.CASCADE)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
-    modification_by_user = models.IntegerField(null=True, blank=True)
-    modification_date = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f'{self.id}'
