@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, ProyectDecorator, Place, Attribute, CategoryAttribute, Group, UIElement, WorkOrder
+from .models import Type, Responsible, Customer, Proyect, State, Category, Subcategory, ProyectDecorator, Place, Attribute, CategoryAttribute, Group, UIElement, WorkOrder, AttributeOption
 
 
 class TypeAdmin(admin.ModelAdmin):
@@ -218,8 +218,8 @@ class PlaceAdmin(admin.ModelAdmin):
 
 
 class AttributeAdmin(admin.ModelAdmin):
-    list_display = ['name','description','status','modification_by_user_text','modification_date']
-    fields = ['name','description','status']
+    list_display = ['name','description','multiple','status','modification_by_user_text','modification_date']
+    fields = ['name','description','multiple','status']
     ordering = ['name']
     search_fields = ['name','description']
 
@@ -236,11 +236,39 @@ class AttributeAdmin(admin.ModelAdmin):
         obj.save()
 
 
+
+class AttributeOptionAdmin(admin.ModelAdmin):
+    list_display = ['attribute','name','description','file','status','modification_by_user_text','modification_date']
+    fields = ['attribute','name','description','file','status']
+    ordering = ['attribute','name']
+    search_fields = ['name','description']
+
+    # Sobrescribimos el campo 'attribute' para que solo se puedan seleccionar atributos con 'multiple=True'
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "attribute":
+            # Filtramos los atributos para que solo muestre aquellos con multiple=True
+            kwargs["queryset"] = Attribute.objects.filter(multiple=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def modification_by_user_text(self, obj):
+        user = User.objects.filter(id=obj.modification_by_user).first()
+        return user.username if user else "Unknown"        
+    modification_by_user_text.short_description = 'Modification by user'
+
+    def save_model(self, request, obj, form, change):
+        if obj.created_by_user == None:
+            obj.created_by_user = request.user.id  # Asigna el usuario logueado
+        if obj.modification_by_user == None:
+            obj.modification_by_user = request.user.id  # Asigna el usuario logueado
+        obj.save()
+
+
+
 class CategoryAttributeAdmin(admin.ModelAdmin):
-    list_display = ['category', 'order', 'attribute','file','status','modification_by_user_text','modification_date']
-    fields = ['category', 'order', 'attribute', 'file','status']
+    list_display = ['category', 'order', 'attribute','status','modification_by_user_text','modification_date']
+    fields = ['category', 'order', 'attribute', 'status']
     ordering = ['category', 'order', 'attribute']
-    search_fields = ['category', 'order', 'attribute']
+    search_fields = ['category', 'order', 'attribute']    
 
     def modification_by_user_text(self, obj):
         user = User.objects.filter(id=obj.modification_by_user).first()
@@ -310,4 +338,6 @@ admin.site.register(CategoryAttribute, CategoryAttributeAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(UIElement, UIElementAdmin)
 admin.site.register(WorkOrder, WorkOrderAdmin)
+admin.site.register(AttributeOption, AttributeOptionAdmin)
+
 

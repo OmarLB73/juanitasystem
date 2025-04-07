@@ -76,12 +76,17 @@
 
 									<!--begin::Card header Customer-->
 									<!--begin::Header-->
+									<!--begin::Header-->
+									{% if labels.TITLE_PROYECT_NEW != None %}
 									<div class="card-header pt-5">
 										<h3 class="card-title align-items-start flex-column">
 											<span class="card-label fw-bolder fs-3 mb-1">{{ labels.TITLE_PROYECT_NEW }}</span>
-											<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PROYECT_NEW }}</span>
+											{% if labels.SUBTITLE_PROYECT_NEW != None %}
+										<span class="text-muted mt-1 fw-bold fs-7">{{ labels.SUBTITLE_PROYECT_NEW }}</span>
+										{% endif %}
 										</h3>
 									</div>
+									{% endif %}
 									<!--end::Header-->
 									<!--end::Card header-->
 									
@@ -108,9 +113,8 @@
 
 										{% endfor %}
 
-										{% endif %}																					
-										
-										
+										{% endif %}															
+
 										<!--begin::Type-->
 										<div class="row mb-8">
 											<!--begin::Col-->
