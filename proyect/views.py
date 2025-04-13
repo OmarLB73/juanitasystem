@@ -2502,6 +2502,7 @@ def timeline_body(date_str, name, email, description, stateId):
     return timeline_cont
 
 
+import io
 def generate_pdf(request, workorderId):
     try:
         wo = WorkOrder.objects.get(id=workorderId)
@@ -2653,7 +2654,7 @@ def generate_pdf(request, workorderId):
                     for image in images:
                         file = image.file.name if str(image.file.name) != "" else "--"
                         notes = image.notes if str(image.notes) != "" else "--"
-                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='../" + settings.MEDIA_ROOT + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
                         if nt == 1:
                             htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
                         elif nt == 2:
@@ -2673,7 +2674,7 @@ def generate_pdf(request, workorderId):
     template = get_template('proyect/pdf_template.html')
     context = {
         'CABECERA': htmlCabecera,
-        'STATIC_URL': settings.STATIC_URL,
+        'URL': settings.BASE_DIR,
         # 'MEDIA_URL': settings.MEDIA_URL
     }
     html = template.render(context)
@@ -2681,7 +2682,9 @@ def generate_pdf(request, workorderId):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="WorkOrder_{}.pdf"'.format(workorderId)
 
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    pisa_status = pisa.CreatePDF(io.StringIO(html), 
+                    dest=response,
+                    link_callback=link_callback) 
 
     if pisa_status.err:
         return HttpResponse('Error generando el PDF', status=500)
@@ -2689,3 +2692,32 @@ def generate_pdf(request, workorderId):
     return response
 
 
+from django.conf import settings
+from django.contrib.staticfiles import finders
+import os
+
+def link_callback(uri, rel):
+    """
+    Convierte URIs en rutas absolutas para xhtml2pdf
+    """
+    result = finders.find(uri)
+    if result:
+        if not isinstance(result, (list, tuple)):
+            result = [result]
+        path = result[0]
+    else:
+        sUrl = settings.STATIC_URL        # por ejemplo: /static/
+        sRoot = settings.STATIC_ROOT      # por ejemplo: /var/www/static/
+        mUrl = settings.MEDIA_URL
+        mRoot = settings.MEDIA_ROOT
+
+        if uri.startswith(mUrl):
+            path = os.path.join(mRoot, uri.replace(mUrl, ""))
+        elif uri.startswith(sUrl):
+            path = os.path.join(sRoot, uri.replace(sUrl, ""))
+        else:
+            return uri  # deja la URI como está si no se puede procesar
+
+    if not os.path.isfile(path):
+        raise Exception('Archivo no encontrado: %s' % path)
+    return path
