@@ -993,7 +993,10 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
         if wo.state.id >= 5:
 
             workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+            if mode == 1:
+                workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+            else:
+                workOrdersHTML += '<a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
             workOrdersHTML += '</div>'
 
                 
@@ -1150,7 +1153,8 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                     attributenotes = ItemAttributeNote.objects.filter(itemattribute = attribute)
                     for note in attributenotes:
                         # itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<img src=\'' + note.attributeoption.file.url + '\' style=\'width: 100px; height: 100px;\'"></i>, '
-                        itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
+                        if note.attributeoption.file:
+                            itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
                         #itemsHTML = f"{note.attributeoption.name} <i class='fas fa-question-circle' data-bs-toggle='tooltip' data-bs-html='true' data-bs-title='<img src=\"{note.attributeoption.file.url}\" style=\"width: 50px; height: 50px; object-fit: cover;\">'></i>, "
 
                     itemsHTML = itemsHTML[:-2]
@@ -1195,7 +1199,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                     itemsHTML += '<td>'
                     itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
-                    itemsHTML += '<input class="form-check-input materialOK" type="checkbox">'
+                    itemsHTML += '<input type="checkbox">'
                     itemsHTML += '</div>'
                     itemsHTML += '</td>'
 
@@ -1498,10 +1502,10 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
 
 #Consulta realizada para obtener los datos de cada uno de los comentarios.
-def getDataComments(request, workOrderId, itemId, mode):
+def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: lectura
     
-    workorder = WorkOrder.objects.get(id=workOrderId)            
-    itemsHTML = '<br/>'    
+    workorder = WorkOrder.objects.get(id=workOrderId)    
+    itemsHTML = ''
     itemTxt = ''
 
     itemCSs = None #Comentario texto
@@ -1513,9 +1517,17 @@ def getDataComments(request, workOrderId, itemId, mode):
         item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
-            itemCSs = ItemCommentState.objects.filter(item=item).order_by('id')            
+            itemCSs = ItemCommentState.objects.filter(item=item).order_by('id')  
+
+            if len(itemCSs) > 0:
+                itemsHTML += '<br/>'
+                itemsHTML += '<h6>Comments by item:</h6>'
+
     else:        
         itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('id')
+
+        if len(itemCSs) > 0:
+                itemsHTML += '<h6>General comments:</h6>'
 
                     
     for itemCS in itemCSs:
@@ -1534,7 +1546,7 @@ def getDataComments(request, workOrderId, itemId, mode):
         itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
         # itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
 
-        state = 'state_'
+        state = 'state_' #Clase usada por JS, para validar el avance entre los distintos estados
 
         if int(itemId) != 0:
             itemsHTML += '<div class="col-xl-11 fv-row text-start">'
@@ -2585,7 +2597,7 @@ def generate_pdf(request, workorderId):
             
             for item in items:
 
-                htmlCabecera += "<table class='table_item'>"
+                htmlCabecera += " <div class='new-page'><table class='table_item'>"
                 htmlCabecera += "<tr><th colspan='2'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
                 n+=1
 
@@ -2612,6 +2624,11 @@ def generate_pdf(request, workorderId):
                 
                 notes = item.notes if str(item.notes) != "" else "--"
 
+                responsible = " "
+
+                if item.responsible:
+                    responsible = item.responsible.name
+
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
                 htmlCabecera1 += "<tr><td class='td_item'>Category:</td><td>" + str(category) + "</td></tr>"
@@ -2619,7 +2636,8 @@ def generate_pdf(request, workorderId):
                 htmlCabecera1 += "<tr><td class='td_item'>Group:</td><td>" + str(group) + "</td></tr>"
                 htmlCabecera1 += "<tr><td class='td_item'>Place:</td><td>" + str(place) + "</td></tr>"
                 htmlCabecera1 += "<tr><td class='td_item'>QTY:</td><td>" + str(qty) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Date:</td><td>" + str(date_end) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Responsible:</td><td>" + str(responsible) + "</td></tr>"
+                htmlCabecera1 += "<tr><td class='td_item'>Due date:</td><td>" + str(date_end) + "</td></tr>"
                 htmlCabecera1 += "<tr><td class='td_item' style='text-align: left; vertical-align: top;'>Notes:</td><td>" + str(notes) + "</td></tr>"
                 htmlCabecera1 += "</table>"
 
@@ -2631,23 +2649,52 @@ def generate_pdf(request, workorderId):
                     
                     for attribute in attributes:
 
-                        name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
-                        notes = attribute.notes if str(attribute.notes) != "" else "--"
-                        htmlCabecera2 += "<tr><td class='td_item'>" + str(name) + ":</td><td>" + str(notes) + "</td></tr>"
+                        atributteOptions = ItemAttributeNote.objects.filter(itemattribute = attribute)
+
+                        if atributteOptions:
+                            
+                            name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
+                            htmlCabecera2 += "<tr><td class='td_item' valign='top'>" + str(name) + ":</td><td>"
+                            htmlCabecera2 += "<table class='tabla_atributo_opciones'>"
+
+                            for option in atributteOptions:
+                                notes = option.attributeoption.name if str(option.attributeoption.name) != "" else "--"
+                                htmlCabecera2 += "<tr><td class='td_item' valign='top'>" + str(notes) + "</td><td>"
+                                
+                                if option.attributeoption.file:
+                                     htmlCabecera2 += "<img src='media/" + str(option.attributeoption.file.name) + "'width='90%'/>"
+                                
+                                htmlCabecera2 += '</td></tr>'
+
+                            htmlCabecera2 += "</table>"
+                            htmlCabecera2 += "</td></tr>"
+
+
+                        else:
+                            name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
+                            notes = attribute.notes if str(attribute.notes) != "" else "--"
+                            htmlCabecera2 += "<tr><td class='td_item'>" + str(name) + ":</td><td>" + str(notes) + "</td></tr>"
 
                     htmlCabecera2 += "</table>"
 
 
                 htmlCabecera += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera1 + "</td><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera2 + "</td></tr>"
 
-                htmlCabecera += "</table>"
+                htmlCabecera += "</table></div>"
+
+
+
+                
+
+
+
 
                 images= ItemImage.objects.filter(item = item)
 
                 if images:
                     
                     htmlCabecera += "<table class='table_item'>"
-                    htmlCabecera += "<tr><td colspan='3'><b>Images:</b></td></tr>"
+                    htmlCabecera += "<tr><td colspan='3' style='background-color:#f1f1f1'><b>Images:</b></td></tr>"
                     htmlCabeceraImg = ""
                     table_img = ""
                     nt = 1
@@ -2668,6 +2715,45 @@ def generate_pdf(request, workorderId):
                     htmlCabecera += htmlCabeceraImg
 
                     htmlCabecera += "</table>"
+
+
+
+
+
+                materials= ItemMaterial.objects.filter(item = item).order_by('id')
+
+                if materials:
+                    
+                    htmlCabecera += "<table class='table_item'>"
+                    htmlCabecera += "<tr><td colspan='3' style='background-color:#f1f1f1'><b>Materials:</b></td></tr>"
+                    htmlCabeceraImg = ""
+                    table_img = ""
+                    nt = 1
+                    for material in materials:
+                        file = material.file.name if str(material.file.name) != "" else "--"
+                        notes = material.notes if str(material.notes) != "" else "--"
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        
+                        if material.file:
+                            if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
+                                if nt == 1:
+                                    htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                                elif nt == 2:
+                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                                elif nt == 3:
+                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td></tr>"
+                                    nt = 0
+                            
+                                nt += 1
+                    
+                    htmlCabecera += htmlCabeceraImg
+
+                    htmlCabecera += "</table>"
+
+            
+
+
+                
 
 
 
