@@ -128,13 +128,22 @@ var KTProjectSettings = {
                                                 success: function(response) {
                                                     loadWOs();
                                                     cleanItemForm();
-                                                    $('#nav-items-tab').click();
+                                                    // $('#nav-items-tab').click();
+
+                                                    toastr.options = {
+                                                        "closeButton": true,
+                                                        "progressBar": true,
+                                                        "positionClass": "toast-top-right",
+                                                        "timeOut": "4000"
+                                                    };
+                
+                                                    toastr.success("The item has been saved successfully!");
                                                     
-                                                    $('#messageSave').show();
-                                                    $('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>item</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
-                                                    setTimeout(function() {
-                                                        $('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
-                                                    }, 5000); 
+                                                    // $('#messageSave').show();
+                                                    // $('#messageSave').html('<div class="alert alert-success alert-dismissible fade show" role="alert">The <strong>item</strong> has been saved successfully.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                                                    // setTimeout(function() {
+                                                    //     $('#messageSave').fadeOut(); // Esto hará que el div se desvanezca
+                                                    // }, 5000); 
 
                                                     $('#messageMaterial').html('');
                                                     $('#messageMaterial').fadeOut();
