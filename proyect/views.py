@@ -499,10 +499,10 @@ def getDataComment(request):
 def getDataMaterial(request):
     # Verifica si la solicitud es por POST y si tiene el parámetro 'input_value'
     input_value = request.GET.get('term', None)
-    materials = ItemMaterial.objects.filter(notes__icontains=input_value).order_by('notes')[:100]
+    materials = ItemMaterial.objects.filter(notes__icontains=input_value).order_by('notes').values_list('notes', flat=True).distinct()[:100]
 
-     # Crear una lista con los valores de 'notes'
-    results = [item.notes for item in materials]
+   # materials ya es una lista de strings, no objetos
+    results = list(materials)
 
     return JsonResponse(results, safe=False)
 
@@ -877,7 +877,7 @@ def getDataProyect(filters):
             categoryStr += category + ','
 
         categoryStr = categoryStr[:-1]        
-        qty_items = items.count()
+        qty_items = workordersStates.count()
 
         #Se busca los materiales para dejarlos disponibles para una búsqueda rápida        
         materials = ItemMaterial.objects.filter(item__in = items).values_list('notes', flat=True) #flat=True: no devuelve una lista de tuplas, sino una lista plana
@@ -933,9 +933,8 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
 
                 buttonName = State.objects.get(id = wo.state.id).buttonName
                 stateNewName = State.objects.get(id = wo.state.id + 1).name
-                stateNewDescription = State.objects.get(id = wo.state.id + 1).description
-                
-                               
+                stateDescription = State.objects.get(id = wo.state.id).description
+                                               
         except:
             pass
 
@@ -957,7 +956,7 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
         
         if wo.state.id < 10 and mode == 1: #Solo si se edita
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateNewDescription + '">' + buttonName + '</a>'
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateDescription + '">' + buttonName + '</a>'
             workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
         workOrdersHTML += '</div>'
@@ -1141,7 +1140,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             ############################################# Celda (atributos) ##############################################
             ##############################################################################################################
 
-            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'            
+            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'            
             itemsHTML += '<table><tbody>'
 
             attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
@@ -1172,9 +1171,9 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             ############################################ Celda (materiales) ##############################################
             ##############################################################################################################
             
-            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<h6>Materials:</h6>'
-            itemsHTML += '<table><tbody>'    
+            itemsHTML += '<form method="POST" class="formMaterial"><table><tbody>'
                         
             materials = ItemMaterial.objects.filter(item = item).order_by('name')                        
 
@@ -1187,25 +1186,41 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             icon += '</g>'
             icon += '</svg></span>'
 
+
+            if workOrder.state.id == 4 and mode == 1:
+                itemsHTML += '<thead><tr><th></th><th>Received Date</th><th>Received QTY</th></thead>'
+
             for material in materials:
 
-                qty = ''
-                if material.qty:
-                    qty = ' / ' + material.qty
+                materialName = str(material.notes)
+                qty = str(material.qty)                
+                dateR = ''
+                materialId = str(material.id)
 
-                itemsHTML += '<tr><td>' + icon + ' ' + material.notes + qty + '</td>'
+                if qty != '' and (workOrder.state.id != 4 or mode == 2):
+                    materialName += ' / ' + qty
 
-                if workOrder.state.id == 4 and mode == 1: #edicion:
+                if material.qty_received:
+                    qty = material.qty_received
 
-                    itemsHTML += '<td>'
-                    itemsHTML += '<div class="form-check form-check-custom form-check-solid me-9">'
-                    itemsHTML += '<input type="checkbox">'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</td>'
+                if material.date_received:
+                    dateR = material.date_received
+                 
+                itemsHTML += '<tr><td valign="middle" style="padding-right: 10px">' + icon + ' ' + materialName + '</td>'                
+
+                if workOrder.state.id == 4 and mode == 1: #edicion
+
+                    itemsHTML += '<td><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
+                    itemsHTML += '<td><input type="text" class="form-control sm" name="qtyR_' + materialId + '" value="' + str(qty) + '" maxlength="100"/></td>'
 
                 itemsHTML += '</tr>'
 
-            itemsHTML += '</tbody></table>'    
+            if workOrder.state.id == 4 and mode == 1: #edicion
+                itemsHTML += '<tr><td></td><td></td><td><br/></td></tr>'
+                itemsHTML += '<tr><td></td><td></td><td align="right"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
+                
+
+            itemsHTML += '</tbody></table></form>'    
 
 
 
@@ -1263,31 +1278,45 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
 
             ##############################################################################################################
-            ############################################## Comentarios Items#### #########################################
+            ############################################## Comentarios Items #############################################
             ##############################################################################################################
 
             
             itemsHTML += getDataComments(request, workOrder.id, item.id, mode)
 
             #Aprobar cotizacion
-            if workOrder.state.id == 3:              
-                
+            if workOrder.state.id == 3:
+
                 itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                itemsHTML += '<div class="card bg-light-success rounded border-success border border-dashed p-1">'
+                itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
                 itemsHTML += '<div class="card-body my-1">'                
+
+                itemsHTML += '<form method="POST" class="formQuote">'
                 
                 itemsHTML += '<h6>Do you approve the quote?</h6>'
-                itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+
+                quote = ''
+                id = str(item.id)
+
+                if item.quote:
+                    quote = item.quote
+
+                # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
                 #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                 
-                checked = ''
-                if int(item.status) == 2:
-                    checked = 'checked="checked"'
+                # checked = ''
                 
-                itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                
+                # if int(item.status) == 2:
+                #     checked = 'checked="checked"'
                 
-                itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                itemsHTML += '</div>'            
+                # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                # itemsHTML += '</div>'
+
+                itemsHTML += '<br/><textarea name="txtQuote_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + str(quote) + '</textarea>'
+                itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+
+                itemsHTML += '</form>'
 
                 itemsHTML += '</div>'
                 itemsHTML += '</div>'
@@ -2063,20 +2092,82 @@ def saveItemComment(request):
 @login_required
 def saveQuote(request):
 
-    itemId = request.POST.get('i')        
-    checked = request.POST.get('t')
-    status = 1
+    # itemId = request.POST.get('i')        
+    # checked = request.POST.get('t')
+    # status = 1
     
-    if checked == 'true':
-        status = 2
+    # if checked == 'true':
+    #     status = 2
 
-    item = Item.objects.get(id=itemId)
-    item.status = status
-    item.modification_by_user = request.user.id
-    item.modification_date = datetime.now()
-    item.save()
+    # item = Item.objects.get(id=itemId)
+    # item.status = status
+    # item.modification_by_user = request.user.id
+    # item.modification_date = datetime.now()
+    # item.save()
 
-    return JsonResponse({'result': "OK"})
+    # return JsonResponse({'result': "OK"})
+
+
+    data = request.POST
+
+    txtQuote_ = "txtQuote_"        
+                        
+    try:
+        
+        for key, value in data.items():
+            if key.startswith(txtQuote_) and value.strip() != "":
+
+                item_id = int(key[len(txtQuote_):])
+                item = Item.objects.get(id=item_id)
+
+                if item.quote != value.strip():
+                    item.quote = value.strip()
+                    item.save()
+                            
+        return JsonResponse({'result': "OK"})
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+        return JsonResponse({'result': "Error"})
+
+
+
+#Instancia para guardar los datos del material
+@login_required
+def saveMaterial(request):
+
+
+    data = request.POST
+
+    dateR = "dateR_"
+    qtyR = "qtyR_"        
+                        
+    try:
+        
+        for key, value in data.items():
+            if key.startswith(dateR) and value.strip() != "":
+
+                material_id = int(key[len(dateR):])
+                material = ItemMaterial.objects.get(id=material_id)
+
+                if material.date_received != value.strip():
+                    material.date_received = value.strip()
+                    material.save()
+
+            if key.startswith(qtyR) and value.strip() != "":
+
+                material_id = int(key[len(qtyR):])
+                material = ItemMaterial.objects.get(id=material_id)
+
+                if material.qty_received != value.strip():
+                    material.qty_received = value.strip()
+                    material.save()
+                
+        return JsonResponse({'result': "OK"})
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+        return JsonResponse({'result': "Error"})
 
 ##################################
 ## Funciones para borrar datos ###
@@ -2550,18 +2641,20 @@ def generate_pdf(request, workorderId):
         phone = wo.proyect.customer.phone if str(wo.proyect.customer.phone) != "" else "--"
         email = wo.proyect.customer.email if str(wo.proyect.customer.email) != "" else "--"
 
-        htmlCabecera += "<tr><th>Address:</th><td>" + address + "</td></tr>"
-        htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td></tr>"      
-        htmlCabecera += "<tr><th>Phone:</th><td>" + str(phone) + "</td></tr>"
-        htmlCabecera += "<tr><th>Email:</th><td>" + str(email) + "</td></tr>"
+        code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
+        
+        
+        htmlCabecera += "<tr><th colspan=2></th><th></th><th>Code:</th><td>" + str(code) + "</td></tr>"
+        htmlCabecera += "<tr><th>Address:</th><td style='width: 350px'>" + address + "</td><th></th><th>Phone:</th><td>" + str(phone) + "</td></tr>"
+        htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td><th></th><th>Email:</th><td>" + str(email) + "</td></tr>"        
+        
         htmlCabecera += "</table>"
         
                 
         #Cabecera proyecto
         htmlCabecera += "<table class='table_wo'>"
 
-        code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
-        htmlCabecera += "<tr><th>Code:</th><td>" + str(code) + "</td></tr>"
+        
 
         decorators = ProyectDecorator.objects.filter(proyects = wo.proyect)
 
@@ -2597,8 +2690,12 @@ def generate_pdf(request, workorderId):
             
             for item in items:
 
-                htmlCabecera += " <div class='new-page'><table class='table_item'>"
-                htmlCabecera += "<tr><th colspan='2'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                #htmlCabecera += " <div class='new-page'><table class='table_item'>"
+                htmlCabecera += "<div><table class='table_item'>"
+                htmlCabecera += "<tr><th colspan='2' style='background-color:#f1f1f1'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                htmlCabecera += "</table></div>"
+
+
                 n+=1
 
                 category = item.group.subcategory.category.name if str(item.group.subcategory.category.name) != "" else "--"
@@ -2620,8 +2717,13 @@ def generate_pdf(request, workorderId):
 
                 date_end = "--"
                 if item.date_end:             
-                    date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
+                    #date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
+                    date_end = timezone.localtime(item.date_end).strftime('%Y/%m/%d %I:%M %p')
                 
+
+
+                
+
                 notes = item.notes if str(item.notes) != "" else "--"
 
                 responsible = " "
@@ -2631,56 +2733,74 @@ def generate_pdf(request, workorderId):
 
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
-                htmlCabecera1 += "<tr><td class='td_item'>Category:</td><td>" + str(category) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Sub Category:</td><td>" + str(subcategory) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Group:</td><td>" + str(group) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Place:</td><td>" + str(place) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>QTY:</td><td>" + str(qty) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Responsible:</td><td>" + str(responsible) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item'>Due date:</td><td>" + str(date_end) + "</td></tr>"
-                htmlCabecera1 += "<tr><td class='td_item' style='text-align: left; vertical-align: top;'>Notes:</td><td>" + str(notes) + "</td></tr>"
-                htmlCabecera1 += "</table>"
+                htmlCabecera1 += "<tr><th align='center' colspan=6><h1>" + str(category) + "</h1></th></tr>"
+                htmlCabecera1 += "<tr><th>Sub Category:</td><td>" + str(subcategory) + "</td><th>Group:</td><td>" + str(group) + "</td><th>Place:</td><td>" + str(place) + "</td></tr>"
+                htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
+                htmlCabecera1 += "<tr><th>QTY:</td><td>" + str(qty) + "</td><th>Due date:</th><td>" + str(date_end) + "</td><th>Responsible:</th><td>" + str(responsible) + "</td></tr>"                
+                htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
+                htmlCabecera1 += "<tr><th style='vertical-align: top;'>Notes:</th><td colspan=3>" + str(notes) + "</td></tr>"
+                htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
+                
 
                 attributes = ItemAttribute.objects.filter(item = item)
-                htmlCabecera2 = ""
+                # htmlCabecera2 = ""
+                atributos1 = ''
+                atributos2 = ''
 
                 if attributes:
-                    htmlCabecera2 = "<table class='table_item_detalle'>"
-                    
-                    for attribute in attributes:
+                    # htmlCabecera2 = "<table class='table_item_detalle'>"
 
+                    for attribute in attributes:
+                                                
                         atributteOptions = ItemAttributeNote.objects.filter(itemattribute = attribute)
 
                         if atributteOptions:
                             
                             name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
-                            htmlCabecera2 += "<tr><td class='td_item' valign='top'>" + str(name) + ":</td><td>"
-                            htmlCabecera2 += "<table class='tabla_atributo_opciones'>"
+                            atributos2 += "<tr><th valign='top'>" + str(name) + ":</th><td colspan=5>"
+                            atributos2 += "<table class='tabla_atributo_opciones'>"
+                            atributos2 += "<tr>"
+
+                            tds = 0
 
                             for option in atributteOptions:
+                                tds += 1
                                 notes = option.attributeoption.name if str(option.attributeoption.name) != "" else "--"
-                                htmlCabecera2 += "<tr><td class='td_item' valign='top'>" + str(notes) + "</td><td>"
+                                atributos2 += "<td valign='middle'>" + str(notes) + "</td><td>"
                                 
                                 if option.attributeoption.file:
-                                     htmlCabecera2 += "<img src='media/" + str(option.attributeoption.file.name) + "'width='90%'/>"
+                                    atributos2 += "<img src='media/" + str(option.attributeoption.file.name) + "'width='80%'/>"
                                 
-                                htmlCabecera2 += '</td></tr>'
-
-                            htmlCabecera2 += "</table>"
-                            htmlCabecera2 += "</td></tr>"
+                                atributos2 += '</td>'
 
 
-                        else:
+                                if tds == 2:
+                                    tds = 0
+                                    atributos2 += "</tr><tr>"
+
+                            atributos2 += "</tr></table>"
+                            atributos2 += "</td></tr>"
+
+
+                        else:                            
+
                             name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
                             notes = attribute.notes if str(attribute.notes) != "" else "--"
-                            htmlCabecera2 += "<tr><td class='td_item'>" + str(name) + ":</td><td>" + str(notes) + "</td></tr>"
+                            atributos1 += "<tr><th>" + str(name) + ":</th><td colspan=3>" + str(notes) + "</td></tr>"
+                            atributos1 += "<tr style='height:5px'><th></th></tr>"                            
 
-                    htmlCabecera2 += "</table>"
+                                    
+                    htmlCabecera1 += atributos1 + atributos2
+                    
+                    # htmlCabecera2 += "</table>"
 
 
-                htmlCabecera += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera1 + "</td><td style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera2 + "</td></tr>"
+                # htmlCabecera += "<tr><th style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera1 + "</th><th style='padding:0 0; text-align: left; vertical-align: top;'>" + htmlCabecera2 + "</th></tr>"
 
-                htmlCabecera += "</table></div>"
+                htmlCabecera1 += "</table>"
+                htmlCabecera += htmlCabecera1
+
+                
 
 
 

@@ -28,42 +28,55 @@
         th, td {
             border: 1px solid #ccc;            
             text-align: left;
-            padding: 2px; 
-            border-collapse: collapse;
+            padding: 2px 0px 0px 2px; 
+            border-collapse: collapse;               
         }
 
-        th {
+        /* th {
             background-color: #CBCBCB;
-        }
+        } */
 
         /* Estilo para las tablas importantes */        
         .table_wo th {
-            background-color: #f1f1f1; /* Fondo gris plomo */
+            /* background-color: #f1f1f1;  */
             color: #333; /* Color de texto oscuro para contraste */
-            width: 120px;
+            width: 80px;
             font-weight: bold;
+            border: none;
         }        
         
         .table_item {    
             border-collapse: collapse;
             padding: 0;
-            border: 0;
+            border: none;
         }
 
-        .table_item th td {            
+        .table_item th {            
+            border:none;
+        }
+
+        /* .table_item th td {            
             padding: 0px;
-            padding: 0;
-            border: 0;
+            padding: 0;    
         }
-
-        .td_item {            
-            width: 120px;
-        }
-
+         */
+        
+        
         .table_item_detalle {                
-            padding: 0;
-            border-spacing: 0; 
+            padding: 0;                    
+            margin-top: -10px;
         }
+
+        .table_item_detalle th {
+            width: 100px;
+            font-weight: normal;
+            border: none;
+            text-align: right;
+            padding-right: 2px;   
+        }
+
+
+
 
         .tabla_atributo_opciones td {
             padding: 0;

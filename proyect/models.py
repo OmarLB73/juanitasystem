@@ -311,8 +311,9 @@ class Item(models.Model):
     workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)        
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
-    qty = models.TextField(blank=True, null=True, max_length=100)
+    qty = models.CharField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
+    quote = models.TextField(blank=True, null=True, max_length=2000)
     date_proposed = models.DateTimeField(null=True)
     date_end = models.DateTimeField(null=True)
     responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
@@ -379,6 +380,8 @@ class ItemImage(ItemAttachment):
 class ItemMaterial(ItemAttachment):
     file = models.ImageField(upload_to=getUploadTo, blank=True, null=True)  # Nuevo campo de imagen
     qty = models.CharField(blank=True, null=True, max_length=150)
+    date_received = models.CharField(blank=True, null=True, max_length=20)
+    qty_received = models.CharField(blank=True, null=True, max_length=150)
     
     def __str__(self):
         return f'{self.id} - {self.item.id} - {self.name}'
