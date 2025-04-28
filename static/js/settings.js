@@ -23,12 +23,17 @@ var KTProjectSettings = {
                         message.style.display = 'none'; // Oculta los mensajes de error
                       });
 
+
+                    var message = $('#alertSave').val();
+                    var message2 = $('#alertInfoRequired').val();
+
+
                     e.preventDefault(),
                         t.validate().then((function (t) {                            
                             "Valid" == t ?                            
                                 swal.fire({
                                     title: '¿Are you sure?',
-                                    text: 'Do you want to save the project?',
+                                    text: message,
                                     icon: 'info',
                                     showCancelButton: true,
                                     confirmButtonText: 'Yes',
@@ -65,7 +70,7 @@ var KTProjectSettings = {
                                     }
                                 })                                                                                                                                                                                            
                                 : swal.fire({
-                                    text: "Please complete the required information.",
+                                    text: message2,
                                     icon: "error",
                                     buttonsStyling: !1,
                                     confirmButtonText: "Ok, got it!",

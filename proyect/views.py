@@ -441,7 +441,7 @@ def getAddress(request):
     return JsonResponse({'result': messageHtml, 'msg': exist})
 
 
-# ##Consulta realizada en el panel, para obtener los datos para el calendario
+# Consulta realizada en el panel, para obtener los datos para el calendario
 @login_required
 def getDataCalendar(request):
     #Consulta los items desde la BD    
@@ -897,7 +897,7 @@ def getDataProyect(filters):
             'state_u': proyect.customer.state,
             'zipcode': proyect.customer.zipcode,
             'apartment': proyect.customer.apartment,            
-            'creationDate': dateCreation.strftime("%Y-%m-%d"),
+            'creationDate': dateCreation.strftime("%m/%d/%Y"),
             'email': proyect.customer.email,
             'statesHTML': statesHTML, #Esto traerá problemas cuandos ea mas de 1, ojo!!            
             'allDay': allDay,
@@ -919,8 +919,9 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
     workOrdersHTML = ""
 
     buttonName = ''
-    stateNewName = ""
-    stateNewDescription = ""        
+    stateNewName = ''
+    stateDescription = ''
+    buttonDescription = ''
     woN = 0
             
     for wo in workOrders:
@@ -931,9 +932,15 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
 
             if mode == 1:
 
-                buttonName = State.objects.get(id = wo.state.id).buttonName
+                state = State.objects.get(id = wo.state.id)
+
+                if state:
+
+                    buttonName = str(state.buttonName)
+                    stateDescription = str(state.description)
+                    buttonDescription = str(state.buttonDescription)
+
                 stateNewName = State.objects.get(id = wo.state.id + 1).name
-                stateDescription = State.objects.get(id = wo.state.id).description
                                                
         except:
             pass
@@ -949,17 +956,29 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
         workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
         
         #Subtitulo
-        workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + wo.state.description + '</span>'
+        workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
+        
+        if wo.state.id == 1:
+
+                #workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
+                #workOrdersHTML += '</div>'
+
+        
+
         workOrdersHTML += '</h3>'
+
 
         workOrdersHTML += '<div class="card-toolbar">'
         
         if wo.state.id < 10 and mode == 1: #Solo si se edita
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + stateDescription + '">' + buttonName + '</a>'
+            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + buttonDescription + '">' + buttonName + '</a>'
             workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
         workOrdersHTML += '</div>'
+
+       
 
         workOrdersHTML += '</div>'
         #Fin Titulo
@@ -970,11 +989,7 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
 
         if mode == 1: # Solo si se edita
 
-            if wo.state.id == 1:
-
-                workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
-                workOrdersHTML += '</div>'
+            
 
 
             if wo.state.id == 2:
@@ -1047,7 +1062,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             try:
                 if item.date_proposed:
 
-                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%Y/%m/%d')                
+                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%m/%d/%Y')                
 
                 if workOrder.proyect.code:
                     code = workOrder.proyect.code + '-' + str(itemN)
@@ -1106,7 +1121,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             ##############################################################################################################
 
 
-            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<table><tbody>'
             itemsHTML += '<tr><td><b>Category:</b> ' + item.group.subcategory.category.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.group.subcategory.name + '</td></tr>'
@@ -1125,7 +1140,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                     responsibleName = item.responsible.name
 
                 if item.date_end:
-                    dueDate = timezone.localtime(item.date_end).strftime('%Y/%m/%d %I:%M %p')
+                    dueDate = timezone.localtime(item.date_end).strftime('%m/%d/%Y %I:%M %p')
                 
 
                 itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
@@ -1171,7 +1186,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             ############################################ Celda (materiales) ##############################################
             ##############################################################################################################
             
-            itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+            itemsHTML += '<div class="col-xl-5" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<h6>Materials:</h6>'
             itemsHTML += '<form method="POST" class="formMaterial"><table><tbody>'
                         
@@ -1188,12 +1203,13 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
 
             if workOrder.state.id == 4 and mode == 1:
-                itemsHTML += '<thead><tr><th></th><th>Received Date</th><th>Received QTY</th></thead>'
+                itemsHTML += '<thead><tr><th></th><th>QTY</th><th>Received QTY</th><th>Received Date</th></thead>'
 
             for material in materials:
 
                 materialName = str(material.notes)
-                qty = str(material.qty)                
+                qty = str(material.qty)   
+                qtyR = ''             
                 dateR = ''
                 materialId = str(material.id)
 
@@ -1201,7 +1217,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                     materialName += ' / ' + qty
 
                 if material.qty_received:
-                    qty = material.qty_received
+                    qtyR = material.qty_received
 
                 if material.date_received:
                     dateR = material.date_received
@@ -1210,8 +1226,10 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                 if workOrder.state.id == 4 and mode == 1: #edicion
 
+                    itemsHTML += '<td><input type="text" class="form-control sm" value="' + str(qty) + '" readonly style="background-color: #f0f0f0"/></td>'
+                    itemsHTML += '<td><input type="text" class="form-control sm" name="qtyR_' + materialId + '" value="' + str(qtyR) + '" maxlength="100"/></td>'
                     itemsHTML += '<td><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
-                    itemsHTML += '<td><input type="text" class="form-control sm" name="qtyR_' + materialId + '" value="' + str(qty) + '" maxlength="100"/></td>'
+                    
 
                 itemsHTML += '</tr>'
 
@@ -1543,6 +1561,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
     stateName = ""
 
     if int(itemId) != 0:
+        itemsHTML += '<div class="col-xl-11 fv-row text-start">'
         item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
@@ -1550,70 +1569,133 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
 
             if len(itemCSs) > 0:
                 itemsHTML += '<br/>'
-                itemsHTML += '<h6>Comments by item:</h6>'
+                itemsHTML += '<h6>Comments by item:</h6>'                
 
-    else:        
+    else: 
+        itemsHTML += '<div class="col-xl-12 fv-row text-start">'
         itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('id')
 
         if len(itemCSs) > 0:
                 itemsHTML += '<h6>General comments:</h6>'
 
-                    
+    
+    if len(itemCSs) > 0:
+        # 27-04-2025
+        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-6 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="15%">User</th><th>Notes</th>'
+
+        if mode == 1:
+            itemsHTML += '<th>Edit</th>'
+
+        itemsHTML += '</tr></thead>'
+
+
     for itemCS in itemCSs:
+        
+        state = 'state_' #Clase usada por JS, para validar el avance entre los distintos estados
+        date = ''
+        time = ''
+        stateName = ''
+        username = ''
 
         if int(itemId) != 0:        
             itemCSF = ItemCommentStateFile.objects.filter(item_comment_state = itemCS).order_by('id')
+            state += str(itemCS.state.id)
         else:            
             itemCSF = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS).order_by('id')
+            state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
 
         if itemCS:
             itemTxt = itemCS.notes
 
-        # if item.date_end:
-        #     fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
         
-        itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-        # itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
 
-        state = 'state_' #Clase usada por JS, para validar el avance entre los distintos estados
+        if itemCS.modification_date:
+            date = timezone.localtime(itemCS.modification_date).strftime('%m/%d/%Y')
+            time = timezone.localtime(itemCS.modification_date).strftime('%H:%M %p')
 
-        if int(itemId) != 0:
-            itemsHTML += '<div class="col-xl-11 fv-row text-start">'
-            state += str(itemCS.state.id)
-        else:
-            itemsHTML += '<div class="col-xl-12 fv-row text-start">'
-            state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
-        
-        if stateName == "" or itemCS.state.name != stateName:
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + itemCS.state.name + ':</div>'
-            stateName = itemCS.state.name             
-            
-        itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + str(itemTxt)
-        
-        if itemCSF:            
-            itemsHTML += '<ul class="text-start">'
-            
-            for file in itemCSF:                    
-                itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>'
-            
-            itemsHTML += "</ul>"
-            
+        if itemCS.state:
+            stateName = itemCS.state.name
+
         user = User.objects.get(id=itemCS.modification_by_user)
 
-        itemsHTML += '<div class="fs-8" style="text-align: right;">' + timezone.localtime(itemCS.modification_date).strftime('%Y/%m/%d %I:%M %p') + ' - ' + user.first_name + ' ' + user.last_name
-                
+        if user:
+            username = user.username
+
+        if itemCSF:            
+            itemTxt += '<ul class="text-start py-1">'
+            
+            for file in itemCSF:                    
+                itemTxt += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>'
+            
+            itemTxt += "</ul>"
+
+
+        itemsHTML += '<tr class="py-1 fw-bold fs-6"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+
         user_session = request.user
 
         if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
-            itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a>'
-
-        itemsHTML += '</div>'
+            itemsHTML += '<td><a class="py-1 btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
+                
+        itemsHTML += '</tr>'
         
-        itemsHTML += '</div><br/>'
+
+        # # if item.date_end:
+        # #     fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
+        
+        # itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+        # # itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+
+        
+
+        # if int(itemId) != 0:
+        #     itemsHTML += '<div class="col-xl-11 fv-row text-start">'
+        #     state += str(itemCS.state.id)
+        # else:
+        #     itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+        #     state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
+        
+        # if stateName == "" or itemCS.state.name != stateName:
+        #     #itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + itemCS.state.name + ':</div>'
+        #     stateName = itemCS.state.name             
             
-        itemsHTML += '</div>'
-        # itemsHTML += '</div>'
-        itemsHTML += '</div>'
+        
+        # # # Div con el fondo del comentario + contenido
+        # # itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + str(itemTxt)
+        
+
+        # # # # Lista de archivos
+        # # # if itemCSF:            
+        # # #     itemsHTML += '<ul class="text-start">'
+            
+        # # #     for file in itemCSF:                    
+        # # #         itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>'
+            
+        # # #     itemsHTML += "</ul>"
+            
+        # # # user = User.objects.get(id=itemCS.modification_by_user)
+
+        
+        # # # # fecha + nombre de usuario + link de edicion
+        
+        # # # # itemsHTML += '<div class="fs-8" style="text-align: right;">' + timezone.localtime(itemCS.modification_date).strftime('%Y/%m/%d %I:%M %p') + ' - ' + user.first_name + ' ' + user.last_name
+                
+        # # # # user_session = request.user
+
+        # # # # if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
+        # # # #     itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a>'
+
+        # # # # itemsHTML += '</div>'
+        
+        # # itemsHTML += '</div><br/>'
+            
+        
+        
+        
+        # ### itemsHTML += '</div>'
+        # # itemsHTML += '</div>'
+    
+    itemsHTML += '</table></div>'
 
     return itemsHTML
 
@@ -2528,15 +2610,25 @@ def getDecoratorsTable(decorators):
         decoratorsHTML += '</tr></thead><tbody>'
 
         for decorator in decorators:  
+
+            name = decorator.name if decorator.name  else " "
+            phone = decorator.phone if decorator.phone  else " "
+            email = decorator.email if decorator.email  else " "
+            address = decorator.address if decorator.address  else " "
+            apartment = decorator.apartment if decorator.apartment  else " "
+            city = decorator.city if decorator.city  else " "
+            state = decorator.state if decorator.state  else " "
+            zipcode = decorator.zipcode if decorator.zipcode  else " "
+
             decoratorsHTML += '<tr>'
-            decoratorsHTML += '<td class="text-start fs-7">' + decorator.name + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.phone + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.email + '</td>'            
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.address + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.apartment + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.city + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.state + '</td>'
-            decoratorsHTML += '<td class="text-start text-muted fs-7">' + decorator.zipcode + '</td>'        
+            decoratorsHTML += '<td class="text-start fs-7">' + str(name) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(phone) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(email) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(address) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(apartment) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(city) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(state) + '</td>'
+            decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(zipcode) + '</td>'
             decoratorsHTML += '</tr>'
         
         decoratorsHTML += '</tbody></table>'
@@ -2886,7 +2978,7 @@ def generate_pdf(request, workorderId):
     html = template.render(context)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="WorkOrder_{}.pdf"'.format(workorderId)
+    response['Content-Disposition'] = 'inline; filename="WorkOrder_{}.pdf"'.format(workorderId)
 
     pisa_status = pisa.CreatePDF(io.StringIO(html), 
                     dest=response,
