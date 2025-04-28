@@ -114,6 +114,7 @@ class State(models.Model):
     name = models.CharField(max_length=50)
     buttonName = models.CharField(max_length=50, null=True)
     description = models.TextField(null=True, blank=True)
+    buttonDescription = models.TextField(null=True, blank=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -290,7 +291,6 @@ class AttributeOption(models.Model):
         return f'{self.name}'
 
 
-
 class CategoryAttribute(models.Model):
     id = models.AutoField(primary_key=True)        
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -343,6 +343,7 @@ class ItemAttribute(models.Model):
     def __str__(self):
         return f'{self.id}'
     
+
 class ItemAttributeNote(models.Model):
     id = models.AutoField(primary_key=True)
     itemattribute = models.ForeignKey(ItemAttribute, on_delete=models.CASCADE)

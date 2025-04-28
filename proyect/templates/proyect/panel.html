@@ -318,7 +318,8 @@
 															<!--begin: Datatable-->
 															<table class="table table-row-bordered table-flush align-middle gy-6" id="kt_datatable" style="display:none">
 																<thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten">
-																	<tr>																																	
+																	<tr>
+																		<th style="display:none"></th>																																	
 																		<th>{{ labels.LABEL_DECORATOR }}</th>
 																		<th class="min-w-25px ps-2">{{ labels.LABEL_ADDRESS }}</th>
 																		<th>{{ labels.LABEL_CLIENT }}</th>																		
@@ -335,6 +336,7 @@
 																<tbody>
 																	{% for proyect in proyects_data %}
 																	<tr>
+																		<td style="display:none">{{ proyect.id }}</td>
 																		<td class="text-start text fs-8">{{ proyect.decorators }}</td>														
 																		<td><a href="{% url 'view_url' proyect_id=proyect.id %}" class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a>
 																			<span class='text fw-bold d-block fs-9'>
@@ -1224,7 +1226,7 @@
 				$('#kt_datatable').show();
 
 				var table = $('#kt_datatable').DataTable({		
-					"order": [[3, 'desc']],
+					"order": [[0, 'desc']],
 					"language": {
 						"emptyTable": "No results found."
 					},		
@@ -1237,8 +1239,8 @@
 			}, 1000); // Simulación de carga (2 segundos)
 
 
-			$("#dateFrom").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
-			$("#dateUntil").flatpickr({ enableTime: false, dateFormat: "Y-m-d" });
+			$("#dateFrom").flatpickr({ enableTime: false, dateFormat: "m/d/Y" });
+			$("#dateUntil").flatpickr({ enableTime: false, dateFormat: "m/d/Y" });
 			
 			loadCalendar();
 									

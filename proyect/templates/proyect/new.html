@@ -838,6 +838,17 @@
 				
 				<input id="proyectExist" value="" type="hidden">
 				
+				<input id="alertAddressExist" value="{{ labels.ALERT_NEW_PROYECT_ADDRESS_EXIST }}" type="hidden" readonly>
+				<input id="alertSave" value="{{ labels.ALERT_NEW_PROYECT_SAVE }}" type="hidden" readonly>
+				<input id="alertInfoRequired" value="{{ labels.ALERT_NEW_PROYECT_INFO_REQUIRED }}" type="hidden" readonly>
+
+
+
+
+				
+
+
+				
 				<!--end::Content-->
 				<!--begin::Footer-->
 				{% include 'footer.html' %}
@@ -1123,11 +1134,14 @@
 						$('#divValidateAddress').html(response.result);	
 						$('#divValidateAddress').css('display', '');
 						// $('#proyectExist').val(response.msg);
+
+						var message = $('#alertAddressExist').val();
+
 						if(i == 1){														
 							if(response.msg == '1'){
 
 								swal.fire({				
-									text: "The address already exists! Please review the projects.",
+									text: message,
 									icon: "error",
 									buttonsStyling: !1,
 									confirmButtonText: "Ok!",
