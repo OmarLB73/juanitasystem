@@ -825,6 +825,13 @@ def selectWOs(request):
 #Consulta realizada desde el Panel
 def getDataProyect(filters):
 
+    filters2 = Q()
+    filters2 &= Q(status = 1)
+    
+    for key, value in filters.children:
+        if key == 'workorder__state__id':
+            filters2 &= Q(state__id = value)
+
     proyectsData = []
 
     #Se aplican los filtros o se traer las wo's por defecto
@@ -851,7 +858,7 @@ def getDataProyect(filters):
         #Se busca las WO del proyecto
         # statesHTML = '<select class="form-select form-select-solid" data-kt-select2="false">'
         statesHTML = ''
-        workordersStates = WorkOrder.objects.filter(proyect = proyect, status = 1).values('state__id', 'state__name').annotate(count=Count('state__id')).order_by('state__id')
+        workordersStates = WorkOrder.objects.filter(proyect = proyect).filter(filters2).values('state__id', 'state__name').annotate(count=Count('state__id')).order_by('state__id')
 
         for wo in workordersStates:
             # statesHTML += '<option><span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + '">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span></option>'
@@ -861,7 +868,7 @@ def getDataProyect(filters):
 
 
         #Se busca los items de la WO, y se ordenan las categorias
-        items = Item.objects.filter(workorder__in = WorkOrder.objects.filter(proyect = proyect, status = 1)).order_by('group__subcategory__category__name')
+        items = Item.objects.filter(workorder__in = WorkOrder.objects.filter(proyect = proyect).filter(filters2)).order_by('group__subcategory__category__name')
         categoryList = []
         categoryStr = ''
         
@@ -1906,6 +1913,9 @@ def saveItem(request):
         qty = request.POST.get('qty')
         notes = request.POST.get('notes')
         date_proposed = request.POST.get('date_proposed')
+
+        # Es necesario dar formato a la fecha
+        date_proposed = datetime.strptime(date_proposed, "%m/%d/%Y")
             
         try:            
             
