@@ -338,7 +338,7 @@
 																	<tr>
 																		<td style="display:none">{{ proyect.id }}</td>
 																		<td class="text-start text fs-8">{{ proyect.decorators }}</td>														
-																		<td><a href="{% url 'view_url' proyect_id=proyect.id %}" class='text-dark fw-bolder text-hover-primary mb-1 fs-7'>{{ proyect.address }}</a>
+																		<td><a href="{% url 'view_url' proyect_id=proyect.id %}" class='text-dark fw-bolder text-hover-primary mb-1 fs-7 a_proyectOpen'>{{ proyect.address }}</a>
 																			<span class='text fw-bold d-block fs-9'>
 																				{% if proyect.city != "" and proyect.city != None %}{{ proyect.city }} {% endif %}
 																				{% if proyect.state_u != "" and proyect.state_u != None %}, {{ proyect.state_u }} {% endif %}
@@ -356,7 +356,7 @@
 																		</td>
 																		<td class='text-center text-end fs-8'>
 																			<div class="d-flex justify-content-end flex-shrink-0">
-																				<a href="javascript:viewProyect({{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" >
+																				<a href="#" data-id1="{{ proyect.id }}" data-id2="{{ state_id }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 a_proyectView" >
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen019.svg-->
 																					<span class="svg-icon svg-icon-3" title="View">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="View">
@@ -366,7 +366,7 @@
 																					</span>
 																					<!--end::Svg Icon-->
 																				</a>
-																				<a href="{% url 'view_url' proyect_id=proyect.id %}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+																				<a href="#" data-id2="{{ state_id }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 a_proyectEdit">
 																					<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
 																					<span class="svg-icon svg-icon-3" title="Edit">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1253,8 +1253,29 @@
 				$("#selectDecorator").prop("selectedIndex", 0);
 			});
 
-					
 
+			const linksView = document.querySelectorAll(".a_proyectView");
+
+			linksView.forEach(enlace => {
+				const p = enlace.dataset.id1;
+				const s = enlace.dataset.id2;
+				enlace.addEventListener("click", (e) => {
+					e.preventDefault(); // evita que el enlace recargue la página
+					viewProyect(p,s);
+				});
+			});
+
+
+			const linksEdit = document.querySelectorAll(".a_proyectEdit");
+
+			linksEdit.forEach(enlace => {
+				const s = enlace.dataset.id2;
+				enlace.addEventListener("click", (e) => {
+					e.preventDefault(); // evita que el enlace recargue la página
+					editProyect(enlace,s);
+				});
+			});
+					
         });
 
 
@@ -1436,9 +1457,9 @@
 		}
 
 
-		function viewProyect(p){
+		function viewProyect(p,s){
 			$("#divViewProyect").val("");
-			$('#modalProyect').modal('show');
+			$('#modalProyect').modal('show');			
 
 			$.ajax({
 				
@@ -1446,6 +1467,7 @@
 				method: 'POST',
 				data: {
 					'p': p,
+					's': s,
 					'm': 2 // El valor que se envía al servidor
 				},
 				beforeSend: function(xhr, settings) {
@@ -1458,6 +1480,38 @@
 					$('.grid-gallery').masonry_gallery();			
 					$('html, body').animate({ scrollTop: 0 }, 'fast');					
 					showImgs();
+				},
+				error: function(xhr, status, error) {
+					console.error("Error server: " + error, event.error);
+				}
+			});
+
+
+		}
+
+
+		function editProyect(t,s){
+						
+			$.ajax({
+				
+				url: "{% url 'saveSessionState_url' %}",  // La URL que manejará la consulta AJAX
+				method: 'POST',
+				data: {								
+					's': s				
+				},
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {		
+					if(response.result == "OK"){
+						// 1. Obtener el <tr> contenedor
+						const tr = $(t).closest('tr');
+						// 2. Buscar el <a> dentro de ese <tr>
+						const link = tr.find('.a_proyectOpen');
+						// 3. Hacerle click
+						link[0].click();  // o link.trigger('click');
+					}						
 				},
 				error: function(xhr, status, error) {
 					console.error("Error server: " + error, event.error);

@@ -309,7 +309,8 @@ class CategoryAttribute(models.Model):
 class Item(models.Model):
     id = models.AutoField(primary_key=True)
     workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)        
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     qty = models.CharField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)

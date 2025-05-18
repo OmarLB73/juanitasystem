@@ -275,7 +275,16 @@ def proyect_new(request):
 
 @login_required
 def proyect_view(request, proyect_id):
+
+    stateId = 0
     
+    if request.session.get('stateId'):
+        try:
+            stateId = int(request.session['stateId'])
+            del request.session['stateId']
+        except:
+            None
+
     proyect = Proyect.objects.get(id = proyect_id) #obtiene solo un resultado
     customer = proyect.customer    
     category = Category.objects.all().order_by('order','name')
@@ -296,7 +305,7 @@ def proyect_view(request, proyect_id):
     except State.DoesNotExist:
         state_new_name = ''
 
-    workOrdersHtml = getDataWOs(request, proyect_id,1)    
+    workOrdersHtml = getDataWOs(request, proyect_id, stateId, 1)    
 
     decoratorsHTML = getDecoratorsTable(decorators)
     ascociatesHTML = getDecoratorsTable(ascociates)
@@ -315,7 +324,8 @@ def proyect_view(request, proyect_id):
                                                 'workOrdersHtml': workOrdersHtml,
                                                 'decoratorsHTML': decoratorsHTML,
                                                 'ascociatesHTML': ascociatesHTML,
-                                                'labels': labels
+                                                'labels': labels,
+                                                'stateId': stateId
                                                 #'notesHTML': notesHTML,
                                                 }) 
 
@@ -804,19 +814,30 @@ def selectAttibutes(request):
     return JsonResponse({'result': attributeHTML})
 
 
-#Consulta ejecutada en la vista del proyecto, para ver toda la información de las WO's junto con los items.
+#Consulta ejecutada en la vista del proyecto y en el panel (vista previa), para ver toda la información de las WO's junto con los items.
 @login_required
 def selectWOs(request):
     #Consulta los items desde la base de datos
     proyectId = request.POST.get('p')
+    stateId = request.POST.get('s')
     mode = request.POST.get('m')
-    wosHTML = getDataWOs(request, proyectId, int(mode))
+    wosHTML = getDataWOs(request, proyectId, stateId, int(mode))
                     
     # Devolvemos la lista de ascociates como respuesta JSON
     return JsonResponse({'result': wosHTML})
 
 
+#Consulta ejecutada en el panel, para acceder a la info del proyecto.
+@login_required
+def saveSessionState(request):
+    #Consulta los items desde la base de datos    
+    stateId = request.POST.get('s')    
+    request.session['stateId'] = stateId
 
+    return JsonResponse({'result': 'OK'})
+
+
+                    
 
 ###################################
 ## Funciones para obtener datos ###
@@ -825,20 +846,23 @@ def selectWOs(request):
 #Consulta realizada desde el Panel
 def getDataProyect(filters):
 
-    filters2 = Q()
-    filters2 &= Q(status = 1)
+    filters21 = Q()
+    filters22 = Q()
+    filters21 &= Q(workorder__status = 1)
+    filters22 &= Q(status = 1)
     
     for key, value in filters.children:
         if key == 'workorder__state__id':
-            filters2 &= Q(state__id = value)
+            filters21 &= Q(workorder__state__id = value)
+            filters22 &= Q(state__id = value)
 
     proyectsData = []
 
     #Se aplican los filtros o se traer las wo's por defecto
     if filters:
-        proyects = Proyect.objects.filter(filters).order_by('-id')        
+        proyects = Proyect.objects.filter(filters).filter(filters21).order_by('-id').distinct()
     else:
-        proyects = Proyect.objects.all().order_by('-id')
+        proyects = Proyect.objects.all().filter(filters21).order_by('-id').distinct()
     
     dateNow = datetime.now()
 
@@ -858,24 +882,24 @@ def getDataProyect(filters):
         #Se busca las WO del proyecto
         # statesHTML = '<select class="form-select form-select-solid" data-kt-select2="false">'
         statesHTML = ''
-        workordersStates = WorkOrder.objects.filter(proyect = proyect).filter(filters2).values('state__id', 'state__name').annotate(count=Count('state__id')).order_by('state__id')
+        workordersStates = WorkOrder.objects.filter(proyect = proyect).filter(filters22).values('state__id', 'state__name').annotate(count=Count('state__id')).order_by('state__id')
 
         for wo in workordersStates:
             # statesHTML += '<option><span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + '">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span></option>'
-            statesHTML += '<span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + '">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span><br/>'
+            statesHTML += '<span class="fw-bold p-2 mb-3 badge badge-state-' + str(wo['state__id']) + ' a_proyectEdit" data-id2="' + str(wo['state__id']) + '" style="cursor: pointer;">' + str(wo['state__name']) + ': ' + str(wo['count']) + '</span><br/>'
 
         # statesHTML += '</select>'
 
 
         #Se busca los items de la WO, y se ordenan las categorias
-        items = Item.objects.filter(workorder__in = WorkOrder.objects.filter(proyect = proyect).filter(filters2)).order_by('group__subcategory__category__name')
+        items = Item.objects.filter(workorder__in = WorkOrder.objects.filter(proyect = proyect).filter(filters22)).order_by('group__subcategory__category__name')
         categoryList = []
         categoryStr = ''
         
         for item in items:
             #Manejamos esta excepción puesto que no todos los items alcanzaron a tener su grupo
             try:
-                if item.group.subcategory.category.name not in categoryList:
+                if item.subcategory.category.name not in categoryList:
                     categoryList.append(item.group.subcategory.category.name)
             except:
                 pass
@@ -906,7 +930,7 @@ def getDataProyect(filters):
             'apartment': proyect.customer.apartment,            
             'creationDate': dateCreation.strftime("%m/%d/%Y"),
             'email': proyect.customer.email,
-            'statesHTML': statesHTML, #Esto traerá problemas cuandos ea mas de 1, ojo!!            
+            'statesHTML': statesHTML,
             'allDay': allDay,
             'difference': difference.days,
             'decorators': decoratorsStr,
@@ -919,7 +943,7 @@ def getDataProyect(filters):
     
 
 #Consulta realizada en la vista del proyecto, para ver las WO´s
-def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
+def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectura
 
     proyect = Proyect.objects.get(id=proyect_id)
     workOrders = WorkOrder.objects.filter(proyect = proyect, status = 1).order_by('id')
@@ -935,106 +959,105 @@ def getDataWOs(request, proyect_id, mode): # mode 1: edicion, 2: lectura
 
         woN += 1
 
-        try:
+        if wo.state.id == int(stateId) or int(stateId) == 0:
 
-            if mode == 1:
+            try:
 
-                state = State.objects.get(id = wo.state.id)
+                if mode == 1:
 
-                if state:
+                    state = State.objects.get(id = wo.state.id)
 
-                    buttonName = str(state.buttonName)
-                    stateDescription = str(state.description)
-                    buttonDescription = str(state.buttonDescription)
+                    if state:
 
-                stateNewName = State.objects.get(id = wo.state.id + 1).name
-                                               
-        except:
-            pass
+                        buttonName = str(state.buttonName)
+                        stateDescription = str(state.description)
+                        buttonDescription = str(state.buttonDescription)
 
-
-        workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
-        workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
-        workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12" style="border:1px solid white; border-width:1px;">' #BORDE ITEM
-        
-        #Titulo
-        workOrdersHTML += '<div class="card-header pt-5">'
-        workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
-        workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
-        
-        #Subtitulo
-        workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
-        
-        if wo.state.id == 1:
-
-                #workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
-                #workOrdersHTML += '</div>'
-
-        
-
-        workOrdersHTML += '</h3>'
+                    stateNewName = State.objects.get(id = wo.state.id + 1).name
+                                                
+            except:
+                pass
 
 
-        workOrdersHTML += '<div class="card-toolbar">'
-        
-        if wo.state.id < 10 and mode == 1: #Solo si se edita
+            workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
+            workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
+            workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12" style="border:1px solid white; border-width:1px;">' #BORDE ITEM
+            
+            #Titulo
+            workOrdersHTML += '<div class="card-header pt-5">'
+            workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
+            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
+            
+            #Subtitulo
+            workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
+            
+            if wo.state.id == 1:
 
-            workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + buttonDescription + '">' + buttonName + '</a>'
-            workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
-
-        workOrdersHTML += '</div>'
-
-       
-
-        workOrdersHTML += '</div>'
-        #Fin Titulo
-
-        #Lista de Items
-        workOrdersHTML += '<div class="card-body">'
-
-
-        if mode == 1: # Solo si se edita
+                    #workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                    workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
+                    #workOrdersHTML += '</div>'
 
             
 
+            workOrdersHTML += '</h3>'
 
-            if wo.state.id == 2:
 
-                workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
-                workOrdersHTML += '</div>'
+            workOrdersHTML += '<div class="card-toolbar">'
+            
+            if wo.state.id < 10 and mode == 1: #Solo si se edita
 
-            if wo.state.id >= 3 and wo.state.id <= 9:
+                workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + buttonDescription + '">' + buttonName + '</a>'
+                workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
 
-                workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
-                workOrdersHTML += '</div>'
-
-        if wo.state.id >= 5:
-
-            workOrdersHTML += '<div class="col-xl-2 fv-row">'
-            if mode == 1:
-                workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
-            else:
-                workOrdersHTML += '<a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
             workOrdersHTML += '</div>'
 
-                
-        #Detalle de los items
-        workOrdersHTML += '<div id="itemsDetails_' + str(wo.id) + '">'
-        workOrdersHTML += getDataItems(request, wo.id, mode)
-        workOrdersHTML += '</div>'
+        
 
-        #Comentarios genéricos por etapa/estado
-        workOrdersHTML += getDataComments(request, wo.id, 0, mode)
+            workOrdersHTML += '</div>'
+            #Fin Titulo
 
-        workOrdersHTML += '</div>'
-        #Fin item
+            #Lista de Items
+            workOrdersHTML += '<div class="card-body">'
 
-        workOrdersHTML += '</div>' #Fin BORDE ITEM
-        workOrdersHTML += '</div>' #FIN CONTENEDOR EXTERNO
-        workOrdersHTML += '</div>' #FIN WO
+
+            if mode == 1: # Solo si se edita
+
+                if wo.state.id == 2:
+
+                    workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+                    workOrdersHTML += '</div>'
+
+                if wo.state.id >= 3 and wo.state.id <= 9:
+
+                    workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
+                    workOrdersHTML += '</div>'
+
+            if wo.state.id >= 5:
+
+                workOrdersHTML += '<div class="col-xl-2 fv-row">'
+                if mode == 1:
+                    workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+                else:
+                    workOrdersHTML += '<a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+                workOrdersHTML += '</div>'
+
+                    
+            #Detalle de los items
+            workOrdersHTML += '<div id="itemsDetails_' + str(wo.id) + '">'
+            workOrdersHTML += getDataItems(request, wo.id, mode)
+            workOrdersHTML += '</div>'
+
+            #Comentarios genéricos por etapa/estado
+            workOrdersHTML += getDataComments(request, wo.id, 0, mode)
+
+            workOrdersHTML += '</div>'
+            #Fin item
+
+            workOrdersHTML += '</div>' #Fin BORDE ITEM
+            workOrdersHTML += '</div>' #FIN CONTENEDOR EXTERNO
+            workOrdersHTML += '</div>' #FIN WO
 
     
     items =  Item.objects.filter(workorder__in = workOrders)
@@ -1130,8 +1153,8 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
             itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
             itemsHTML += '<table><tbody>'
-            itemsHTML += '<tr><td><b>Category:</b> ' + item.group.subcategory.category.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.group.subcategory.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Category:</b> ' + item.subcategory.category.name + '</td></tr>'
+            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
             itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
             itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
             itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
@@ -1907,7 +1930,9 @@ def saveItem(request):
     item_id = 0
 
     if request.method == 'POST':
-        workorder_id = request.POST.get('wo_id')        
+        workorder_id = request.POST.get('wo_id')
+
+        subcategory_id = request.POST.get('subcategory')
         group_id = request.POST.get('group')
         place_id = request.POST.get('place')
         qty = request.POST.get('qty')
@@ -1916,11 +1941,17 @@ def saveItem(request):
 
         # Es necesario dar formato a la fecha
         date_proposed = datetime.strptime(date_proposed, "%m/%d/%Y")
+
+        group = None
+
+        if Group.objects.filter(id=group_id):
+            group = Group.objects.get(id=group_id)
             
         try:            
             
             item_save = Item.objects.create(workorder = WorkOrder.objects.get(id=workorder_id),                                            
-                                            group = Group.objects.get(id=group_id),
+                                            subcategory = Subcategory.objects.get(id=subcategory_id),
+                                            group = group,
                                             place = Place.objects.get(id=place_id),
                                             qty = qty,
                                             notes = notes,
