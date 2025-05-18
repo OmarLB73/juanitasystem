@@ -26,6 +26,8 @@ urlpatterns = [
     path('selectAttibutes/', views.selectAttibutes, name='getSelectAttribute_url'),
     path('selectWOs/', views.selectWOs, name='getSelectWOs_url'),
     
+    path('ssData/', views.saveSessionState, name='saveSessionState_url'),
+    
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
     path('saveItemComment/', views.saveItemComment, name='saveItemComment_url'),

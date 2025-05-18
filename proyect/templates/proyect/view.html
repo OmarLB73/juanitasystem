@@ -441,7 +441,7 @@
 																			</div>
 																			<!--end::Col-->
 																			<!--begin::Col-->
-																			<div class="col-xl-6 fv-row">
+																			<div class="col-xl-6">
 																				<!--begin::Input-->
 																			
 																				<select id="selectGroup" class="form-select form-select-solid"
@@ -719,7 +719,7 @@
 
 
 							<input id="p_id" name="p_id" type="hidden" value="{{proyect.id}}" readonly/>
-
+							<input id="stateId" name="stateId" type="hidden" value="{{stateId}}" readonly/>
 
 						</div>
 						<!--end::Container-->
@@ -1181,7 +1181,8 @@
 
 
 			function loadWOs(){
-				var selectValue = $("#p_id").val();			
+				var selectValue = $("#p_id").val();
+				var selectValue2 = $("#stateId").val();		
 								
 				if(selectValue != "") {				
 
@@ -1190,6 +1191,7 @@
 						method: 'POST',
 						data: {
 							'p': selectValue,
+							's': selectValue2,
 							'm': 1  // El valor que se envía al servidor
 						},
 						beforeSend: function(xhr, settings) {
