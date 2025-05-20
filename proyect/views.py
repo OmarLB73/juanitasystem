@@ -456,8 +456,10 @@ def getAddress(request):
 def getDataCalendar(request):
     #Consulta los items desde la BD    
     items = Item.objects.filter(date_end__isnull=False)
+    works = WorkOrder.objects.filter(date__isnull=False)
     events = []
 
+    # Fechas de los items
     for item in items:
 
         if item.date_end:
@@ -485,6 +487,35 @@ def getDataCalendar(request):
                 'color': color,
                 'p': str(item.workorder.proyect.id),
                 'w': str(item.workorder.id),
+            })
+
+    for wo in works:
+
+        if wo.date:
+
+            fecha = timezone.localtime(wo.date).strftime('%Y-%m-%d %H:%M')
+            color = wo.responsible.color
+
+            # if item.workorder.state.id == 4:
+            #     color = '#50cd89'
+
+            # if item.workorder.state.id == 5:
+            #     color = '#7239ea'
+
+            # if item.workorder.state.id == 6:
+            #     color = 'fc-event-solid-dark'
+
+            # if item.workorder.state.id == 7:
+            #     color = 'fc-event-solid-dark'
+                    
+            events.append({
+                'id': 0,
+                'title':  wo.proyect.customer.address,
+                'start': fecha,
+                'description': wo.proyect.customer.name,
+                'color': color,
+                'p': str(wo.proyect.id),
+                'w': str(wo.id),
             })
                 
     # Devolvemos la lista de proyectos como respuesta JSON
@@ -528,7 +559,7 @@ def getDataItem(request):
 
     ######### Atributos ##########
 
-    attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = item.group.subcategory.category.id)).order_by('order','attribute')
+    attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = item.subcategory.category.id)).order_by('order','attribute')
 
     attributeHTML = ""
         
@@ -754,7 +785,7 @@ def selectSubcategory(request):
 def selectGroup(request):
     #Consulta las subcategorias desde la base de datos    
     subcategory_value = request.POST.get('subcategorySelect')
-    groupHTML = ''
+    groupHTML = '<option value=''>---</option>'
 
     if subcategory_value != '':        
 
@@ -900,7 +931,7 @@ def getDataProyect(filters):
             #Manejamos esta excepción puesto que no todos los items alcanzaron a tener su grupo
             try:
                 if item.subcategory.category.name not in categoryList:
-                    categoryList.append(item.group.subcategory.category.name)
+                    categoryList.append(item.subcategory.category.name)
             except:
                 pass
         
@@ -985,35 +1016,49 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             
             #Titulo
             workOrdersHTML += '<div class="card-header pt-5">'
+            workOrdersHTML += '<div class="col-lg-12">'
+
+            workOrdersHTML += '<div class="row">'
+
+            #Celda 1
+            workOrdersHTML += '<div class="col-lg-6">' #style="border:1px solid red; border-width:1px;"
+            
             workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
             workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
-            
+
             #Subtitulo
             workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
-            
-            if wo.state.id == 1:
-
-                    #workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                    workOrdersHTML += '<a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a>'
-                    #workOrdersHTML += '</div>'
-
-            
-
             workOrdersHTML += '</h3>'
 
+            if wo.state.id == 1 and mode == 1: #Solo si se edita
 
-            workOrdersHTML += '<div class="card-toolbar">'
+                workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalItem" onclick="wo(' + str(wo.id) + ')">Add Item (+)</a></div>'
+                
+            workOrdersHTML += '</div>'
+
+
+            #Celda 2
+            workOrdersHTML += '<div class="col-lg-3 d-flex flex-column justify-content-end">' #style="border:1px solid green; border-width:1px;"
+
+            workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,1)">Schedule (+)</a></div>'
+
+            workOrdersHTML += '</div>'
+
+
+            #Celda 3
+            workOrdersHTML += '<div class="col-lg-3 text-end pt-5">' #style="border:1px solid yellow; border-width:1px;"
             
             if wo.state.id < 10 and mode == 1: #Solo si se edita
 
-                workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + buttonDescription + '">' + buttonName + '</a>'
-                workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
-
+                 workOrdersHTML += '<a id="aState" href="javascript:state(' + str(wo.id) + ',' + str(wo.state.id) + ')" class="btn btn-sm btn-primary font-weight-bolder text-uppercase" data-bs-toggle="tooltip" title="' + buttonDescription + '">' + buttonName + '</a>'
+                 workOrdersHTML += '<input id="stateAfter" type="hidden" value="' + stateNewName + '">'
+                                    
             workOrdersHTML += '</div>'
 
-        
-
             workOrdersHTML += '</div>'
+                    
+
+            workOrdersHTML += '</div></div>'
             #Fin Titulo
 
             #Lista de Items
@@ -1369,205 +1414,218 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 itemsHTML += '</div>'
                 itemsHTML += '</div>'
                 itemsHTML += '</div>'
-
-
-            #Inicio Fila 4
-            #Ver detalle
-            itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
-            itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
-
-            itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
-            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-            itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-            itemsHTML += '</svg>'
-            itemsHTML += '</span>'
-
-            itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
-            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-            itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-            itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
-            itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-            itemsHTML += '</svg>'
-            itemsHTML += '</span>'
-			
-            itemsHTML += '</div>'
-            itemsHTML += '<h6 class="text-gray-700 cursor-pointer mb-0">See more details</h6>'
-            itemsHTML += '</div>'
-
-            itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
-
-            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-
-            ##############################################################################################################
-            ############################################## Celda (archivos) ##############################################
-            ##############################################################################################################
-
             
 
+            ##############################################################################################################
+            ########################################## Más detalles (archivos) ###########################################
+            ##############################################################################################################
+            
             files = ItemFile.objects.filter(item = item)
-            materials = ItemMaterial.objects.filter(item = item, file__isnull = False).exclude(file='').order_by('name')        
+            materials = ItemMaterial.objects.filter(item = item, file__isnull = False).exclude(file='').order_by('name')
+            images = ItemImage.objects.filter(item = item)
 
-            if len(files) > 0 or len(materials) > 0:
+            if len(files) > 0 or len(materials) > 0 or len(images) > 0:
 
-                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
-                itemsHTML += '<div class="row">'
-                itemsHTML += '<div class="col-xl-12">'
+                # itemsHTML += '<div class="separator border-secondary my-10"></div>'
 
-                itemsHTML += '<div class="d-flex align-items-center border p-5">'
-                itemsHTML += '<ul class="text-start">'
+                #Inicio Fila 4
+                #Ver detalle
+                itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
+                itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
 
-                for file in files:
+                itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
+                itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+                itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+                itemsHTML += '</svg>'
+                itemsHTML += '</span>'
 
-                    itemsHTML += '<li>'
+                itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
+                itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+                itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
+                itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+                itemsHTML += '</svg>'
+                itemsHTML += '</span>'
+                
+                itemsHTML += '</div>'
+
+                itemsHTML += '<h7 class="text-gray-700 cursor-pointer mb-0">See more details</h7>'
+                
+                itemsHTML += '</div>'                     
+                            
+
+                
+
+                itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+
+                itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+                ##############################################################################################################
+                ############################################## Celda (archivos) ##############################################
+                ##############################################################################################################
+
+                
+
+                
+
+                if len(files) > 0 or len(materials) > 0:
+
+                    itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                    itemsHTML += '<div class="row">'
+                    itemsHTML += '<div class="col-xl-12">'
+
+                    itemsHTML += '<div class="d-flex align-items-center border p-5">'
+                    itemsHTML += '<ul class="text-start">'
+
+                    for file in files:
+
+                        itemsHTML += '<li>'
+                                            
+                        if file.file.url[-4:] == '.pdf':
+                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                        if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
+                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                        if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
+                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+                                                        
+                        itemsHTML += '<span>'
+                        itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
+                        itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
+                        itemsHTML += '</<span>' 
+
+                        itemsHTML += '</li>'
+
+                    for material in materials:
+
+                        try:
+                        
+                            if material.file:
+
+                                if material.file.url[-4:] in ('.pdf','.doc','.xls') or material.file.url[-5:] in ('.docx','.xlsx'):
+
+                                    itemsHTML += '<li>'
+                                                        
+                                    if material.file.url[-4:] == '.pdf':
+                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                                    if material.file.url[-5:] == '.docx' or material.file.url[-4:] == '.doc':
+                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                                    if material.file.url[-5:] == '.xlsx' or material.file.url[-4:] == '.xls':
+                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+                                                                    
+                                    itemsHTML += '<span>'
+                                    itemsHTML += '<a href="' + material.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + material.name + '</a>'
+                                    itemsHTML += '<div class="text-gray-400">' + material.notes + '</div>'
+                                    itemsHTML += '</<span>' 
+
+                                    itemsHTML += '</li>'
+                        
+                        except:
+                            pass
+                        
+
+                    itemsHTML += '</ul>'
+                    itemsHTML += '</div>'         
+                                                                                                                                                
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+                #############
+
+                itemsHTML += '</div>'
+
+
+                itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+                ##############################################################################################################
+                ############################################## Celda (imagenes) ##############################################
+                ##############################################################################################################
+
+                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
+                itemsHTML += '<section class="grid-gallery-section">'
+                
+                # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
+                # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
+                # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
+                # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
+                # itemsHTML += '</div>'
+                
+                itemsHTML += '<div class="grid-gallery">'
+                itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
+
+                
+                for image in images:
+
+                    type_imp = 'Image'
+
+                    if image.file:
                                         
-                    if file.file.url[-4:] == '.pdf':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+                        itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                        itemsHTML += '<div class="gallery-image-area" style="width:80%">'
+                        
+                        itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
+                        itemsHTML += '<div class="gallery-overly">'
+                        
+                        itemsHTML += '<div class="image-details">'                                
+                        itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
+                        itemsHTML += '</div>'
+                        
+                        itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
+                        itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                        itemsHTML += '</a>'
 
-                    if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+                        itemsHTML += '</div>'
+                        itemsHTML += '</div>'
+                        itemsHTML += '</div>'
 
-                    if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
-                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
-                                                    
-                    itemsHTML += '<span>'
-                    itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
-                    itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
-                    itemsHTML += '</<span>' 
-
-                    itemsHTML += '</li>'
 
                 for material in materials:
 
-                    try:
-                    
-                        if material.file:
+                    type_imp = 'Material'
+                        
+                    if material.file:
+                        try:
+                            if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
 
-                            if material.file.url[-4:] in ('.pdf','.doc','.xls') or material.file.url[-5:] in ('.docx','.xlsx'):
+                                itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                                itemsHTML += '<div class="gallery-image-area" style="width:80%">'
 
-                                itemsHTML += '<li>'
-                                                    
-                                if material.file.url[-4:] == '.pdf':
-                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+                                itemsHTML += '<img src="' + material.file.url + '" class="grid-thumbnail-image" alt="' + material.name + '"><br/>"' + material.notes + '"'
+                                itemsHTML += '<div class="gallery-overly">'
 
-                                if material.file.url[-5:] == '.docx' or material.file.url[-4:] == '.doc':
-                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+                                itemsHTML += '<div class="image-details">'
+                                itemsHTML += '<span class="image-title">' + type_imp + '</span>'
+                                itemsHTML += '</div>'
 
-                                if material.file.url[-5:] == '.xlsx' or material.file.url[-4:] == '.xls':
-                                    itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
-                                                                
-                                itemsHTML += '<span>'
-                                itemsHTML += '<a href="' + material.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + material.name + '</a>'
-                                itemsHTML += '<div class="text-gray-400">' + material.notes + '</div>'
-                                itemsHTML += '</<span>' 
+                                itemsHTML += '<a class="grid-image-zoom" href="' + material.file.url + '" data-fancybox-group="grid-gallery" title="' + material.notes + '">'
+                                itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                                itemsHTML += '</a>'
 
-                                itemsHTML += '</li>'
-                    
-                    except:
-                        pass
-                    
+                                itemsHTML += '</div>'
+                                itemsHTML += '</div>'
+                                itemsHTML += '</div>' 
 
-                itemsHTML += '</ul>'
-                itemsHTML += '</div>'         
-                                                                                                                                            
+                        except:
+                            pass
+                            
+
                 itemsHTML += '</div>'
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-            #############
-
-            itemsHTML += '</div>'
-
-
-            itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-
-            ##############################################################################################################
-            ############################################## Celda (imagenes) ##############################################
-            ##############################################################################################################
-
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
-            itemsHTML += '<section class="grid-gallery-section">'
-            
-            # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
-            # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
-            # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
-            # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
-            # itemsHTML += '</div>'
-            
-            itemsHTML += '<div class="grid-gallery">'
-            itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
-
-            images = ItemImage.objects.filter(item = item)
-            for image in images:
-
-                type_imp = 'Image'
-
-                if image.file:
-                                    
-                    itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                    itemsHTML += '<div class="gallery-image-area" style="width:80%">'
-                    
-                    itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
-                    itemsHTML += '<div class="gallery-overly">'
-                    
-                    itemsHTML += '<div class="image-details">'                                
-                    itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
-                    itemsHTML += '</div>'
-                    
-                    itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
-                    itemsHTML += '<div class="gallery-zoom-icon"></div>'
-                    itemsHTML += '</a>'
-
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-
-
-            for material in materials:
-
-                type_imp = 'Material'
-                    
-                if material.file:
-                    try:
-                        if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
-
-                            itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                            itemsHTML += '<div class="gallery-image-area" style="width:80%">'
-
-                            itemsHTML += '<img src="' + material.file.url + '" class="grid-thumbnail-image" alt="' + material.name + '"><br/>"' + material.notes + '"'
-                            itemsHTML += '<div class="gallery-overly">'
-
-                            itemsHTML += '<div class="image-details">'
-                            itemsHTML += '<span class="image-title">' + type_imp + '</span>'
-                            itemsHTML += '</div>'
-
-                            itemsHTML += '<a class="grid-image-zoom" href="' + material.file.url + '" data-fancybox-group="grid-gallery" title="' + material.notes + '">'
-                            itemsHTML += '<div class="gallery-zoom-icon"></div>'
-                            itemsHTML += '</a>'
-
-                            itemsHTML += '</div>'
-                            itemsHTML += '</div>'
-                            itemsHTML += '</div>' 
-
-                    except:
-                        pass
-                         
-
-            itemsHTML += '</div>'
-            itemsHTML += '</section>'
-            
-            itemsHTML += '</div>'                                    
-            #############            
-            
-            itemsHTML += '</div>' 
-
-            itemsHTML += '</div>' #div Detalle    
-
-
-            
-
+                itemsHTML += '</section>'
                 
-            
-            itemsHTML += '</div>'       # Final Final contenedor generico      
+                itemsHTML += '</div>'                                    
+                #############            
+                
+                itemsHTML += '</div>' 
+
+                itemsHTML += '</div>' #div Detalle    
+
+
+                                        
+            itemsHTML += '</div>'  # Final Final contenedor generico      
             itemsHTML += '</div>'  # Final row item
         
 
@@ -1598,23 +1656,23 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             itemCSs = ItemCommentState.objects.filter(item=item).order_by('id')  
 
             if len(itemCSs) > 0:
-                itemsHTML += '<br/>'
-                itemsHTML += '<h6>Comments by item:</h6>'                
+                itemsHTML += '<div class="separator border-secondary my-10"></div>'
+                itemsHTML += '<h7><b>Comments by item:</b></h7>'
 
     else: 
         itemsHTML += '<div class="col-xl-12 fv-row text-start">'
         itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('id')
 
         if len(itemCSs) > 0:
-                itemsHTML += '<h6>General comments:</h6>'
+                itemsHTML += '<h7><b>General comments:</b></h7>'
 
     
     if len(itemCSs) > 0:
         # 27-04-2025
-        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-6 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="15%">User</th><th>Notes</th>'
+        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="15%">User</th><th>Notes</th>'
 
         if mode == 1:
-            itemsHTML += '<th>Edit</th>'
+            itemsHTML += '<th></th>'
 
         itemsHTML += '</tr></thead>'
 
@@ -1660,12 +1718,12 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             itemTxt += "</ul>"
 
 
-        itemsHTML += '<tr class="py-1 fw-bold fs-6"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+        itemsHTML += '<tr class="py-1 fw-bold fs-7"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
 
         user_session = request.user
 
         if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
-            itemsHTML += '<td><a class="py-1 btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
+            itemsHTML += '<td><a class="py-1 btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
                 
         itemsHTML += '</tr>'
         
@@ -2106,6 +2164,7 @@ def saveItemComment(request):
         notes = request.POST.get('notes')
         date_end = request.POST.get('date_end')
         responsible_id = request.POST.get('responsable')
+        case = request.POST.get('c')
 
         workorder = WorkOrder.objects.get(id=workOrderId)
         item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
@@ -2113,7 +2172,7 @@ def saveItemComment(request):
         #A nivel de item       
         if item: 
 
-            if notes: #comentario
+            if case == '0': #comentario
             
                 #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
                 item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
@@ -2149,7 +2208,7 @@ def saveItemComment(request):
                 
                 return JsonResponse({'result': "OK"})
             
-            else:
+            elif case == '1': #agendar
 
                 if date_end and responsible_id: # Si se esta agendando
 
@@ -2164,46 +2223,71 @@ def saveItemComment(request):
                 item.save()
 
                 return JsonResponse({'result': "OK"})
+            
+            else:
+                
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return JsonResponse({'result': "Server error. Please contact to administrator."})
                     
         else:
 
             #Comentario genérico
             if int(itemId) == 0:
 
-                #Si el comentarioId generico existe, entonces se edita. En caso contrario, se crea.
-                item_coment_save = WorkOrderCommentState.objects.filter(id=commentId, state=workorder.state).first()
+                if case == '0': #comentario
 
-                if item_coment_save:
-                    item_coment_save.notes = notes
-                    item_coment_save.modification_by_user = request.user.id
-                    item_coment_save.save()
+                    #Si el comentarioId generico existe, entonces se edita. En caso contrario, se crea.
+                    item_coment_save = WorkOrderCommentState.objects.filter(id=commentId, state=workorder.state).first()
 
-                else:                                    
-                    
-                    item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
-                                                                            state = workorder.state,
-                                                                            notes = notes,
-                                                                            created_by_user = request.user.id,
-                                                                            modification_by_user = request.user.id)
+                    if item_coment_save:
+                        item_coment_save.notes = notes
+                        item_coment_save.modification_by_user = request.user.id
+                        item_coment_save.save()
+
+                    else:                                    
                         
-                ################################### Se recorren los archivos ###################################
-
-                files = request.FILES.getlist('files[]')
-
-                for file in files:
-                    
-                    if validateTypeFile(file.content_type):
-                        try:
+                        item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
+                                                                                state = workorder.state,
+                                                                                notes = notes,
+                                                                                created_by_user = request.user.id,
+                                                                                modification_by_user = request.user.id)
                             
-                            WorkOrderCommentStateFile.objects.create(   workorder_comment_state = item_coment_save,
-                                                                        file = file,
-                                                                        name = file.name)
-                        except:                
-                            messages.error(request, 'Server error. Please contact to administrator!')
-                            return JsonResponse({'result': "Server error. Please contact to administrator."})
+                    ################################### Se recorren los archivos ###################################
+
+                    files = request.FILES.getlist('files[]')
+
+                    for file in files:
                         
+                        if validateTypeFile(file.content_type):
+                            try:
+                                
+                                WorkOrderCommentStateFile.objects.create(   workorder_comment_state = item_coment_save,
+                                                                            file = file,
+                                                                            name = file.name)
+                            except:                
+                                messages.error(request, 'Server error. Please contact to administrator!')
+                                return JsonResponse({'result': "Server error. Please contact to administrator."})
+                            
+                    return JsonResponse({'result': "OK"})
                 
-                return JsonResponse({'result': "OK"})
+
+                elif case == '1': #agendar
+
+                    if date_end and responsible_id: # Si se esta agendando
+
+                        if date_end != '':
+                            workorder.date = date_end
+                            workorder.modification_by_user = request.user.id
+
+                        if int(responsible_id) != 0:
+                            resp = Responsible.objects.get(id = responsible_id)
+                            if resp:
+                                workorder.responsible = resp
+                                workorder.modification_by_user = request.user.id
+
+                    workorder.save()
+
+                    return JsonResponse({'result': "OK"})
             
             else:
 
@@ -2487,6 +2571,9 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
             itemCSId = str(itemCS.id)
             itemTxt = itemCS.notes
             files = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS)
+
+        if workorder.date:
+                fecha_fin = timezone.localtime(workorder.date).strftime('%Y-%m-%d %H:%M')
                 
             
     itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
@@ -2521,7 +2608,8 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
 
     if int(case) == 1: #Para agendar, en etapas 5 y 6
 
-        if workorder.state.id == 5 or workorder.state.id == 6:
+        #if workorder.state.id == 5 or workorder.state.id == 6:
+        if workorder.state.id == 5 or workorder.state.id == 6 or itemId == '0':
 
             itemsHTML += '<div class="row">'
 
@@ -2533,8 +2621,13 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
 
             responsibleId = 0
 
-            if item.responsible:
-                responsibleId = item.responsible.id
+            if item:
+                if item.responsible:
+                    responsibleId = item.responsible.id
+
+            elif workorder:
+                if workorder.responsible:
+                    responsibleId = workorder.responsible.id
 
             for responsible in responsibles:
                 if responsibleId == responsible.id:
@@ -2573,7 +2666,7 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
             itemsHTML += '<div class="row">'
 
             itemsHTML += '<div class="col-md-3">'
-            itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIR(' + str(workorder.id) + ',' + itemId + ')">Save</button>'                
+            itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIR(' + str(workorder.id) + ',' + itemId + ', ' +  case + ')">Save</button>'                
             itemsHTML += '</div>'                            
     
             itemsHTML += '</div>'

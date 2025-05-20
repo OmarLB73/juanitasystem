@@ -1563,11 +1563,12 @@
 			}
 
 
-			function saveIR(w,i){
+			function saveIR(w,i,c){
 								
 				var formData = new FormData();  // Creamos un objeto FormData vacío
 				formData.append('id1', w);
-				formData.append('id2', i);				
+				formData.append('id2', i);
+				formData.append('c', c);
 				// Serializamos los datos del formulario (excepto los archivos)
 				var serializedData = $('#formItem_' + String(i)).serialize();
 							
