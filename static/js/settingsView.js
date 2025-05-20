@@ -42,7 +42,7 @@ var KTProjectSettings = {
                                         // Si el usuario confirma, enviar el formulario
                                         // $('#formItem')[0].submit(); // Enviar el formulario manualmente
 
-                                        var hasContent = false;   
+                                        var hasContent = true;  // Ya no aplica
                                         var rows = document.querySelectorAll("#tableMaterials tbody tr");                                                                                                                    
                                         // Recorrer todas las filas
                                         for (var y = 0; y < rows.length; y++) {
