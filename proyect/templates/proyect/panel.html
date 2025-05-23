@@ -971,7 +971,7 @@
 	<!--begin::Modal - New Product-->
 	<div class="modal fade" id="kt_modal_view_event" tabindex="-1" aria-hidden="true">
 		<!--begin::Modal dialog-->
-		<div class="modal-dialog modal-dialog-centered mw-650px">
+		<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-650px">
 			<!--begin::Modal content-->
 			<div class="modal-content">
 				<!--begin::Modal header-->
@@ -1014,7 +1014,7 @@
 				</div>
 				<!--end::Modal header-->
 				<!--begin::Modal body-->
-				<div class="modal-body pt-0 pb-20 px-lg-17">
+				<div class="modal-body pt-0 pb-15 px-lg-17">
 					<!--begin::Row-->
 					<div class="d-flex">
 						<!--begin::Icon-->
@@ -1061,8 +1061,10 @@
 					<!--end::Row-->
 					<input id="id1" name="id1" type="hidden" value="" readonly/>
 					<input id="id2" name="id2" type="hidden" value="" readonly/>
+
+					<br/>
 					<!--begin::Row-->
-					<div id="saveItemComment">
+					<div id="saveModal">
 										
 					</div>
 					<!--end::Row-->
@@ -1088,6 +1090,17 @@
 	<script src="{% static 'js/galery/gallery.js' %}"></script>
 
 	<script src="{% static 'js/galery/masonry.pkgd.min.js' %}"></script>
+
+
+		<style>
+			.fc-event.completed {
+				/*background-color: #ffffff !important; /* celeste claro */
+				border-color: #1bc537 !important;     /* verde */
+				/*color: #7c0000 !important;*/
+				text-decoration: line-through;        /* opcional: tachar el texto */
+				opacity: 0.7;                         /* opcional: semi-transparente */
+			}
+		</style>
 
 
 	<script>
@@ -1168,9 +1181,9 @@
 						document.getElementById('tooltipTitleMd').textContent = info.event.title;
 						document.getElementById('tooltipDescriptionMd').textContent = info.event.extendedProps.description;
 						document.getElementById('tooltipDateMd').textContent = formattedDate;
-						document.getElementById('id1').value = info.event.groupId;
-						document.getElementById('id2').value = info.event.id;
-						loadIC(info.event.groupId, info.event.id, 1);
+						// document.getElementById('id1').value = info.event.groupId;
+						// document.getElementById('id2').value = info.event.id;
+						loadModal(info.event.extendedProps.w, info.event.extendedProps.i, info.event.id, 1);
 					}
 
 
@@ -1187,14 +1200,19 @@
 						response.calendar.forEach(function(agendy) {
 							
 							calendar.addEvent({
-								id: agendy.id,
-								groupId: agendy.w,
+								id: agendy.id,								
 								title: agendy.title,
 								start: agendy.start,
 								description: agendy.description,
 								color: agendy.color,
+								// backgroundColor: 'red',								
+								//display: 'block',
+								classNames: agendy.className,
+								
 								extendedProps: {
-									p: agendy.p,
+									w: agendy.w,
+									i: agendy.i,
+									p: agendy.p,									
 								}
 								
 							});						
@@ -1275,7 +1293,11 @@
 					editProyect(enlace,s);
 				});
 			});
-					
+
+			$(document).on('click', '.deleteCommentCalendar', function() {				
+				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+		  	});
+
         });
 
 
@@ -1339,19 +1361,33 @@
 		}
 
 		
-		function loadIC(y, t, m){
+		function loadModal(w, t, i,c){
+
+			$('#saveModal').html('');
 			
 			$.ajax({
-				url: "{% url 'getDataComment_url' %}",  // La URL que manejará la consulta AJAX
+				url: "{% url 'getDataModal_url' %}",  // La URL que manejará la consulta AJAX
 				method: 'GET',
 				data: {
-					'id1': y,
+					'id1': w,
 					'id2': t,
-					'id4': m,
+					'id3': i,
+					'id4': c,
 				},		
 				success: function(response) {
-					$('#saveItemComment').html(response.result);
+					$('#saveModal').html(response.result);
 					initializeFlatpickr();		
+
+					$('#addComment').click(function() {						
+						// Clonamos la fila con id "filaBase"					
+						var newRow = $('.baseRowComment:first').clone();										
+						newRow.find('input').val('');      										
+						newRow.removeAttr('style');
+						newRow.removeAttr('id');
+
+						$('#tableComments tbody').append(newRow);
+						
+					});
 				},
 				error: function() {
 					console.error("Error server: " + error, event.error);
@@ -1361,62 +1397,196 @@
 		}
 
 
-		function saveIR(w,i){
-								
+		function saveCalendar(w,i){
+
 			var formData = new FormData();  // Creamos un objeto FormData vacío
-			formData.append('id1', w);
-			formData.append('id2', i);				
-			// Serializamos los datos del formulario (excepto los archivos)
-			var serializedData = $('#formItem_' + String(i)).serialize();
+				formData.append('id1', w);
+				formData.append('id2', i);				
+
+				var rows = document.querySelectorAll("#tableComments tbody tr");                                                                                                                    
+				
+				// Recorrer todas las filas
+				for (var y = 0; y < rows.length; y++) {
+					var fileInput = rows[y].querySelector('input[type="file"]');
+					var hiddenInput = rows[y].querySelector('input[type="hidden"]');
+
+					hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;
+					
+				}
+
+
+				// Serializamos los datos del formulario (excepto los archivos)
+				var serializedData = $('#formItem_' + String(i)).serialize();
+							
+				// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+				var params = serializedData.split('&');
+				params.forEach(function(param) {
+					var keyValue = param.split('=');
+					var key = decodeURIComponent(keyValue[0]);
+					var value = decodeURIComponent(keyValue[1] || '');
+					formData.append(key, value);
+				});
+
+				// Seleccionamos todos los inputs de tipo file				
+				$('input[type="file"]').each(function() {
+					var input = $(this)[0]; // Obtener el campo de archivo actual
+					var inputName = input.name; // Obtenemos el nombre del campo (images1, images2, images3, etc.)
+
+					// Verificamos si hay archivos seleccionados
+					if (input.files.length > 0) {
+						// Iteramos sobre los archivos seleccionados
+						for (var i = 0; i < input.files.length; i++) {
+							// Agregamos el archivo al FormData usando el nombre del input como clave
+							formData.append(inputName, input.files[i]);
+						}
+					}
+				});			
+				
+
+				$.ajax({
+					type: "POST",
+					url: "{% url 'saveCalendar_url' %}",  // Reemplaza con la URL de tu vista
+					data: formData,
+					processData: false,  // Esto es importante para enviar archivos correctamente
+					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						if(response.result = "OK"){								
+							loadCalendar();
+							$('#kt_modal_view_event').modal('hide');							
+						}						
+					},
+					error: function() {
+						console.error("Error server: " + error, event.error);
+					}
+				});
+								
+			// var formData = new FormData();  // Creamos un objeto FormData vacío
+			// formData.append('id1', w);
+			// formData.append('id2', i);				
+			// // Serializamos los datos del formulario (excepto los archivos)
+			// var serializedData = $('#formItem_' + String(i)).serialize();
 						
-			// Convertimos los datos serializados en un objeto y lo agregamos al FormData
-			var params = serializedData.split('&');
-			params.forEach(function(param) {
-				var keyValue = param.split('=');
-				var key = decodeURIComponent(keyValue[0]);
-				var value = decodeURIComponent(keyValue[1] || '');
-				formData.append(key, value);
-			});
+			// // Convertimos los datos serializados en un objeto y lo agregamos al FormData
+			// var params = serializedData.split('&');
+			// params.forEach(function(param) {
+			// 	var keyValue = param.split('=');
+			// 	var key = decodeURIComponent(keyValue[0]);
+			// 	var value = decodeURIComponent(keyValue[1] || '');
+			// 	formData.append(key, value);
+			// });
 
-			var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
+			// var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
 			
-			if (inputFile && inputFile.files.length > 0) {
+			// if (inputFile && inputFile.files.length > 0) {
 
-				for (var i = 0; i < inputFile.files.length; i++) {
-					formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
-				}
-			}
+			// 	for (var i = 0; i < inputFile.files.length; i++) {
+			// 		formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
+			// 	}
+			// }
 
-			$.ajax({
-				type: "POST",
-				url: "{% url 'saveItemComment_url' %}",  // Reemplaza con la URL de tu vista
-				data: formData,
-				processData: false,  // Esto es importante para enviar archivos correctamente
-				contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-				beforeSend: function(xhr, settings) {
-					// Añadir el token CSRF en las cabeceras
-					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-				},
-				success: function(response) {
-					if(response.result = "OK"){								
-						loadCalendar();
-						$('#kt_modal_view_event').modal('hide');												
-					}						
-				},
-				error: function() {
-					console.error("Error server: " + error, event.error);
-				}
-			});
+			// $.ajax({
+			// 	type: "POST",
+			// 	url: "{% url 'saveComment_url' %}",  // Reemplaza con la URL de tu vista
+			// 	data: formData,
+			// 	processData: false,  // Esto es importante para enviar archivos correctamente
+			// 	contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+			// 	beforeSend: function(xhr, settings) {
+			// 		// Añadir el token CSRF en las cabeceras
+			// 		xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+			// 	},
+			// 	success: function(response) {
+			// 		if(response.result = "OK"){								
+			// 			loadCalendar();
+			// 			$('#kt_modal_view_event').modal('hide');												
+			// 		}						
+			// 	},
+			// 	error: function() {
+			// 		console.error("Error server: " + error, event.error);
+			// 	}
+			// });
 
 
 		}
 		
+
+		function delCommCalendar(w,t,i,v,o){
+			
+			v.preventDefault();
+			v.stopPropagation();
+
+			Swal.fire({
+				title: 'Are you sure?',
+				text: 'Do you want to delete the comment?',
+				icon: 'warning',
+				showCancelButton: true,  // Muestra el botón de cancelación
+				confirmButtonText: 'Yes',
+				cancelButtonText: 'Cancel'
+			}).then((result) => {
+				if (result.isConfirmed) {																		
+											
+					$.ajax({					
+						url: "{% url 'deleteCommentCalendar_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {
+							'w': w,
+							't': t,
+							'i': i
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							if(response.result = "1"){					
+								
+								var tr = o.parentNode.parentNode;
+								tr.remove();
+
+								Swal.fire({
+									title: 'Deleted!',
+									text: 'The comment has been successfully deleted.',
+									icon: 'info',
+									confirmButtonText: 'Ok.'
+								});
+
+	
+							}
+							else{
+								Swal.fire({
+									title: 'Error server!',
+									text: error,
+									icon: 'error',
+									confirmButtonText: 'Ok.'
+								});
+							}
+
+						},
+						error: function(xhr, status, error) {																
+							Swal.fire({
+									title: 'Error server!',
+									text: error,
+									icon: 'error',
+									confirmButtonText: 'Ok.'
+								});
+						}
+					});	
+				}
+			});
+		}
+
 		
 		function initializeFlatpickr() {
 			// Aplicar flatpickr a los inputs con la clase 'date-picker'
 			$(".date-picker").flatpickr({
 				enableTime: true, // Deshabilitar la selección de hora
-				dateFormat: "Y-m-d H:i" // Establecer el formato de fecha
+				dateFormat: "m/d/Y h:i K", // Establecer el formato de fecha
+				time_24hr: false,
+				locale: "en"
 			});
 		}
 

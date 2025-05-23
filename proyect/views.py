@@ -23,9 +23,10 @@ from django.conf import settings #Para el PDF, manejar las rutas
 from django.http import HttpRequest #Para las sesiones
 
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement, AttributeOption, ItemAttributeNote #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement, AttributeOption, ItemAttributeNote, CalendarItem, CalendarWorkOrder, CalendarItemComment, CalendarItemCommentFile, CalendarWorkOrderComment, CalendarWorkOrderCommentFile #Aquí importamos a los modelos que necesitamos
 
 import ast #Usado para pasar una lista string a lista de verdad
+
 
 @login_required
 def panel_view(request):
@@ -365,7 +366,8 @@ def getDataCustomer(request):
             'id': '',
         }
         return JsonResponse(datos)
-    
+
+
 #Consulta ejecutada al momento de crear proyecto y en el detalle del proyecto, para ver la información del decorador/ayudante
 @login_required
 def getDataDecorator(request):
@@ -455,67 +457,59 @@ def getAddress(request):
 @login_required
 def getDataCalendar(request):
     #Consulta los items desde la BD    
-    items = Item.objects.filter(date_end__isnull=False)
-    works = WorkOrder.objects.filter(date__isnull=False)
+    calendarItems = CalendarItem.objects.filter(date__isnull=False, status__in = [1, 2])
+    calendarWorks = CalendarWorkOrder.objects.filter(date__isnull=False, status__in = [1, 2])
     events = []
-
+    
     # Fechas de los items
-    for item in items:
+    for calendar in calendarItems:
 
-        if item.date_end:
+        className = ''
 
-            fecha = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-            color = item.responsible.color
+        if calendar.date:
 
-            # if item.workorder.state.id == 4:
-            #     color = '#50cd89'
+            fecha = timezone.localtime(calendar.date).strftime('%Y-%m-%d %H:%M')
+            color = calendar.responsible.color
 
-            # if item.workorder.state.id == 5:
-            #     color = '#7239ea'
-
-            # if item.workorder.state.id == 6:
-            #     color = 'fc-event-solid-dark'
-
-            # if item.workorder.state.id == 7:
-            #     color = 'fc-event-solid-dark'
+            if calendar.status == 2:
+                className = 'completed'
                     
             events.append({
-                'id': item.id,
-                'title':  item.workorder.proyect.customer.address,
+                'id': calendar.id,
+                'title': calendar.item.workorder.proyect.customer.address,
                 'start': fecha,
-                'description': item.workorder.proyect.customer.name,
+                'description': calendar.item.workorder.proyect.customer.name,
                 'color': color,
-                'p': str(item.workorder.proyect.id),
-                'w': str(item.workorder.id),
+                'p': str(calendar.item.workorder.proyect.id),
+                'w': str(calendar.item.workorder.id),
+                'i': str(calendar.item.id),
+                'className': className
             })
 
-    for wo in works:
+    for calendar in calendarWorks:
 
-        if wo.date:
+        className = ''
 
-            fecha = timezone.localtime(wo.date).strftime('%Y-%m-%d %H:%M')
-            color = wo.responsible.color
+        if calendar.date:
 
-            # if item.workorder.state.id == 4:
-            #     color = '#50cd89'
+            fecha = timezone.localtime(calendar.date).strftime('%Y-%m-%d %H:%M')
+            color = calendar.responsible.color
 
-            # if item.workorder.state.id == 5:
-            #     color = '#7239ea'
-
-            # if item.workorder.state.id == 6:
-            #     color = 'fc-event-solid-dark'
-
-            # if item.workorder.state.id == 7:
-            #     color = 'fc-event-solid-dark'
+            if calendar.status == 2:
+                className = 'completed'
                     
             events.append({
-                'id': 0,
-                'title':  wo.proyect.customer.address,
+                'id': calendar.id,
+                # 'title':  '✅' + wo.proyect.customer.address,
+                'title': calendar.workorder.proyect.customer.address,
                 'start': fecha,
-                'description': wo.proyect.customer.name,
+                'description': calendar.workorder.proyect.customer.name,
                 'color': color,
-                'p': str(wo.proyect.id),
-                'w': str(wo.id),
+                'borderColor': '#FF5733', 
+                'p': str(calendar.workorder.proyect.id),
+                'w': str(calendar.workorder.id),
+                'i': '0',
+                'className': className
             })
                 
     # Devolvemos la lista de proyectos como respuesta JSON
@@ -524,16 +518,29 @@ def getDataCalendar(request):
 
 #Funcion para agregar/editar comentarios generales o particulares
 @login_required
-def getDataComment(request):
+def getDataModal(request):
     
     workOrderId = request.GET.get('id1')
     itemId = request.GET.get('id2')
-    commentId = request.GET.get('id3')
+    id = request.GET.get('id3')
     case = request.GET.get('id4')
-    itemHtml = modalComment(workOrderId, itemId,commentId,case)
+
+    try:
+    
+        if case == '0': #Comentario
+            itemHtml = modalComment(workOrderId, itemId,id)
+        elif case == '1': #Calendario
+            itemHtml = modalCalendar(request, workOrderId, itemId, id)
+        else:
+            itemHtml = 'Server error. Please contact to administrator!'    
+    
+    except:
+
+        itemHtml = 'Server error. Please contact to administrator!'
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'result': itemHtml})
+
 
 #Funcion autocomplete de materiales por Ajax, para crear un item.
 @login_required
@@ -546,6 +553,7 @@ def getDataMaterial(request):
     results = list(materials)
 
     return JsonResponse(results, safe=False)
+
 
 #Funcion que carga los datos del item
 @login_required
@@ -614,6 +622,9 @@ def getDataItem(request):
 
             elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
                 img += '<img alt="" class="w-60px me-3" src="/static/images/xls.svg" alt=""><a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a>'
+            
+            elif fileUrl[-5:] == '.pptx' or fileUrl[-4:] == '.ppt':
+                img += '<img alt="" class="w-60px me-3" src="/static/images/ppt.svg" alt=""><a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a>'
             
             else:
                 img = '<img class="preview" src="' + fileUrl + '" alt="Preview"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none"><img src="/static/images/upload.svg" alt="">'
@@ -686,6 +697,9 @@ def getDataItem(request):
 
             elif fileUrl[-5:] == '.xlsx' or fileUrl[-4:] == '.xls':
                 img = '<img alt="" class="w-60px me-3" src="/static/images/xls.svg" alt=""><br/>'
+
+            elif fileUrl[-5:] == '.pptx' or fileUrl[-4:] == '.ppt':
+                img = '<img alt="" class="w-60px me-3" src="/static/images/ppt.svg" alt=""><br/>'
             
             else:
                 img = '<img src="/static/images/upload.svg" alt=""><br/>'
@@ -721,7 +735,6 @@ def getDataItem(request):
         }
 
     return JsonResponse(response_data)
-
 
 
 #Funcion para agregar una WO
@@ -830,6 +843,9 @@ def selectAttibutes(request):
                         attributeHTML += '<option value=' + str(option.id) + ' data-image="/static/images/no-image.png">' + option.name + '</option>'
 
                 attributeHTML += '</select></div>'
+
+                attributeHTML += '<div id="image-tooltip" style="position: absolute; display: none; border: none; background: none; padding: 5px; z-index: 9999;"><img src="" id="tooltip-img" style="max-height: 300px;" /></div>'
+
 
             else:
                 attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '"/></div>'
@@ -977,7 +993,7 @@ def getDataProyect(filters):
 def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectura
 
     proyect = Proyect.objects.get(id=proyect_id)
-    workOrders = WorkOrder.objects.filter(proyect = proyect, status = 1).order_by('id')
+    workOrders = WorkOrder.objects.filter(proyect = proyect).order_by('id')
     workOrdersHTML = ""
 
     buttonName = ''
@@ -987,10 +1003,15 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
     woN = 0
             
     for wo in workOrders:
-
+        
         woN += 1
 
-        if wo.state.id == int(stateId) or int(stateId) == 0:
+        if not request.session.get('stateId'):
+            if not wo.code or wo.code != str(woN):
+                wo.code = woN
+                wo.save()
+                
+        if (wo.state.id == int(stateId) or int(stateId) == 0) and wo.status == 1:
 
             try:
 
@@ -1040,7 +1061,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             #Celda 2
             workOrdersHTML += '<div class="col-lg-3 d-flex flex-column justify-content-end">' #style="border:1px solid green; border-width:1px;"
 
-            workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,1)">Schedule (+)</a></div>'
+            workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,1)">Schedule (+)</a></div>'
 
             workOrdersHTML += '</div>'
 
@@ -1070,13 +1091,13 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
                 if wo.state.id == 2:
 
                     workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
                     workOrdersHTML += '</div>'
 
                 if wo.state.id >= 3 and wo.state.id <= 9:
 
                     workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
+                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
                     workOrdersHTML += '</div>'
 
             if wo.state.id >= 5:
@@ -1105,7 +1126,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '</div>' #FIN WO
 
     
-    items =  Item.objects.filter(workorder__in = workOrders)
+    items =  Item.objects.filter(workorder__in = workOrders, workorder__status = 1)
 
     if len(items) > 0 and mode == 1: # Solo si se edita:
     
@@ -1126,6 +1147,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
         workOrder = WorkOrder.objects.get(id=workOrderId)
         items = Item.objects.filter(workorder = workOrder).order_by('id')
         itemN = 0
+        codeWO = workOrder.proyect.code
         
         for item in items:
 
@@ -1134,499 +1156,518 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
             group = ''
             itemN+= 1
 
-            try:
-                if item.date_proposed:
+            if codeWO:
+                code = codeWO + '-' + str(itemN)
 
-                    fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%m/%d/%Y')                
+            if not item.code or item.code != code:
+                item.code = code
+                item.save()
 
-                if workOrder.proyect.code:
-                    code = workOrder.proyect.code + '-' + str(itemN)
+            if item.status == 1: # Mostrar solo si está activo
 
-                else:
-                    code = str(itemN)
-            
-            except ValueError:
-                messages.error('Server error. Date not exist!')
-            
+                try:
+                    if item.date_proposed:
+                        fecha_propuesta = timezone.localtime(item.date_proposed).strftime('%m/%d/%Y')                
 
-            itemsHTML += '<div class="row itemCount_' + str(workOrderId) + ' mb-10" style="border: 1px solid #d7d9dc; border-radius: .475rem">' #fila item
-            itemsHTML += '<div class="col-lg-12">'  #contenedor generico
-
-            #Inicio Fila 1
-            itemsHTML += '<div class="row">'
-                        
-            #Celda (1, 1)
-            itemsHTML += '<div class="col-lg-11" style="border:1px solid white; border-width:1px;">'
-            
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b>'
-            itemsHTML += '<div class="h-3px w-100 bg-primary col-lg-4"></div>'
-            itemsHTML += '</div>'         
-
-            itemsHTML += '</div>'
-            
-
-            ## Celda (1, 2) (acciones estado) ##
-
-            if mode == 1: #edicion
-
-                itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
-
-                if item.workorder.state.id in (1,2,3,4):
-                                                            
-                    itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
-                    itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
-                    itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-                    itemsHTML += '</div>'
+                    if not workOrder.proyect.code:
+                        code = str(itemN)                    
                 
-                itemsHTML += '</div>'
-            
-
-            if item.group:
-                group = item.group.name            
-
-            #Inicio div 1.2
-            itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
-            #Inicio Fila 1.2
-            itemsHTML += '<div class="row">'
-            
-
-            
-            ##############################################################################################################
-            ############################################## Celda (cabecera) ##############################################
-            ##############################################################################################################
-
-
-            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<table><tbody>'
-            itemsHTML += '<tr><td><b>Category:</b> ' + item.subcategory.category.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
-            itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
-            itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
-            itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
-            itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'
-            
-            if workOrder.state.id >= 5:
-
-                responsibleName = ''
-                dueDate = ''
-
-                if item.responsible:
-                    responsibleName = item.responsible.name
-
-                if item.date_end:
-                    dueDate = timezone.localtime(item.date_end).strftime('%m/%d/%Y %I:%M %p')
+                except ValueError:
+                    messages.error('Server error. Date not exist!')
                 
 
-                itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
-                itemsHTML += '<tr><td><b>Due date:</b> ' + dueDate + '</td></tr>'
+                itemsHTML += '<div class="row itemCount_' + str(workOrderId) + ' mb-10" style="border: 1px solid #d7d9dc; border-radius: .475rem">' #fila item
+                itemsHTML += '<div class="col-lg-12">'  #contenedor generico
 
-
-            itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'
-            
-
-            ##############################################################################################################
-            ############################################# Celda (atributos) ##############################################
-            ##############################################################################################################
-
-            itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'            
-            itemsHTML += '<table><tbody>'
-
-            attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
-            for attribute in attributes:
-                
-                if attribute.attribute.multiple:                    
-                    itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> '
-
-                    attributenotes = ItemAttributeNote.objects.filter(itemattribute = attribute)
-                    for note in attributenotes:
-                        # itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<img src=\'' + note.attributeoption.file.url + '\' style=\'width: 100px; height: 100px;\'"></i>, '
-                        if note.attributeoption.file:
-                            itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
-                        #itemsHTML = f"{note.attributeoption.name} <i class='fas fa-question-circle' data-bs-toggle='tooltip' data-bs-html='true' data-bs-title='<img src=\"{note.attributeoption.file.url}\" style=\"width: 50px; height: 50px; object-fit: cover;\">'></i>, "
-
-                    itemsHTML = itemsHTML[:-2]
-                    
-                    itemsHTML += '</td></tr>'
-
-                else:
-                    itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
-
-            itemsHTML += '</tbody></table>'
-            itemsHTML += '</div>'       
-            
-
-            ##############################################################################################################
-            ############################################ Celda (materiales) ##############################################
-            ##############################################################################################################
-            
-            itemsHTML += '<div class="col-xl-5" style="border:1px solid white; border-width:1px;">'
-            itemsHTML += '<h6>Materials:</h6>'
-            itemsHTML += '<form method="POST" class="formMaterial"><table><tbody>'
-                        
-            materials = ItemMaterial.objects.filter(item = item).order_by('name')                        
-
-            icon = '<span class="svg-icon svg-icon-primary svg-icon-1x"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">'
-            icon += '<defs/>'
-            icon += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
-            icon += '<rect x="0" y="0" width="24" height="24"/>'
-            icon += '<path d="M15.9497475,3.80761184 L13.0246125,6.73274681 C12.2435639,7.51379539 12.2435639,8.78012535 13.0246125,9.56117394 L14.4388261,10.9753875 C15.2198746,11.7564361 16.4862046,11.7564361 17.2672532,10.9753875 L20.1923882,8.05025253 C20.7341101,10.0447871 20.2295941,12.2556873 18.674559,13.8107223 C16.8453326,15.6399488 14.1085592,16.0155296 11.8839934,14.9444337 L6.75735931,20.0710678 C5.97631073,20.8521164 4.70998077,20.8521164 3.92893219,20.0710678 C3.1478836,19.2900192 3.1478836,18.0236893 3.92893219,17.2426407 L9.05556629,12.1160066 C7.98447038,9.89144078 8.36005124,7.15466739 10.1892777,5.32544095 C11.7443127,3.77040588 13.9552129,3.26588995 15.9497475,3.80761184 Z" fill="#000000"/>'
-            icon += '<path d="M16.6568542,5.92893219 L18.0710678,7.34314575 C18.4615921,7.73367004 18.4615921,8.36683502 18.0710678,8.75735931 L16.6913928,10.1370344 C16.3008685,10.5275587 15.6677035,10.5275587 15.2771792,10.1370344 L13.8629656,8.7228208 C13.4724413,8.33229651 13.4724413,7.69913153 13.8629656,7.30860724 L15.2426407,5.92893219 C15.633165,5.5384079 16.26633,5.5384079 16.6568542,5.92893219 Z" fill="#000000" opacity="0.3"/>'
-            icon += '</g>'
-            icon += '</svg></span>'
-
-
-            if workOrder.state.id == 4 and mode == 1:
-                itemsHTML += '<thead><tr><th></th><th>QTY</th><th>Received QTY</th><th>Received Date</th></thead>'
-
-            for material in materials:
-
-                materialName = str(material.notes)
-                qty = str(material.qty)   
-                qtyR = ''             
-                dateR = ''
-                materialId = str(material.id)
-
-                if qty != '' and (workOrder.state.id != 4 or mode == 2):
-                    materialName += ' / ' + qty
-
-                if material.qty_received:
-                    qtyR = material.qty_received
-
-                if material.date_received:
-                    dateR = material.date_received
-                 
-                itemsHTML += '<tr><td valign="middle" style="padding-right: 10px">' + icon + ' ' + materialName + '</td>'                
-
-                if workOrder.state.id == 4 and mode == 1: #edicion
-
-                    itemsHTML += '<td><input type="text" class="form-control sm" value="' + str(qty) + '" readonly style="background-color: #f0f0f0"/></td>'
-                    itemsHTML += '<td><input type="text" class="form-control sm" name="qtyR_' + materialId + '" value="' + str(qtyR) + '" maxlength="100"/></td>'
-                    itemsHTML += '<td><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
-                    
-
-                itemsHTML += '</tr>'
-
-            if workOrder.state.id == 4 and mode == 1: #edicion
-                itemsHTML += '<tr><td></td><td></td><td><br/></td></tr>'
-                itemsHTML += '<tr><td></td><td></td><td align="right"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
-                
-
-            itemsHTML += '</tbody></table></form>'    
-
-
-
-            # if proyect.state.id == 5 or proyect.state.id == 6:
-                
-            #     itemsHTML += '<br/><div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
-            #     itemsHTML += '<table><tbody>'                
-            #     itemsHTML += '<tr><td><b>Responsable:</b></td><td>' + item.responsible.name + '</td></tr>'
-            #     itemsHTML += '<tr><td><b>Due date:</b></td><td>' + fecha_fin + '</td></tr>'
-            #     itemsHTML += '</tbody></table>'
-            #     itemsHTML += '</div>'
-            
-
-            itemsHTML += '</div>'
-
-
-            ##############################################################################################################
-            ############################################## Celda (acciones) ##############################################
-            ##############################################################################################################
-
-            if mode == 1: #edicion:
-           
-                itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
-
-                if workOrder.state.id == 2:                
-
-                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
-                    itemsHTML += '</div>'
-
-
-                if workOrder.state.id >= 3:
-
-                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
-                    itemsHTML += '</div>'
-
-                if workOrder.state.id == 5:
-
-                    itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
-                    itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
-                    itemsHTML += '</div>'
-                
-                itemsHTML += '</div>'
-
-            ## Fin Fila 1.2 ##
-            itemsHTML += '</div>'                        
-            ## Fin div 1.w ##
-            itemsHTML += '</div>'
-                  
-            
-            ## Fin Fila 2 ##
-            itemsHTML += '</div>'
-
-
-
-            ##############################################################################################################
-            ############################################## Comentarios Items #############################################
-            ##############################################################################################################
-
-            
-            itemsHTML += getDataComments(request, workOrder.id, item.id, mode)
-
-            #Aprobar cotizacion
-            if workOrder.state.id == 3:
-
-                itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                itemsHTML += '<div class="card-body my-1">'                
-
-                itemsHTML += '<form method="POST" class="formQuote">'
-                
-                itemsHTML += '<h6>Do you approve the quote?</h6>'
-
-                quote = ''
-                id = str(item.id)
-
-                if item.quote:
-                    quote = item.quote
-
-                # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
-                
-                # checked = ''
-                
-                # if int(item.status) == 2:
-                #     checked = 'checked="checked"'
-                
-                # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                # itemsHTML += '</div>'
-
-                itemsHTML += '<br/><textarea name="txtQuote_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + str(quote) + '</textarea>'
-                itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
-
-                itemsHTML += '</form>'
-
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-                itemsHTML += '</div>'
-            
-
-            ##############################################################################################################
-            ########################################## Más detalles (archivos) ###########################################
-            ##############################################################################################################
-            
-            files = ItemFile.objects.filter(item = item)
-            materials = ItemMaterial.objects.filter(item = item, file__isnull = False).exclude(file='').order_by('name')
-            images = ItemImage.objects.filter(item = item)
-
-            if len(files) > 0 or len(materials) > 0 or len(images) > 0:
-
-                # itemsHTML += '<div class="separator border-secondary my-10"></div>'
-
-                #Inicio Fila 4
-                #Ver detalle
-                itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
-                itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
-
-                itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
-                itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-                itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-                itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-                itemsHTML += '</svg>'
-                itemsHTML += '</span>'
-
-                itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
-                itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-                itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-                itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
-                itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-                itemsHTML += '</svg>'
-                itemsHTML += '</span>'
-                
-                itemsHTML += '</div>'
-
-                itemsHTML += '<h7 class="text-gray-700 cursor-pointer mb-0">See more details</h7>'
-                
-                itemsHTML += '</div>'                     
+                #Inicio Fila 1
+                itemsHTML += '<div class="row">'
                             
+                #Celda (1, 1)
+                itemsHTML += '<div class="col-lg-11" style="border:1px solid white; border-width:1px;">'
+                
+                itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3"><b>' + code  + '</b>'
+                itemsHTML += '<div class="h-3px w-100 bg-primary col-lg-4"></div>'
+                itemsHTML += '</div>'         
 
+                itemsHTML += '</div>'
                 
 
-                itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+                ## Celda (1, 2) (acciones estado) ##
 
-                itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+                if mode == 1: #edicion
+
+                    itemsHTML += '<div class="col-lg-1" style="border:1px solid white; border-width:1px;">'
+
+                    if item.workorder.state.id in (1,2,3,4):
+                                                                
+                        itemsHTML += '<br><div class="d-flex justify-content-center flex-shrink-0">'
+                        itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
+                        itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
+                        itemsHTML += '</div>'
+                    
+                    itemsHTML += '</div>'
+                
+
+                if item.group:
+                    group = item.group.name            
+
+                #Inicio div 1.2
+                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                #Inicio Fila 1.2
+                itemsHTML += '<div class="row">'
+                
+
+                
+                ##############################################################################################################
+                ############################################## Celda (cabecera) ##############################################
+                ##############################################################################################################
+
+
+                itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<table><tbody>'
+                itemsHTML += '<tr><td><b>Category:</b> ' + item.subcategory.category.name + '</td></tr>'
+                itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
+                itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
+                itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
+                itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
+                itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
+                itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'
+                
+                if workOrder.state.id >= 5:
+
+                    responsibleName = ''
+                    dueDate = ''
+
+                    calendar = CalendarItem.objects.filter(item = item).first()
+
+                    if calendar:
+
+                        if calendar.responsible:
+                            responsibleName = calendar.responsible.name
+
+                        if calendar.date:
+                            dueDate = timezone.localtime(calendar.date).strftime('%m/%d/%Y %I:%M %p')
+                    
+
+                    itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
+                    itemsHTML += '<tr><td><b>Due date:</b> ' + dueDate + '</td></tr>'
+
+
+                itemsHTML += '</tbody></table>'
+                itemsHTML += '</div>'
+                
 
                 ##############################################################################################################
-                ############################################## Celda (archivos) ##############################################
+                ############################################# Celda (atributos) ##############################################
                 ##############################################################################################################
 
+                itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'            
+                itemsHTML += '<table><tbody>'
+
+                attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
+                for attribute in attributes:
+                    
+                    if attribute.attribute.multiple:                    
+                        itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> '
+
+                        attributenotes = ItemAttributeNote.objects.filter(itemattribute = attribute)
+                        for note in attributenotes:
+                            # itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<img src=\'' + note.attributeoption.file.url + '\' style=\'width: 100px; height: 100px;\'"></i>, '
+                            if note.attributeoption.file:
+                                itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
+                            #itemsHTML = f"{note.attributeoption.name} <i class='fas fa-question-circle' data-bs-toggle='tooltip' data-bs-html='true' data-bs-title='<img src=\"{note.attributeoption.file.url}\" style=\"width: 50px; height: 50px; object-fit: cover;\">'></i>, "
+
+                        itemsHTML = itemsHTML[:-2]
+                        
+                        itemsHTML += '</td></tr>'
+
+                    else:
+                        itemsHTML += '<tr><td><b>' + attribute.attribute.name + ':</b> ' + attribute.notes + '</td></tr>'
+
+                itemsHTML += '</tbody></table>'
+                itemsHTML += '</div>'       
                 
 
+                ##############################################################################################################
+                ############################################ Celda (materiales) ##############################################
+                ##############################################################################################################
                 
+                itemsHTML += '<div class="col-xl-5" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<h6>Materials:</h6>'
+                itemsHTML += '<form method="POST" class="formMaterial"><table><tbody>'
+                            
+                materials = ItemMaterial.objects.filter(item = item).order_by('name')                        
 
-                if len(files) > 0 or len(materials) > 0:
+                icon = '<span class="svg-icon svg-icon-primary svg-icon-1x"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">'
+                icon += '<defs/>'
+                icon += '<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">'
+                icon += '<rect x="0" y="0" width="24" height="24"/>'
+                icon += '<path d="M15.9497475,3.80761184 L13.0246125,6.73274681 C12.2435639,7.51379539 12.2435639,8.78012535 13.0246125,9.56117394 L14.4388261,10.9753875 C15.2198746,11.7564361 16.4862046,11.7564361 17.2672532,10.9753875 L20.1923882,8.05025253 C20.7341101,10.0447871 20.2295941,12.2556873 18.674559,13.8107223 C16.8453326,15.6399488 14.1085592,16.0155296 11.8839934,14.9444337 L6.75735931,20.0710678 C5.97631073,20.8521164 4.70998077,20.8521164 3.92893219,20.0710678 C3.1478836,19.2900192 3.1478836,18.0236893 3.92893219,17.2426407 L9.05556629,12.1160066 C7.98447038,9.89144078 8.36005124,7.15466739 10.1892777,5.32544095 C11.7443127,3.77040588 13.9552129,3.26588995 15.9497475,3.80761184 Z" fill="#000000"/>'
+                icon += '<path d="M16.6568542,5.92893219 L18.0710678,7.34314575 C18.4615921,7.73367004 18.4615921,8.36683502 18.0710678,8.75735931 L16.6913928,10.1370344 C16.3008685,10.5275587 15.6677035,10.5275587 15.2771792,10.1370344 L13.8629656,8.7228208 C13.4724413,8.33229651 13.4724413,7.69913153 13.8629656,7.30860724 L15.2426407,5.92893219 C15.633165,5.5384079 16.26633,5.5384079 16.6568542,5.92893219 Z" fill="#000000" opacity="0.3"/>'
+                icon += '</g>'
+                icon += '</svg></span>'
 
-                    itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
-                    itemsHTML += '<div class="row">'
-                    itemsHTML += '<div class="col-xl-12">'
+                if len(materials) > 0:
 
-                    itemsHTML += '<div class="d-flex align-items-center border p-5">'
-                    itemsHTML += '<ul class="text-start">'
-
-                    for file in files:
-
-                        itemsHTML += '<li>'
-                                            
-                        if file.file.url[-4:] == '.pdf':
-                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
-
-                        if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
-                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
-
-                        if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
-                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
-                                                        
-                        itemsHTML += '<span>'
-                        itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
-                        itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
-                        itemsHTML += '</<span>' 
-
-                        itemsHTML += '</li>'
+                    if workOrder.state.id == 4 and mode == 1:
+                        itemsHTML += '<thead><tr><th></th><th>QTY</th><th>Received QTY</th><th>Received Date</th></thead>'
 
                     for material in materials:
 
-                        try:
+                        materialName = str(material.notes)
+                        qty = str(material.qty)   
+                        qtyR = ''             
+                        dateR = ''
+                        materialId = str(material.id)
+
+                        if qty != '' and (workOrder.state.id != 4 or mode == 2):
+                            materialName += ' / ' + qty
+
+                        if material.qty_received:
+                            qtyR = material.qty_received
+
+                        if material.date_received:
+                            dateR = material.date_received
                         
-                            if material.file:
+                        itemsHTML += '<tr><td valign="middle" style="padding-right: 10px">' + icon + ' ' + materialName + '</td>'                
 
-                                if material.file.url[-4:] in ('.pdf','.doc','.xls') or material.file.url[-5:] in ('.docx','.xlsx'):
+                        if workOrder.state.id == 4 and mode == 1: #edicion
 
-                                    itemsHTML += '<li>'
-                                                        
-                                    if material.file.url[-4:] == '.pdf':
-                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
-
-                                    if material.file.url[-5:] == '.docx' or material.file.url[-4:] == '.doc':
-                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
-
-                                    if material.file.url[-5:] == '.xlsx' or material.file.url[-4:] == '.xls':
-                                        itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
-                                                                    
-                                    itemsHTML += '<span>'
-                                    itemsHTML += '<a href="' + material.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + material.name + '</a>'
-                                    itemsHTML += '<div class="text-gray-400">' + material.notes + '</div>'
-                                    itemsHTML += '</<span>' 
-
-                                    itemsHTML += '</li>'
-                        
-                        except:
-                            pass
-                        
-
-                    itemsHTML += '</ul>'
-                    itemsHTML += '</div>'         
-                                                                                                                                                
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                #############
-
-                itemsHTML += '</div>'
-
-
-                itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-
-                ##############################################################################################################
-                ############################################## Celda (imagenes) ##############################################
-                ##############################################################################################################
-
-                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
-                itemsHTML += '<section class="grid-gallery-section">'
-                
-                # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
-                # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
-                # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
-                # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
-                # itemsHTML += '</div>'
-                
-                itemsHTML += '<div class="grid-gallery">'
-                itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
-
-                
-                for image in images:
-
-                    type_imp = 'Image'
-
-                    if image.file:
-                                        
-                        itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                        itemsHTML += '<div class="gallery-image-area" style="width:80%">'
-                        
-                        itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
-                        itemsHTML += '<div class="gallery-overly">'
-                        
-                        itemsHTML += '<div class="image-details">'                                
-                        itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
-                        itemsHTML += '</div>'
-                        
-                        itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
-                        itemsHTML += '<div class="gallery-zoom-icon"></div>'
-                        itemsHTML += '</a>'
-
-                        itemsHTML += '</div>'
-                        itemsHTML += '</div>'
-                        itemsHTML += '</div>'
-
-
-                for material in materials:
-
-                    type_imp = 'Material'
-                        
-                    if material.file:
-                        try:
-                            if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
-
-                                itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
-                                itemsHTML += '<div class="gallery-image-area" style="width:80%">'
-
-                                itemsHTML += '<img src="' + material.file.url + '" class="grid-thumbnail-image" alt="' + material.name + '"><br/>"' + material.notes + '"'
-                                itemsHTML += '<div class="gallery-overly">'
-
-                                itemsHTML += '<div class="image-details">'
-                                itemsHTML += '<span class="image-title">' + type_imp + '</span>'
-                                itemsHTML += '</div>'
-
-                                itemsHTML += '<a class="grid-image-zoom" href="' + material.file.url + '" data-fancybox-group="grid-gallery" title="' + material.notes + '">'
-                                itemsHTML += '<div class="gallery-zoom-icon"></div>'
-                                itemsHTML += '</a>'
-
-                                itemsHTML += '</div>'
-                                itemsHTML += '</div>'
-                                itemsHTML += '</div>' 
-
-                        except:
-                            pass
+                            itemsHTML += '<td><input type="text" class="form-control sm" value="' + str(qty) + '" readonly style="background-color: #f0f0f0"/></td>'
+                            itemsHTML += '<td><input type="text" class="form-control sm" name="qtyR_' + materialId + '" value="' + str(qtyR) + '" maxlength="100"/></td>'
+                            itemsHTML += '<td><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
                             
 
-                itemsHTML += '</div>'
-                itemsHTML += '</section>'
-                
-                itemsHTML += '</div>'                                    
-                #############            
-                
-                itemsHTML += '</div>' 
+                        itemsHTML += '</tr>'
 
-                itemsHTML += '</div>' #div Detalle    
+                    if workOrder.state.id == 4 and mode == 1: #edicion
+                        itemsHTML += '<tr><td></td><td></td><td><br/></td></tr>'
+                        itemsHTML += '<tr><td></td><td></td><td align="right"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
+                        
+
+                itemsHTML += '</tbody></table></form>'    
+
+
+
+
+
+
+                # if proyect.state.id == 5 or proyect.state.id == 6:
+                    
+                #     itemsHTML += '<br/><div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+                #     itemsHTML += '<table><tbody>'                
+                #     itemsHTML += '<tr><td><b>Responsable:</b></td><td>' + item.responsible.name + '</td></tr>'
+                #     itemsHTML += '<tr><td><b>Due date:</b></td><td>' + fecha_fin + '</td></tr>'
+                #     itemsHTML += '</tbody></table>'
+                #     itemsHTML += '</div>'
+                
+
+                itemsHTML += '</div>'
+
+
+                ##############################################################################################################
+                ############################################## Celda (acciones) ##############################################
+                ##############################################################################################################
+
+                if mode == 1: #edicion:
+            
+                    itemsHTML += '<div class="col-xl-1" style="border:1px solid white; border-width:1px;">'
+
+                    if workOrder.state.id == 2:                
+
+                        itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
+                        itemsHTML += '</div>'
+
+
+                    if workOrder.state.id >= 3:
+
+                        itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
+                        itemsHTML += '</div>'
+
+                    if workOrder.state.id == 5:
+
+                        itemsHTML += '<div class="d-flex justify-content-center flex-shrink-0">'
+                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
+                        itemsHTML += '</div>'
+                    
+                    itemsHTML += '</div>'
+
+                ## Fin Fila 1.2 ##
+                itemsHTML += '</div>'                        
+                ## Fin div 1.w ##
+                itemsHTML += '</div>'
+                    
+                
+                ## Fin Fila 2 ##
+                itemsHTML += '</div>'
+
+
+
+                ##############################################################################################################
+                ############################################## Comentarios Items #############################################
+                ##############################################################################################################
+
+                
+                itemsHTML += getDataComments(request, workOrder.id, item.id, mode)
+
+                #Aprobar cotizacion
+                if workOrder.state.id == 3:
+
+                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                    itemsHTML += '<div class="card-body my-1">'                
+
+                    itemsHTML += '<form method="POST" class="formQuote">'
+                    
+                    itemsHTML += '<h6>Do you approve the quote?</h6>'
+
+                    quote = ''
+                    id = str(item.id)
+
+                    if item.quote:
+                        quote = item.quote
+
+                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                    
+                    # checked = ''
+                    
+                    # if int(item.status) == 2:
+                    #     checked = 'checked="checked"'
+                    
+                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                    # itemsHTML += '</div>'
+
+                    itemsHTML += '<br/><textarea name="txtQuote_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + str(quote) + '</textarea>'
+                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+
+                    itemsHTML += '</form>'
+
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+                    itemsHTML += '</div>'
+                
+
+                ##############################################################################################################
+                ########################################## Más detalles (archivos) ###########################################
+                ##############################################################################################################
+                
+                files = ItemFile.objects.filter(item = item)
+                materials = ItemMaterial.objects.filter(item = item, file__isnull = False).exclude(file='').order_by('name')
+                images = ItemImage.objects.filter(item = item)
+
+                if len(files) > 0 or len(materials) > 0 or len(images) > 0:
+
+                    # itemsHTML += '<div class="separator border-secondary my-10"></div>'
+
+                    #Inicio Fila 4
+                    #Ver detalle
+                    itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
+                    itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
+
+                    itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
+                    itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                    itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+                    itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+                    itemsHTML += '</svg>'
+                    itemsHTML += '</span>'
+
+                    itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
+                    itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+                    itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+                    itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
+                    itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+                    itemsHTML += '</svg>'
+                    itemsHTML += '</span>'
+                    
+                    itemsHTML += '</div>'
+
+                    itemsHTML += '<h7 class="text-gray-700 cursor-pointer mb-0">See more details</h7>'
+                    
+                    itemsHTML += '</div>'                     
+                                
+
+                    
+
+                    itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+
+                    itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+                    ##############################################################################################################
+                    ############################################## Celda (archivos) ##############################################
+                    ##############################################################################################################
+
+                    
+
+                    
+
+                    if len(files) > 0 or len(materials) > 0:
+
+                        itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                        itemsHTML += '<div class="row">'
+                        itemsHTML += '<div class="col-xl-12">'
+
+                        itemsHTML += '<div class="d-flex align-items-center border p-5">'
+                        itemsHTML += '<ul class="text-start">'
+
+                        for file in files:
+
+                            itemsHTML += '<li>'
+                                                
+                            if file.file.url[-4:] == '.pdf':
+                                itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                            if file.file.url[-5:] == '.docx' or file.file.url[-4:] == '.doc':
+                                itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                            if file.file.url[-5:] == '.xlsx' or file.file.url[-4:] == '.xls':
+                                itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+
+                            if file.file.url[-5:] == '.pptx' or file.file.url[-4:] == '.ppt':
+                                itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/ppt.svg" alt="">'
+                                                            
+                            itemsHTML += '<span>'
+                            itemsHTML += '<a href="' + file.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + file.name + '</a>'
+                            itemsHTML += '<div class="text-gray-400">' + file.notes + '</div>'
+                            itemsHTML += '</<span>' 
+
+                            itemsHTML += '</li>'
+
+                        for material in materials:
+
+                            try:
+                            
+                                if material.file:
+
+                                    if material.file.url[-4:] in ('.pdf','.doc','.xls') or material.file.url[-5:] in ('.docx','.xlsx'):
+
+                                        itemsHTML += '<li>'
+                                                            
+                                        if material.file.url[-4:] == '.pdf':
+                                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/pdf.svg" alt="">'
+
+                                        if material.file.url[-5:] == '.docx' or material.file.url[-4:] == '.doc':
+                                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/doc.svg" alt="">'
+
+                                        if material.file.url[-5:] == '.xlsx' or material.file.url[-4:] == '.xls':
+                                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/xls.svg" alt="">'
+
+                                        if material.file.url[-5:] == '.pptx' or material.file.url[-4:] == '.ppt':
+                                            itemsHTML += '<img alt="" class="w-30px me-3" src="/static/images/ppt.svg" alt="">'
+                                                                        
+                                        itemsHTML += '<span>'
+                                        itemsHTML += '<a href="' + material.file.url + '" class="fs-7 text-hover-primary" target="_blank">' + material.name + '</a>'
+                                        itemsHTML += '<div class="text-gray-400">' + material.notes + '</div>'
+                                        itemsHTML += '</<span>' 
+
+                                        itemsHTML += '</li>'
+                            
+                            except:
+                                pass
+                            
+
+                        itemsHTML += '</ul>'
+                        itemsHTML += '</div>'         
+                                                                                                                                                    
+                        itemsHTML += '</div>'
+                        itemsHTML += '</div>'
+                        itemsHTML += '</div>'
+                    #############
+
+                    itemsHTML += '</div>'
+
+
+                    itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+                    ##############################################################################################################
+                    ############################################## Celda (imagenes) ##############################################
+                    ##############################################################################################################
+
+                    itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
+                    itemsHTML += '<section class="grid-gallery-section">'
+                    
+                    # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
+                    # itemsHTML += '<button class="filter-button is-checked showImg" data-filter="*">ALL FILES</button>'
+                    # itemsHTML += '<button class="filter-button" data-filter=".Image">IMAGES</button>'
+                    # itemsHTML += '<button class="filter-button" data-filter=".Material">MATERIAL</button>'
+                    # itemsHTML += '</div>'
+                    
+                    itemsHTML += '<div class="grid-gallery">'
+                    itemsHTML += '<div class="gallery-grid-sizer"></div>'            		
+
+                    
+                    for image in images:
+
+                        type_imp = 'Image'
+
+                        if image.file:
+                                            
+                            itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                            itemsHTML += '<div class="gallery-image-area" style="width:80%">'
+                            
+                            itemsHTML += '<img src="' + image.file.url + '" class="grid-thumbnail-image" alt="' + image.name + '"><br/>"' + image.notes + '"'
+                            itemsHTML += '<div class="gallery-overly">'
+                            
+                            itemsHTML += '<div class="image-details">'                                
+                            itemsHTML += '<span class="image-title">' + type_imp + '</span>'                                
+                            itemsHTML += '</div>'
+                            
+                            itemsHTML += '<a class="grid-image-zoom" href="' + image.file.url + '" data-fancybox-group="grid-gallery" title="' + image.notes + '">	'
+                            itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                            itemsHTML += '</a>'
+
+                            itemsHTML += '</div>'
+                            itemsHTML += '</div>'
+                            itemsHTML += '</div>'
+
+
+                    for material in materials:
+
+                        type_imp = 'Material'
+                            
+                        if material.file:
+                            try:
+                                if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
+
+                                    itemsHTML += '<div class="gallery-grid-item ' + type_imp + '">'
+                                    itemsHTML += '<div class="gallery-image-area" style="width:80%">'
+
+                                    itemsHTML += '<img src="' + material.file.url + '" class="grid-thumbnail-image" alt="' + material.name + '"><br/>"' + material.notes + '"'
+                                    itemsHTML += '<div class="gallery-overly">'
+
+                                    itemsHTML += '<div class="image-details">'
+                                    itemsHTML += '<span class="image-title">' + type_imp + '</span>'
+                                    itemsHTML += '</div>'
+
+                                    itemsHTML += '<a class="grid-image-zoom" href="' + material.file.url + '" data-fancybox-group="grid-gallery" title="' + material.notes + '">'
+                                    itemsHTML += '<div class="gallery-zoom-icon"></div>'
+                                    itemsHTML += '</a>'
+
+                                    itemsHTML += '</div>'
+                                    itemsHTML += '</div>'
+                                    itemsHTML += '</div>' 
+
+                            except:
+                                pass
+                                
+
+                    itemsHTML += '</div>'
+                    itemsHTML += '</section>'
+                    
+                    itemsHTML += '</div>'                                    
+                    #############            
+                    
+                    itemsHTML += '</div>' 
+
+                    itemsHTML += '</div>' #div Detalle    
 
 
                                         
-            itemsHTML += '</div>'  # Final Final contenedor generico      
-            itemsHTML += '</div>'  # Final row item
+                itemsHTML += '</div>'  # Final Final contenedor generico      
+                itemsHTML += '</div>'  # Final row item
         
 
 
@@ -1684,6 +1725,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
         time = ''
         stateName = ''
         username = ''
+        itemTxt = ''
 
         if int(itemId) != 0:        
             itemCSF = ItemCommentStateFile.objects.filter(item_comment_state = itemCS).order_by('id')
@@ -1692,7 +1734,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             itemCSF = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS).order_by('id')
             state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
 
-        if itemCS:
+        if itemCS.notes:
             itemTxt = itemCS.notes
 
         
@@ -1718,70 +1760,14 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             itemTxt += "</ul>"
 
 
-        itemsHTML += '<tr class="py-1 fw-bold fs-7"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+        itemsHTML += '<tr class="py-1 fw-bold fs-7 ' + state + '"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
 
         user_session = request.user
 
         if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
-            itemsHTML += '<td><a class="py-1 btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
+            itemsHTML += '<td><a class="py-1 btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
                 
         itemsHTML += '</tr>'
-        
-
-        # # if item.date_end:
-        # #     fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-        
-        # itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
-        # # itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
-
-        
-
-        # if int(itemId) != 0:
-        #     itemsHTML += '<div class="col-xl-11 fv-row text-start">'
-        #     state += str(itemCS.state.id)
-        # else:
-        #     itemsHTML += '<div class="col-xl-12 fv-row text-start">'
-        #     state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
-        
-        # if stateName == "" or itemCS.state.name != stateName:
-        #     #itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + itemCS.state.name + ':</div>'
-        #     stateName = itemCS.state.name             
-            
-        
-        # # # Div con el fondo del comentario + contenido
-        # # itemsHTML += '<div class="w-100 d-flex flex-column rounded-3 bg-light bg-opacity-95 py-3 px-3 ' + state + ' ">' + str(itemTxt)
-        
-
-        # # # # Lista de archivos
-        # # # if itemCSF:            
-        # # #     itemsHTML += '<ul class="text-start">'
-            
-        # # #     for file in itemCSF:                    
-        # # #         itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>'
-            
-        # # #     itemsHTML += "</ul>"
-            
-        # # # user = User.objects.get(id=itemCS.modification_by_user)
-
-        
-        # # # # fecha + nombre de usuario + link de edicion
-        
-        # # # # itemsHTML += '<div class="fs-8" style="text-align: right;">' + timezone.localtime(itemCS.modification_date).strftime('%Y/%m/%d %I:%M %p') + ' - ' + user.first_name + ' ' + user.last_name
-                
-        # # # # user_session = request.user
-
-        # # # # if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
-        # # # #     itemsHTML += ' - <a class="btn btn-link fs-8" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadIC(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a>'
-
-        # # # # itemsHTML += '</div>'
-        
-        # # itemsHTML += '</div><br/>'
-            
-        
-        
-        
-        # ### itemsHTML += '</div>'
-        # # itemsHTML += '</div>'
     
     itemsHTML += '</table></div>'
 
@@ -1981,6 +1967,7 @@ def saveEvent(request, type_event_id, workOrderId, description):
     except Proyect.DoesNotExist:        
         messages.error('Server error. Please contact to administrator!')
     
+
 #Instancia para guardar los datos del item.
 @login_required
 def saveItem(request):
@@ -2002,8 +1989,9 @@ def saveItem(request):
 
         group = None
 
-        if Group.objects.filter(id=group_id):
-            group = Group.objects.get(id=group_id)
+        if group_id != '':
+            if Group.objects.filter(id=group_id):
+                group = Group.objects.get(id=group_id)
             
         try:            
             
@@ -2155,7 +2143,7 @@ def saveItem(request):
 
 #Instancia para guardar los comentarios, genéricos o particulaes.
 @login_required
-def saveItemComment(request):
+def saveComment(request):
     
     if request.method == 'POST':
         workOrderId = request.POST.get('id1')
@@ -2163,19 +2151,56 @@ def saveItemComment(request):
         commentId = request.POST.get('id3')
         notes = request.POST.get('notes')
         date_end = request.POST.get('date_end')
-        responsible_id = request.POST.get('responsable')
-        case = request.POST.get('c')
+        responsible_id = request.POST.get('responsable')        
 
         workorder = WorkOrder.objects.get(id=workOrderId)
         item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
 
         #A nivel de item       
         if item: 
-
-            if case == '0': #comentario
             
-                #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
-                item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
+            #Si el comentarioId existe, entonces se edita. En caso contrario, se crea.
+            item_coment_save = ItemCommentState.objects.filter(id=commentId, item=item, state=workorder.state).first()
+
+            if item_coment_save:
+                item_coment_save.notes = notes
+                item_coment_save.modification_by_user = request.user.id
+                item_coment_save.save()
+
+            else:                                    
+                item_coment_save = ItemCommentState.objects.create( item = item,
+                                                                    state = workorder.state,
+                                                                    notes = notes,
+                                                                    created_by_user = request.user.id,
+                                                                    modification_by_user = request.user.id)
+                                       
+            ################################### Se recorren los archivos ###################################
+
+            files = request.FILES.getlist('files[]')
+
+            for file in files:
+                    
+                if validateTypeFile(file.content_type):
+                    try:
+                            
+                        ItemCommentStateFile.objects.create(item_comment_state = item_coment_save,
+                                                            file = file,
+                                                            name = file.name)
+                    except:                
+                        messages.error(request, 'Server error. Please contact to administrator!')
+                        return JsonResponse({'result': "Server error. Please contact to administrator."})
+                                        
+            return JsonResponse({'result': "OK"})
+
+
+        else:
+
+            #Comentario genérico
+            if int(itemId) == 0:
+
+
+                #Si el comentarioId generico existe, entonces se edita. En caso contrario, se crea.
+                item_coment_save = WorkOrderCommentState.objects.filter(id=commentId, state=workorder.state).first()
 
                 if item_coment_save:
                     item_coment_save.notes = notes
@@ -2183,117 +2208,137 @@ def saveItemComment(request):
                     item_coment_save.save()
 
                 else:                                    
-                    item_coment_save = ItemCommentState.objects.create( item = item,
-                                                                        state = workorder.state,
-                                                                        notes = notes,
-                                                                        created_by_user = request.user.id,
-                                                                        modification_by_user = request.user.id)
-                                        
+                        
+                    item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
+                                                                            state = workorder.state,
+                                                                            notes = notes,
+                                                                            created_by_user = request.user.id,
+                                                                            modification_by_user = request.user.id)
+                            
                 ################################### Se recorren los archivos ###################################
 
                 files = request.FILES.getlist('files[]')
 
                 for file in files:
-                    
+                       
                     if validateTypeFile(file.content_type):
                         try:
-                            
-                            ItemCommentStateFile.objects.create(item_comment_state = item_coment_save,
-                                                                    file = file,
-                                                                    name = file.name)
+                                
+                            WorkOrderCommentStateFile.objects.create(   workorder_comment_state = item_coment_save,
+                                                                        file = file,
+                                                                        name = file.name)
                         except:                
                             messages.error(request, 'Server error. Please contact to administrator!')
                             return JsonResponse({'result': "Server error. Please contact to administrator."})
-                        
-                
+                            
                 return JsonResponse({'result': "OK"})
-            
-            elif case == '1': #agendar
-
-                if date_end and responsible_id: # Si se esta agendando
-
-                    if date_end != '':
-                        item.date_end = date_end
-
-                    if int(responsible_id) != 0:
-                        resp = Responsible.objects.get(id = responsible_id)
-                        if resp:
-                            item.responsible = resp
-
-                item.save()
-
-                return JsonResponse({'result': "OK"})
-            
+                            
             else:
-                
+
                 messages.error(request, 'Server error. Please contact to administrator!')
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
-                    
+
+
+#Instancia para guardar los comentarios, genéricos o particulaes.
+@login_required
+def saveCalendar(request):
+
+    if request.method == 'POST':
+        workOrderId = request.POST.get('id1')
+        itemId = request.POST.get('id2')
+        #commentId = request.POST.get('id3')        
+        date_get = request.POST.get('date')
+        responsible_id = request.POST.get('responsible')
+        statusDate = request.POST.get('statusDate')
+
+        workorder = WorkOrder.objects.filter(id=workOrderId).first()
+        item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
+        
+        responsible = Responsible.objects.filter(id=responsible_id).first()
+        
+        if date_get != '' and date_get is not None:
+            # Es necesario dar formato a la fecha
+            date = datetime.strptime(date_get, "%m/%d/%Y %I:%M %p")
+        else:
+            date = None
+
+
+        #A nivel de item       
+        if item:
+            calendar = CalendarItem.objects.filter(item = item).first()
+
+        elif workorder:
+            calendar = CalendarWorkOrder.objects.filter(workorder = workorder).first()
+
+                
+        if calendar:
+
+            try:
+
+                calendar.date = date
+                calendar.responsible = responsible
+                calendar.modification_by_user = request.user.id
+                calendar.modification_date = datetime.now()
+
+                if statusDate:
+                    calendar.status = statusDate
+
+                calendar.save()
+
+                saveCalendarItems(request)
+
+                saveCalendarComments(request, calendar, item, workorder)
+
+                return JsonResponse({'result': "OK"})
+            
+            except:
+
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return JsonResponse({'result': "Server error. Please contact to administrator."})
+
         else:
 
-            #Comentario genérico
-            if int(itemId) == 0:
+            try:
+                
+                if item:
+                    calendar_create = CalendarItem.objects.create(  item = item,
+                                                                    date = date,
+                                                                    responsible = responsible,
+                                                                    created_by_user = request.user.id,
+                                                                    modification_by_user = request.user.id)
+                    
+                    saveCalendarComments(request, calendar_create, item, workorder)
+                    
+                    return JsonResponse({'result': "OK"})
 
-                if case == '0': #comentario
+                elif workorder:
+                    
+                    calendar_create = CalendarWorkOrder.objects.create( workorder = workorder,
+                                                                        date = date,
+                                                                        responsible = responsible,
+                                                                        created_by_user = request.user.id,
+                                                                        modification_by_user = request.user.id)
+                    
+                    saveCalendarItems(request)
+                    saveCalendarComments(request, calendar_create, item, workorder)                
 
-                    #Si el comentarioId generico existe, entonces se edita. En caso contrario, se crea.
-                    item_coment_save = WorkOrderCommentState.objects.filter(id=commentId, state=workorder.state).first()
-
-                    if item_coment_save:
-                        item_coment_save.notes = notes
-                        item_coment_save.modification_by_user = request.user.id
-                        item_coment_save.save()
-
-                    else:                                    
-                        
-                        item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
-                                                                                state = workorder.state,
-                                                                                notes = notes,
-                                                                                created_by_user = request.user.id,
-                                                                                modification_by_user = request.user.id)
-                            
-                    ################################### Se recorren los archivos ###################################
-
-                    files = request.FILES.getlist('files[]')
-
-                    for file in files:
-                        
-                        if validateTypeFile(file.content_type):
-                            try:
-                                
-                                WorkOrderCommentStateFile.objects.create(   workorder_comment_state = item_coment_save,
-                                                                            file = file,
-                                                                            name = file.name)
-                            except:                
-                                messages.error(request, 'Server error. Please contact to administrator!')
-                                return JsonResponse({'result': "Server error. Please contact to administrator."})
-                            
                     return JsonResponse({'result': "OK"})
                 
-
-                elif case == '1': #agendar
-
-                    if date_end and responsible_id: # Si se esta agendando
-
-                        if date_end != '':
-                            workorder.date = date_end
-                            workorder.modification_by_user = request.user.id
-
-                        if int(responsible_id) != 0:
-                            resp = Responsible.objects.get(id = responsible_id)
-                            if resp:
-                                workorder.responsible = resp
-                                workorder.modification_by_user = request.user.id
-
-                    workorder.save()
-
-                    return JsonResponse({'result': "OK"})
+                else:
+                    
+                    messages.error(request, 'Server error. Please contact to administrator!')
+                    return JsonResponse({'result': "Server error. Please contact to administrator."})
             
-            else:
+
+            except:
 
                 messages.error(request, 'Server error. Please contact to administrator!')
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
+
         
+            
+            
+                    
 
 #Instancia para cambiar estado del item
 @login_required
@@ -2338,7 +2383,6 @@ def saveQuote(request):
         return JsonResponse({'result': "Error"})
 
 
-
 #Instancia para guardar los datos del material
 @login_required
 def saveMaterial(request):
@@ -2376,6 +2420,116 @@ def saveMaterial(request):
         messages.error(request, 'Server error. Please contact to administrator!')
         return JsonResponse({'result': "Error"})
 
+
+#Instancia para guardar los datos del calendario para los items de una wo
+def saveCalendarItems(request):
+
+    ids = request.POST.getlist('id[]')
+    responsibles = request.POST.getlist('responsible[]')
+    dates = request.POST.getlist('date[]')
+    status = request.POST.getlist('statusDate[]')
+
+    for index, id in enumerate(ids):     
+
+        calendar = CalendarItem.objects.filter(item__id = id).first()
+        responsible = Responsible.objects.filter(id = responsibles[index]).first()
+
+        if dates[index] != '' and dates[index] is not None:
+            # Es necesario dar formato a la fecha
+            date = datetime.strptime(dates[index], "%m/%d/%Y %I:%M %p")
+        else:
+            date = None
+
+        if calendar:
+            if str(calendar.responsible.id) != responsibles[index]:
+                calendar.responsible = responsible
+            
+            calendar.date = date
+
+            if str(calendar.status) != status[index]:
+                calendar.status = status[index]
+
+            calendar.modification_by_user = request.user.id
+            calendar.modification_date = datetime.now()
+
+            calendar.save()
+
+        else:
+
+            CalendarItem.objects.create(    item = Item.objects.filter(id = id).first(),
+                                            date = date,
+                                            responsible = responsible,
+                                            created_by_user = request.user.id,
+                                            modification_by_user = request.user.id)
+
+
+#Instancia para guardar los comentarios de un item o una wo
+def saveCalendarComments(request, calendar, item, workorder):
+
+    ids = request.POST.getlist('id[]')
+    comments = request.POST.getlist('comment[]')
+    commentsFiles = request.FILES.getlist('commentFile[]')
+    commentsFilesOk = request.POST.getlist('commentFileOk[]')
+    indexFile = 0
+
+    for index, comment in enumerate(comments):
+        file = None
+        fileName = None
+
+        if comment.strip() != "":
+
+            if item:
+                
+                calendar_item_comment = CalendarItemComment.objects.create( calendar_item = calendar,
+                                                                            notes = comment,
+                                                                            created_by_user = request.user.id,
+                                                                            modification_by_user = request.user.id)
+            
+            elif workorder:
+                
+                calendar_workorder_comment = CalendarWorkOrderComment.objects.create(  calendar_workorder = calendar,
+                                                                                        notes = comment,
+                                                                                        created_by_user = request.user.id,
+                                                                                        modification_by_user = request.user.id)
+
+
+            try:
+                if int(commentsFilesOk[index]) == 1:
+                    file = commentsFiles[indexFile]
+                    indexFile += 1
+                    fileName = file.name
+                        
+                    if file:
+                        if validateTypeFile(file.content_type):
+                            pass
+                        else:
+                            file = None
+                            fileName = ''
+
+
+                    if item:
+                
+                        CalendarItemCommentFile.objects.create( calendar_item_comment = calendar_item_comment,
+                                                                file = file,
+                                                                name = fileName)
+                    
+                    elif workorder:
+                        
+                        CalendarWorkOrderCommentFile.objects.create(    calendar_workorder_comment = calendar_workorder_comment,
+                                                                        file = file,
+                                                                        name = fileName)
+                
+                    
+            except:
+                
+                messages.error(request, 'File not found!')    
+
+
+
+
+
+
+
 ##################################
 ## Funciones para borrar datos ###
 ##################################
@@ -2399,6 +2553,7 @@ def deleteItem(request):
 
     return JsonResponse({'result': status})
 
+
 #Funcion ejecutada en el panel, para borrar un proyecto en particular.
 @login_required
 def deleteProyect(request):
@@ -2415,6 +2570,7 @@ def deleteProyect(request):
         messages.error('Server error. Please contact to administrator!')
 
     return JsonResponse({'result': status})
+
 
 #Funcion ejecutada en los comentarios, para ser eliminados del sistema
 @login_required
@@ -2453,6 +2609,36 @@ def deleteComment(request):
         messages.error('Server error. Please contact to administrator!')
 
     return JsonResponse({'result': status})
+
+
+#Funcion ejecutada para eliminar comentarios del calendario
+@login_required
+def deleteCommentCalendar(request):        
+    workorderId = request.POST.get('w')
+    itemId = request.POST.get('t')
+    id = request.POST.get('i')
+    status = 0
+
+    try:
+        #Si es un item 
+        if itemId != '0':
+
+            comment = CalendarItemComment.objects.get(id = id)
+            if comment:
+                comment.delete()
+            
+        elif workorderId != '0':
+
+            comment = CalendarWorkOrderComment.objects.get(id = id)
+            if comment:
+                comment.delete()
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
+
 
 #Funcion ejecutada a la hora de borrar un archivo de un comentario.
 @login_required
@@ -2532,7 +2718,7 @@ def updateStatus(request):
 ##################################
 
 #Modal desarrollado para todo tipo de comentarios, ya sea generales o particulares.
-def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1: calendario/responsable
+def modalComment(workOrderId, itemId, commentId):
     
     workorder = WorkOrder.objects.get(id=workOrderId)            
     itemsHTML = ''    
@@ -2559,9 +2745,6 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
                 itemTxt = itemCS.notes
                 files = ItemCommentStateFile.objects.filter(item_comment_state = itemCS)
 
-            if item.date_end:
-                fecha_fin = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')
-
     #General
     else:
 
@@ -2571,118 +2754,238 @@ def modalComment(workOrderId, itemId, commentId, case): #Case: 0: comentario, 1:
             itemCSId = str(itemCS.id)
             itemTxt = itemCS.notes
             files = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS)
-
-        if workorder.date:
-                fecha_fin = timezone.localtime(workorder.date).strftime('%Y-%m-%d %H:%M')
                 
             
-    itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+    #itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
     itemsHTML += '<div class="col-xl-12 fv-row text-start">'      
     itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
     
-    if int(case) == 0: #Para comentarios
     
-        itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
-        itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(itemTxt) + '</textarea><br/>'
+    itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+    itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(itemTxt) + '</textarea><br/>'
         
-        if files:        
-            itemsHTML += '<ul class="text-start">'        
-            for file in files:
-                itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>  <a href="" onClick="delFile(this, ' + str(file.id) + ', ' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)"<i class="fa fa-trash"></i></a>'
-            itemsHTML += "</ul>"
+    if files:        
+        itemsHTML += '<ul class="text-start">'        
+        for file in files:
+            itemsHTML += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>  <a href="" onClick="delFile(this, ' + str(file.id) + ', ' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)"<i class="fa fa-trash"></i></a>'
+        itemsHTML += "</ul>"
                 
-        itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+    itemsHTML += '<input type="file" name="files" class="form-control form-control" multiple><br/>'
+    
+    itemsHTML += '<div class="row text-end">'
 
-        itemsHTML += '<div class="row">'
-
-        itemsHTML += '<div class="col-md-3">'
-        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIC(' + str(workorder.id) + ',' + itemId + ',' + commentId + ')">Save</button>'                
-        itemsHTML += '</div>'    
+    itemsHTML += '<div class="col-md-12">'
+    itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveComm(' + str(workorder.id) + ',' + itemId + ',' + commentId + ')">Save</button>'                
+    itemsHTML += '</div>'    
         
-        itemsHTML += '<div class="col-md-9">'                                    
-        itemsHTML += '<div class="divItemMsg alert alert-warning text-start p-2 mb-1" style="display:none">Please, enter a comment.</div>'                
-        itemsHTML += '</div>'                                
+    itemsHTML += '<div class="col-md-9">'                                    
+    itemsHTML += '<div class="divItemMsg alert alert-warning text-start p-2 mb-1" style="display:none">Please, enter a comment.</div>'                
+    itemsHTML += '</div>'                                
                                 
-        itemsHTML += '</div>'
-    
+    itemsHTML += '</div>'
 
-    if int(case) == 1: #Para agendar, en etapas 5 y 6
-
-        #if workorder.state.id == 5 or workorder.state.id == 6:
-        if workorder.state.id == 5 or workorder.state.id == 6 or itemId == '0':
-
-            itemsHTML += '<div class="row">'
-
-            responsibles = Responsible.objects.filter(status = 1).order_by('name')
-            
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Responsible:</div>'
-            itemsHTML += '<select id="selectResponsible" class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="true" name="responsable" >'
-            itemsHTML += '<option value="0" data-color="gris" selected></option>'
-
-            responsibleId = 0
-
-            if item:
-                if item.responsible:
-                    responsibleId = item.responsible.id
-
-            elif workorder:
-                if workorder.responsible:
-                    responsibleId = workorder.responsible.id
-
-            for responsible in responsibles:
-                if responsibleId == responsible.id:
-                    itemsHTML += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '" selected>' + responsible.name + '</option>'
-                else:
-                    # itemsHTML += '<option value=' + str(responsible.id) + '>' + responsible.name + '</option>'
-                    itemsHTML += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '">' + responsible.name + '</option>'
-
-                    # <span><span class="circle" style="background-color:' + $(data.element).data('color') + ';"></span>' + data.text + '</span>
-
-                    
-
-            itemsHTML += '</select>'
-            itemsHTML += '</div><br/>'
-
-                        
-            itemsHTML += '<div class="col-xl-6 fv-row">'
-            itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Due date:</div>'
-            itemsHTML += '<span class="svg-icon position-absolute ms-4 mb-1 svg-icon-2">'
-            itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-            itemsHTML += '<path opacity="0.3" d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z" fill="black" />'
-            itemsHTML += '<path d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z" fill="black" />'
-            itemsHTML += '<path d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z" fill="black" />'
-            itemsHTML += '</svg>'
-            itemsHTML += '</span>'
-            itemsHTML += '<input class="form-control form-control-solid ps-12 date-picker" name="date_end" placeholder="Pick a date" value="' + fecha_fin + '"/>'
-
-
-            
-            # itemsHTML += '<div id="color-picker-container">'
-            # itemsHTML += '<input type="text" id="color-picker" placeholder="Choose a color">'
-            # itemsHTML += '<div id="selected-color" style="display:none"></div>'
-
-            itemsHTML += '</div><br/>'
-
-            itemsHTML += '<div class="row">'
-
-            itemsHTML += '<div class="col-md-3">'
-            itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveIR(' + str(workorder.id) + ',' + itemId + ', ' +  case + ')">Save</button>'                
-            itemsHTML += '</div>'                            
-    
-            itemsHTML += '</div>'
-
-
+    # Borrar archivos
     if itemCS:
         itemsHTML += '<script>$("#modalCommentDelete").show(); $("#modalCommentDelete").click(function() { delComm(' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)});</script>'
     else:
-        itemsHTML += '<script>$("#modalCommentDelete").hide();</script>'
+        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-950px").addClass("mw-650px");</script>'
 
     
     itemsHTML += '</form>'
     itemsHTML += '</div>'
-    itemsHTML += '</div>'
+#    itemsHTML += '</div>'
 
     return itemsHTML
+
+
+#Modal desarrollado para todo tipo de calendarizacion, ya sea por wo o por item.
+def modalCalendar(request, workOrderId, itemId, id):
+    
+    workorder = WorkOrder.objects.filter(id=workOrderId).first()
+    item = Item.objects.filter(id=itemId).first()
+    itemsHTML = ''
+    fecha_fin = ''
+    status = 0   
+
+    itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+
+    responsibleId = 0
+    
+    #Por item
+    if item:
+            
+        calendar = CalendarItem.objects.filter(item=item).first()
+        
+        if calendar:            
+            if calendar.date:
+                fecha_fin = timezone.localtime(calendar.date).strftime('%m/%d/%Y %H:%M')
+
+            if calendar.responsible:
+                responsibleId = calendar.responsible.id        
+
+            if calendar.status:
+                status = calendar.status
+
+        itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
+
+
+        itemsHTML += '<b style="margin-left:-10px">Item:</b>'
+        itemsHTML += '<div class="row">'
+
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="20%">' + htmlSpanCalendar() + 'Date</th><th width="30%">Status</th></tr></thead><tbody>'                                
+        
+        itemsHTML += '<tr><td valign="middle">'
+        itemsHTML += str(item.code)
+        itemsHTML += '</td><td>'
+        itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
+        itemsHTML += htmlResponsibleSelect(responsibleId)
+        itemsHTML += '</select>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
+        itemsHTML += '</td></tr>'
+
+        itemsHTML += '</tbody></table>'
+
+        itemsHTML += '<br/>'
+
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
+
+        itemsHTML += htmlDivCommentCalendar()
+
+        itemsHTML += '<div class="row text-end">'
+
+        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',' + itemId + ')">Save</button>'                
+        itemsHTML += '</div>'                            
+        
+        itemsHTML += '</div>'
+        
+        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-950px"); </script>'
+
+        itemsHTML += '</form>'
+
+    #General
+    elif workorder:
+        
+        calendar = CalendarWorkOrder.objects.filter(workorder=workorder).first()
+        responsibleId = 0
+        fecha_fin = ''
+        status = 0
+
+        if calendar:
+            if calendar.date:
+                fecha_fin = timezone.localtime(calendar.date).strftime('%m/%d/%Y %H:%M')
+
+            if calendar.responsible:
+                responsibleId = calendar.responsible.id
+
+            if calendar.status:
+                status = calendar.status
+
+        itemsHTML += '<form id="formItem_0" method="POST" enctype="multipart/form-data">' # Aca el itemId = 0
+    
+        # Work order
+        
+        itemsHTML += '<b style="margin-left:-10px">Work Order:</b>'
+        itemsHTML += '<div class="row">' 
+        
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Number</th><th width="40%">Responsible</th><th width="20%">' + htmlSpanCalendar() + 'Date</th><th width="30%">Status</th></tr></thead><tbody>'
+        
+        itemsHTML += '<tr><td valign="middle">'
+        itemsHTML += str(workorder.code)
+        itemsHTML += '</td><td>'
+        itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
+        itemsHTML += htmlResponsibleSelect(responsibleId)
+        itemsHTML += '</select>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
+        itemsHTML += '</td></tr>'
+
+        itemsHTML += '</tbody></table>'
+
+        itemsHTML += '</div>'
+
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
+
+        itemsHTML += htmlDivCommentCalendar()
+
+        itemsHTML += '<br/>'
+        itemsHTML += '<br/>'
+
+        if id == '0': # Para filtrar en el calendario
+        
+            # Items
+            
+            itemsHTML += '<b style="margin-left:-10px">Items:</b>'
+            itemsHTML += '<div class="row">'                
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="20%">' + htmlSpanCalendar() + 'Date</th><th width="30%">Status</th></tr></thead><tbody>'
+
+            items = Item.objects.filter(workorder=workorder).order_by('id')
+
+            itemN = 0
+            for item in items:
+                
+                itemN+= 1
+                responsibleId = 0
+                fecha_fin = ''
+                status = 0
+                
+                if item.status == 1:
+
+                    calItem = CalendarItem.objects.filter(item = item).first()
+
+                    if calItem:
+                        if calItem.responsible:
+                            responsibleId = calItem.responsible.id
+
+                        if calItem.date:
+                            fecha_fin = timezone.localtime(calItem.date).strftime('%m/%d/%Y %H:%M')
+
+                        if calItem.status:
+                            status = calItem.status
+
+                    itemsHTML += '<tr><td valign="middle">'
+                    itemsHTML += workorder.proyect.code + '-' + str(itemN)
+                    itemsHTML += '</td><td>'
+                    itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible[]">'
+                    itemsHTML += htmlResponsibleSelect(responsibleId)
+                    itemsHTML += '</select>'
+                    itemsHTML += '</td><td>'
+                    itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date[]" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/>'
+                    itemsHTML += '</td><td>'
+                    itemsHTML += htmlStatusCalendar(status, fecha_fin, calItem, 'statusDate[]')
+                    itemsHTML += '<input type="hidden" name="id[]" value="' + str(item.id) + '" readonly/>'
+                    itemsHTML += '</td></tr>'
+            
+            
+            itemsHTML += '</tbody></table>'
+
+            itemsHTML += '</div><br/>'
+
+        itemsHTML += '<div class="row text-end">'
+
+        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',0)">Save</button>'                
+        itemsHTML += '</div>'                            
+            
+        itemsHTML += '</div>'
+            
+        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-950px"); </script>'
+
+        itemsHTML += '</form>'
+                    
+    
+    
+    itemsHTML += '</div>'    
+
+    return itemsHTML
+
+
+
 
 
 
@@ -2697,7 +3000,7 @@ def validateTypeFile(value):
 
     try:                
         # Tipos permitidos
-        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/bmp','image/mpo','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation']
 
         if value in tipos_permitidos:            
             isfileValidate = True
@@ -2787,7 +3090,6 @@ def getStateName(stateId):
 
     return stateHTML																									
 
-
 #Retorna el nombre del estado, junto con su clase css
 def newWO(request, proyectId):
 
@@ -2829,6 +3131,193 @@ def timeline_body(date_str, name, email, description, stateId):
     timeline_cont += '</div>'
 
     return timeline_cont
+
+
+def htmlResponsibleSelect(responsable_id):
+
+    if responsable_id == None:
+        responsable_id = 0
+
+    html = '<option value="0" data-color="gris" selected></option>'
+    
+    responsibles = Responsible.objects.filter(status = 1).order_by('name')
+
+    for responsible in responsibles:
+        if responsable_id == responsible.id:
+            html += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '" selected>' + responsible.name + '</option>'
+        else:                
+            html += '<option value=' + str(responsible.id) + ' data-color="' + str(responsible.color) + '">' + responsible.name + '</option>'
+            
+    return html
+
+
+def htmlStatusCalendar(status_Id, date, obj, name):
+
+    if date == '':
+        status_Id = -1
+
+    html = '<select class="form-select form-select-sm form-select-solid" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="' + name + '" >'
+    
+    if obj is None or date == '':
+        if date == '':    
+            html += '<option value="-1" selected>---</option>'
+        else:
+            html += '<option value="-1">---</option>'
+    
+    if status_Id == 1:    
+        html += '<option value="1" selected>Active</option>'
+    else:
+        html += '<option value="1">Active</option>'
+
+    if status_Id == 0:    
+        html += '<option value="0" selected>Inactive</option>'
+    else:
+        html += '<option value="0">Inactive</option>'
+
+    if status_Id == 2:    
+        html += '<option value="2" selected>Completed</option>'
+    else:
+        html += '<option value="2">Completed</option>'
+        
+    html += '</select>'
+            
+    return html
+
+
+def htmlSpanCalendar():
+
+    html = '<span class="svg-icon position-relative">'
+    html += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    html += '<path opacity="0.3" d="M21 22H3C2.4 22 2 21.6 2 21V5C2 4.4 2.4 4 3 4H21C21.6 4 22 4.4 22 5V21C22 21.6 21.6 22 21 22Z" fill="black" />'
+    html += '<path d="M6 6C5.4 6 5 5.6 5 5V3C5 2.4 5.4 2 6 2C6.6 2 7 2.4 7 3V5C7 5.6 6.6 6 6 6ZM11 5V3C11 2.4 10.6 2 10 2C9.4 2 9 2.4 9 3V5C9 5.6 9.4 6 10 6C10.6 6 11 5.6 11 5ZM15 5V3C15 2.4 14.6 2 14 2C13.4 2 13 2.4 13 3V5C13 5.6 13.4 6 14 6C14.6 6 15 5.6 15 5ZM19 5V3C19 2.4 18.6 2 18 2C17.4 2 17 2.4 17 3V5C17 5.6 17.4 6 18 6C18.6 6 19 5.6 19 5Z" fill="black" />'
+    html += '<path d="M8.8 13.1C9.2 13.1 9.5 13 9.7 12.8C9.9 12.6 10.1 12.3 10.1 11.9C10.1 11.6 10 11.3 9.8 11.1C9.6 10.9 9.3 10.8 9 10.8C8.8 10.8 8.59999 10.8 8.39999 10.9C8.19999 11 8.1 11.1 8 11.2C7.9 11.3 7.8 11.4 7.7 11.6C7.6 11.8 7.5 11.9 7.5 12.1C7.5 12.2 7.4 12.2 7.3 12.3C7.2 12.4 7.09999 12.4 6.89999 12.4C6.69999 12.4 6.6 12.3 6.5 12.2C6.4 12.1 6.3 11.9 6.3 11.7C6.3 11.5 6.4 11.3 6.5 11.1C6.6 10.9 6.8 10.7 7 10.5C7.2 10.3 7.49999 10.1 7.89999 10C8.29999 9.90003 8.60001 9.80003 9.10001 9.80003C9.50001 9.80003 9.80001 9.90003 10.1 10C10.4 10.1 10.7 10.3 10.9 10.4C11.1 10.5 11.3 10.8 11.4 11.1C11.5 11.4 11.6 11.6 11.6 11.9C11.6 12.3 11.5 12.6 11.3 12.9C11.1 13.2 10.9 13.5 10.6 13.7C10.9 13.9 11.2 14.1 11.4 14.3C11.6 14.5 11.8 14.7 11.9 15C12 15.3 12.1 15.5 12.1 15.8C12.1 16.2 12 16.5 11.9 16.8C11.8 17.1 11.5 17.4 11.3 17.7C11.1 18 10.7 18.2 10.3 18.3C9.9 18.4 9.5 18.5 9 18.5C8.5 18.5 8.1 18.4 7.7 18.2C7.3 18 7 17.8 6.8 17.6C6.6 17.4 6.4 17.1 6.3 16.8C6.2 16.5 6.10001 16.3 6.10001 16.1C6.10001 15.9 6.2 15.7 6.3 15.6C6.4 15.5 6.6 15.4 6.8 15.4C6.9 15.4 7.00001 15.4 7.10001 15.5C7.20001 15.6 7.3 15.6 7.3 15.7C7.5 16.2 7.7 16.6 8 16.9C8.3 17.2 8.6 17.3 9 17.3C9.2 17.3 9.5 17.2 9.7 17.1C9.9 17 10.1 16.8 10.3 16.6C10.5 16.4 10.5 16.1 10.5 15.8C10.5 15.3 10.4 15 10.1 14.7C9.80001 14.4 9.50001 14.3 9.10001 14.3C9.00001 14.3 8.9 14.3 8.7 14.3C8.5 14.3 8.39999 14.3 8.39999 14.3C8.19999 14.3 7.99999 14.2 7.89999 14.1C7.79999 14 7.7 13.8 7.7 13.7C7.7 13.5 7.79999 13.4 7.89999 13.2C7.99999 13 8.2 13 8.5 13H8.8V13.1ZM15.3 17.5V12.2C14.3 13 13.6 13.3 13.3 13.3C13.1 13.3 13 13.2 12.9 13.1C12.8 13 12.7 12.8 12.7 12.6C12.7 12.4 12.8 12.3 12.9 12.2C13 12.1 13.2 12 13.6 11.8C14.1 11.6 14.5 11.3 14.7 11.1C14.9 10.9 15.2 10.6 15.5 10.3C15.8 10 15.9 9.80003 15.9 9.70003C15.9 9.60003 16.1 9.60004 16.3 9.60004C16.5 9.60004 16.7 9.70003 16.8 9.80003C16.9 9.90003 17 10.2 17 10.5V17.2C17 18 16.7 18.4 16.2 18.4C16 18.4 15.8 18.3 15.6 18.2C15.4 18.1 15.3 17.8 15.3 17.5Z" fill="black" />'
+    html += '</svg>'
+    html += '</span>'
+
+    return html
+
+
+def htmlDivCommentCalendar():
+    html = '<div id="divComments">'
+    html += '<table id="tableComments" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">'
+    html += '<thead class="fw-bolder text-muted">'
+    html += '<tr>'
+    html += '<th class="align-top" width="50%">Comment</th>'    
+    html += '<th class="align-top" width="45%">Select file (optional)</th>'    
+    html += '<th class="align-top" width="5%"></th>'
+    html += '</tr>'
+    html += '</thead>'
+    html += '<tbody>'
+    html += '<tr class="baseRowComment" style="display:none">'
+    html += '<td valign="top"><textarea name="comment[]" class="form-control form-control-solid h-80px textareaComment" maxlength="2000"></textarea></td>'
+    html += '<td valign="top" class="text-center"><input type="file" name="commentFile[]" class="form-control form-control"><input type="hidden" name="commentFileOk[]"></td>'
+    html += '<td valign="top" class="text-center">'
+    html += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteCommentCalendar" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+    html += '<span class="svg-icon svg-icon-2">'
+    html += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    html += '<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />'
+    html += '<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />'
+    html += '<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />'
+    html += '</svg>'
+    html += '</span>'
+    html += '</div>'
+    html += '</td>'
+    html += '</tr>'
+    html += '</tbody>'
+    html += '</table>'
+    html += '<a href="javascript:void(0);" id="addComment">Add comment (+)</a>'
+    html += '</div>'
+
+    return html
+
+
+#Consulta realizada para obtener los datos de cada uno de los comentarios para el calendario.
+def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 2: lectura
+
+    
+    itemsHTML = ''
+    itemTxt = ''
+    itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+    calendar = None
+    comments = None
+
+    if item:
+        calendar = CalendarItem.objects.filter(item = item).first()
+        comments = CalendarItemComment.objects.filter(calendar_item = calendar)
+    elif workorder:
+        calendar = CalendarWorkOrder.objects.filter(workorder = workorder).first()
+        comments = CalendarWorkOrderComment.objects.filter(calendar_workorder = calendar)
+    
+        
+    # itemsHTML += '<h7><b>Comments:</b></h7>'
+
+    if len(comments) > 0:
+
+        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Date</th><th width="10%">Time</th><th width="20%">User</th><th width="55%">Notes</th>'
+
+        if mode == 1:
+            itemsHTML += '<th width="5%"></th>'
+
+        itemsHTML += '</tr></thead><tbody>'
+    
+        for comment in comments:                        
+            date = ''
+            time = ''            
+            username = ''
+            itemTxt = ''
+
+            if comment.notes:
+                itemTxt = comment.notes
+
+            if comment.modification_date:
+                date = timezone.localtime(comment.modification_date).strftime('%m/%d/%Y')
+                time = timezone.localtime(comment.modification_date).strftime('%H:%M %p')
+
+    
+            user = User.objects.get(id=comment.modification_by_user)
+
+            if user:
+                username = user.username
+
+            files = None
+            
+            if item:
+                files = CalendarItemCommentFile.objects.filter(calendar_item_comment = comment)
+            elif workorder:
+                files = CalendarWorkOrderCommentFile.objects.filter(calendar_workorder_comment = comment)
+
+            if files:            
+                itemTxt += '<ul class="text-start py-1">'
+            
+                for file in files:                    
+                    itemTxt += '<li><a href=' + file.file.url + ' target="_blank">' + file.name + '</a>'
+            
+                itemTxt += "</ul>"
+
+
+            itemsHTML += '<tr class="py-1 fw-bold fs-7"><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+
+            user_session = request.user
+
+            itemId = 0
+
+
+            if item:
+                if item.id:
+                    itemId = item.id
+            
+            if user == user_session and mode == 1: #edicion
+                itemsHTML += '<td><a href="#" class="py-1 btn btn-link fs-7" onclick="delCommCalendar(' + str(workorder.id) + ',' + str(itemId) + ',' + str(comment.id) + ',event, this)"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a></td>'
+                            
+            itemsHTML += '</tr>'
+    
+        itemsHTML += '</tbody></table></div>'
+
+    itemsHTML += '</div>'
+
+    return itemsHTML
+
+
 
 
 import io
@@ -2942,9 +3431,9 @@ def generate_pdf(request, workorderId):
                 qty = item.qty if str(item.qty) != "" else "--"
 
                 date_end = "--"
-                if item.date_end:             
-                    #date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
-                    date_end = timezone.localtime(item.date_end).strftime('%Y/%m/%d %I:%M %p')
+                # if item.date:             
+                #     #date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
+                #     date_end = timezone.localtime(item.date).strftime('%Y/%m/%d %I:%M %p')
                 
 
 
@@ -2954,8 +3443,8 @@ def generate_pdf(request, workorderId):
 
                 responsible = " "
 
-                if item.responsible:
-                    responsible = item.responsible.name
+                # if item.responsible:
+                #     responsible = item.responsible.name
 
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
@@ -3078,10 +3567,11 @@ def generate_pdf(request, workorderId):
                     for material in materials:
                         file = material.file.name if str(material.file.name) != "" else "--"
                         notes = material.notes if str(material.notes) != "" else "--"
+                        
                         table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
                         
                         if material.file:
-                            if material.file.url[-4:] not in ('.pdf','.doc','.xls') and material.file.url[-5:] not in ('.docx','.xlsx'):
+                            if material.file.url[-4:] not in ('.pdf','.doc','.xls','.ppt') and material.file.url[-5:] not in ('.docx','.xlsx','.pptx'):
                                 if nt == 1:
                                     htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
                                 elif nt == 2:
