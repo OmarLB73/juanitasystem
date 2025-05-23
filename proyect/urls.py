@@ -16,7 +16,7 @@ urlpatterns = [
     # path('getDataProyectCustomer/', views.getDataProyectCustomer, name='getDataProyectCustomer_url'),
     path('getAddress/', views.getAddress, name='getAddress_url'),
     path('getDataCalendar/', views.getDataCalendar, name='getDataCalendar_url'),
-    path('getDataComment/', views.getDataComment, name='getDataComment_url'),
+    path('getDataModal/', views.getDataModal, name='getDataModal_url'),
     path('getDataMaterial/', views.getDataMaterial, name='getDataMaterial_url'),
     path('getDataItem/', views.getDataItem, name='getDataItem_url'),
 
@@ -30,7 +30,8 @@ urlpatterns = [
     
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
-    path('saveItemComment/', views.saveItemComment, name='saveItemComment_url'),
+    path('saveComment/', views.saveComment, name='saveComment_url'),
+    path('saveCalendar/', views.saveCalendar, name='saveCalendar_url'),
     path('saveQuote/', views.saveQuote, name='saveQuote_url'),
     path('saveMaterial/', views.saveMaterial, name='saveMaterial_url'),
 
@@ -41,6 +42,7 @@ urlpatterns = [
     path('deleteProyect/', views.deleteProyect, name='deleteProyect_url'),
     path('deleteItemCommentFile/', views.deleteItemCommentFile, name='deleteItemCommentFile_url'),
     path('deleteComment/', views.deleteComment, name='deleteComment_url'),
+    path('deleteCommentCalendar/', views.deleteCommentCalendar, name='deleteCommentCalendar_url'),
     
 
     path('updateStatus/', views.updateStatus, name='updateStatus_url'),

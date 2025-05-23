@@ -45,6 +45,12 @@ def getUploadTo(instance, filename):
     if model_name in ('WorkOrderCommentStateFile'):
         proyectId = instance.workorder_comment_state.workorder.proyect.id
 
+    if model_name in ('CalendarItemCommentFile'):
+        proyectId = instance.calendar_item_comment.calendar_item.item.workorder.proyect.id
+
+    if model_name in ('CalendarWorkOrderCommentFile'):
+        proyectId = instance.calendar_workorder_comment.calendar_workorder.workorder.proyect.id
+
 
     return f"{model_name}/{proyectId}/{filename}"
 
@@ -146,9 +152,7 @@ class WorkOrder(models.Model):
     proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)        
     code = models.CharField(max_length=50, null=True)
-    description = models.TextField(blank=True, null=True, max_length=2000)
-    date = models.DateTimeField(null=True)
-    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
+    description = models.TextField(blank=True, null=True, max_length=2000)    
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)   
@@ -311,15 +315,14 @@ class CategoryAttribute(models.Model):
 class Item(models.Model):
     id = models.AutoField(primary_key=True)
     workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)        
+    code = models.CharField(max_length=50, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True)
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     qty = models.CharField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
     quote = models.TextField(blank=True, null=True, max_length=2000)
-    date_proposed = models.DateTimeField(null=True)
-    date_end = models.DateTimeField(null=True)
-    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
+    date_proposed = models.DateTimeField(null=True)    
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -345,7 +348,7 @@ class ItemAttribute(models.Model):
 
     def __str__(self):
         return f'{self.id}'
-    
+
 
 class ItemAttributeNote(models.Model):
     id = models.AutoField(primary_key=True)
@@ -357,6 +360,7 @@ class ItemAttributeNote(models.Model):
         return f'{self.id}'
 
 #################################################################################################################################
+###################################################### Archivos #################################################################
 #################################################################################################################################
 
 # Clase base con atributos comunes
@@ -473,6 +477,101 @@ class UIElement(models.Model):
         return f'{self.id} - {self.key}'
     
 
+#################################################################################################################################
+##################################################### Calendario ################################################################
+#################################################################################################################################
+
+# Clase base con atributos comunes
+class CalendarAttachment(models.Model):
+    id = models.AutoField(primary_key=True)
+    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
+    date = models.DateTimeField(null=True)    
+    status = models.IntegerField(choices=ESTADOS,  default=1)
+    created_by_user = models.IntegerField(null=True, blank=True)
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+    modification_by_user = models.IntegerField(null=True, blank=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        abstract = True  # Esto hace que sea una clase base abstracta y no se cree una tabla para ella.
+
+    def __str__(self):
+        return f'{self.id}'    
+
+
+class CalendarItem(CalendarAttachment):    
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)       
+
+    def __str__(self):
+        return f'{self.id} - {self.item.id}'
+    
+
+class CalendarWorkOrder(CalendarAttachment):    
+    workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)       
+
+    def __str__(self):
+        return f'{self.id} - {self.workorder.id}'    
+
+
+##############################################
+
+class CalendarCommentAttachment(models.Model):
+    id = models.AutoField(primary_key=True)    
+    notes = models.TextField(blank=True, null=True)
+    created_by_user = models.IntegerField(null=True, blank=True)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+    modification_by_user = models.IntegerField(null=True, blank=True)
+    modification_date = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        abstract = True  # Esto hace que sea una clase base abstracta y no se cree una tabla para ella.
+
+    def __str__(self):
+        return f'{self.id}'   
+
+
+class CalendarItemComment(CalendarCommentAttachment):    
+    calendar_item = models.ForeignKey(CalendarItem, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id} - {self.item.id} - {self.notes}'
+    
+
+class CalendarWorkOrderComment(CalendarCommentAttachment):    
+    calendar_workorder = models.ForeignKey(CalendarWorkOrder, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id} - {self.workorder.id} - {self.notes}'
+
+
+##############################################
+
+class CalendarCommentFileAttachment(models.Model):
+    id = models.AutoField(primary_key=True)    
+    file = models.ImageField(upload_to=getUploadTo, blank=True, null=True)  # Nuevo campo de archivo
+    name = models.CharField(blank=True, null=True, max_length=150)
+    creation_date = models.DateTimeField(default=timezone.now, null=True)
+
+    class Meta:
+        abstract = True  # Esto hace que sea una clase base abstracta y no se cree una tabla para ella.
+        
+    def __str__(self):
+        return f'{self.id} - {self.name}'
+
+
+class CalendarItemCommentFile(CalendarCommentFileAttachment):    
+    calendar_item_comment = models.ForeignKey(CalendarItemComment, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id}'
+    
+
+class CalendarWorkOrderCommentFile(CalendarCommentFileAttachment):    
+    calendar_workorder_comment = models.ForeignKey(CalendarWorkOrderComment, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id}'
+
 
 
 def generalDelete(sender, instance, **kwargs):
@@ -487,6 +586,8 @@ def generalDelete(sender, instance, **kwargs):
 @receiver(pre_delete, sender=CategoryAttribute)
 @receiver(pre_delete, sender=ItemCommentStateFile)
 @receiver(pre_delete, sender=WorkOrderCommentStateFile)
+@receiver(pre_delete, sender=CalendarItemCommentFile)
+@receiver(pre_delete, sender=CalendarWorkOrderCommentFile)
 def deleteFile(sender, instance, **kwargs):
     generalDelete(sender, instance, **kwargs)
 
