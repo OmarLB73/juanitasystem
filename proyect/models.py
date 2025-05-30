@@ -336,7 +336,7 @@ class Item(models.Model):
         if self.group:
             group_name = self.group.name
 
-        return f'{self.id} - {self.workorder.id} - {self.group.subcategory.category.name} - {self.group.subcategory.name} - {group_name}'
+        return f'{self.id} - {self.workorder.id} - {self.subcategory.category.name} - {self.subcategory.name} - {group_name}'
     
 
 class ItemAttribute(models.Model):
