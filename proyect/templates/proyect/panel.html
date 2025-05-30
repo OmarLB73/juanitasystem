@@ -290,7 +290,7 @@
 
 															</div>
 															
-															<div class="separator separator-dashed mt-9 mb-6"></div>
+															<!-- <div class="separator separator-dashed mt-9 mb-6"></div> -->
 												
 														</div>
 														<!--end::Advance form-->
@@ -348,7 +348,7 @@
 																		<td class="text-start text fs-8">{{ proyect.customerName }}</td>
 																		
 																		<td class="text-start text fs-8">{{ proyect.creationDate }}</td>
-																		<td class="text-start text fs-8">{{ proyect.difference }}</td>
+																		<td class="text-center text fs-8">{{ proyect.difference }}</td>
 																		<td class="text-start text fs-8">{{ proyect.categories }}</td>
 																		<td class="text-start text fs-8">{{ proyect.qty_items }}</td>
 																		<td class="text-start fs-8">
@@ -1628,8 +1628,7 @@
 
 
 		function viewProyect(p,s){
-			$("#divViewProyect").val("");
-			$('#modalProyect').modal('show');			
+			$("#divViewProyect").val("");			
 
 			$.ajax({
 				
@@ -1650,6 +1649,7 @@
 					$('.grid-gallery').masonry_gallery();			
 					$('html, body').animate({ scrollTop: 0 }, 'fast');					
 					showImgs();
+					$('#modalProyect').modal('show');
 				},
 				error: function(xhr, status, error) {
 					console.error("Error server: " + error, event.error);

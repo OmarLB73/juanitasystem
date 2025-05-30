@@ -52965,6 +52965,12 @@ code:not([class*=language-]) {
     background-color: #d0f3f3;    
 }
 
+/** Teal: Finished Project **/
+.badge-state-10 {
+    color: #004085;
+    background-color: #cce5ff;    
+}
+
 
 
 

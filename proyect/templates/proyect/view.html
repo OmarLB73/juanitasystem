@@ -1180,7 +1180,7 @@
 							// Rellena los campos con los datos obtenidos de la respuesta
 							$('#divAttributes').html(response.result);
 							initializeSelect2();
-							viewAttibutesImages();
+							viewAttributesImages();
 						},
 						error: function(xhr, status, error) {
 							console.error("Error server: " + error, event.error);							
@@ -1991,6 +1991,85 @@
 
 					// m = 'You must check all the materials.';
 					c = 1
+				}
+
+				if (e == 5) {										
+					// $('.itemCount_' + w).each(function() {
+					// 	$(this).find('input.materialOK:checked').each(function() {
+					// 		c++;
+					// 	});
+					// });
+					
+					// if ($('.materialOK').length != c){
+					// 	c = 0;
+					// }
+
+					// m = 'You must check all the materials.';
+					c = 1
+					
+				}
+
+				if (e == 6) {										
+					// $('.itemCount_' + w).each(function() {
+					// 	$(this).find('input.materialOK:checked').each(function() {
+					// 		c++;
+					// 	});
+					// });
+					
+					// if ($('.materialOK').length != c){
+					// 	c = 0;
+					// }
+
+					// m = 'You must check all the materials.';
+					c = 1
+					
+				}
+
+				if (e == 7) {										
+					// $('.itemCount_' + w).each(function() {
+					// 	$(this).find('input.materialOK:checked').each(function() {
+					// 		c++;
+					// 	});
+					// });
+					
+					// if ($('.materialOK').length != c){
+					// 	c = 0;
+					// }
+
+					// m = 'You must check all the materials.';
+					c = 1
+					
+				}
+
+				if (e == 8) {										
+					// $('.itemCount_' + w).each(function() {
+					// 	$(this).find('input.materialOK:checked').each(function() {
+					// 		c++;
+					// 	});
+					// });
+					
+					// if ($('.materialOK').length != c){
+					// 	c = 0;
+					// }
+
+					// m = 'You must check all the materials.';
+					c = 1
+					
+				}
+
+				if (e == 9) {										
+					// $('.itemCount_' + w).each(function() {
+					// 	$(this).find('input.materialOK:checked').each(function() {
+					// 		c++;
+					// 	});
+					// });
+					
+					// if ($('.materialOK').length != c){
+					// 	c = 0;
+					// }
+
+					// m = 'You must check all the materials.';
+					c = 1
 					
 				}
 
@@ -2063,9 +2142,29 @@
 			}
 
 
-			function viewAttibutesImages(){
+			function viewAttributesImages() {
+				// Asegúrate de que el tooltip esté en el DOM
+				if (!document.getElementById('image-tooltip')) {
+					const tooltipDiv = document.createElement('div');
+					tooltipDiv.id = 'image-tooltip';
+					tooltipDiv.style.display = 'none';
+					tooltipDiv.style.position = 'absolute';
+					tooltipDiv.style.zIndex = '9999';
 
-				
+					const tooltipImg = document.createElement('img');
+					tooltipImg.id = 'tooltip-img';
+					tooltipImg.alt = 'Tooltip';
+					tooltipImg.style.maxWidth = '200px';
+
+					tooltipDiv.appendChild(tooltipImg);
+					document.body.appendChild(tooltipDiv);
+				}
+
+				// Referencias a tooltip e imagen
+				const tooltip = document.getElementById("image-tooltip");
+				const tooltipImg = document.getElementById("tooltip-img");
+
+				// Inicializa select2
 				$('.selectAttribute').select2({
 					templateResult: formatOption,
 					templateSelection: formatOption,
@@ -2077,35 +2176,33 @@
 
 					const imageUrl = $(option.element).data('image') || '/static/images/no-image.png';
 					return `
-					<div class="custom-option" data-image="${imageUrl}">
-						<img src="${imageUrl}" style="width: 30px; height: 30px; object-fit: cover; margin-right: 8px;" />
-						${option.text}
-					</div>
+						<div class="custom-option" data-image="${imageUrl}">
+							<img src="${imageUrl}" style="width: 30px; height: 30px; object-fit: cover; margin-right: 8px;" />
+							${option.text}
+						</div>
 					`;
 				}
 
 				// Tooltip behavior
-				const tooltip = document.getElementById("image-tooltip");
-				const tooltipImg = document.getElementById("tooltip-img");
+				$(document).off('mousemove.select2Tooltip mouseleave.select2Tooltip'); // evita múltiples bindings
 
-				$(document).on('mousemove', '.select2-results__option', function(e) {
+				$(document).on('mousemove.select2Tooltip', '.select2-results__option', function(e) {
 					const imgUrl = $(this).find('.custom-option').data('image');
 					if (imgUrl) {
-					tooltipImg.src = imgUrl;
-					tooltip.style.left = (e.pageX - 220) + 'px';
-					 tooltip.style.top = e.pageY + 15 + 'px';
-					tooltip.style.display = 'block';
+						tooltipImg.src = imgUrl;
+						tooltip.style.left = (e.pageX - 220) + 'px';
+						tooltip.style.top = (e.pageY + 15) + 'px';
+						tooltip.style.display = 'block';
 					}
 				});
 
-				$(document).on('mouseleave', '.select2-results__option', function() {
+				$(document).on('mouseleave.select2Tooltip', '.select2-results__option', function() {
 					tooltip.style.display = 'none';
 				});
 
 				$('.selectAttribute').on('select2:close', function () {
 					tooltip.style.display = 'none';
 				});
-				
 			}
 			
 
