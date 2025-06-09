@@ -457,27 +457,46 @@ def getAddress(request):
 @login_required
 def getDataCalendar(request):
     #Consulta los items desde la BD    
-    calendarItems = CalendarItem.objects.filter(date__isnull=False, status__in = [1, 2])
-    calendarWorks = CalendarWorkOrder.objects.filter(date__isnull=False, status__in = [1, 2])
+    calendarItems = CalendarItem.objects.filter(date_start__isnull=False, status__in = [1, 2])
+    calendarWorks = CalendarWorkOrder.objects.filter(date_start__isnull=False, status__in = [1, 2])
     events = []
+    color = ''
     
     # Fechas de los items
     for calendar in calendarItems:
 
         className = ''
+        fecha_inicio = ''
+        fecha_fin = ''
+        allDay = True
 
-        if calendar.date:
+        if calendar.date_start:
 
-            fecha = timezone.localtime(calendar.date).strftime('%Y-%m-%d %H:%M')
-            color = calendar.responsible.color
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%Y-%m-%d %H:%M')
+
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%Y-%m-%d %H:%M')
+
+            # if calendar.allday:
+            #     allDay = True
 
             if calendar.status == 2:
                 className = 'completed'
-                    
+
+            if calendar.date_end and calendar.status != 2:
+                if calendar.date_end < timezone.now():
+                    className = 'overdue'
+
+            if calendar.responsible:
+                color = calendar.responsible.color
+
             events.append({
                 'id': calendar.id,
                 'title': calendar.item.workorder.proyect.customer.address,
-                'start': fecha,
+                'start': fecha_inicio,
+                'end': fecha_fin,
+                'allDay': allDay,
                 'description': calendar.item.workorder.proyect.customer.name,
                 'color': color,
                 'p': str(calendar.item.workorder.proyect.id),
@@ -487,25 +506,42 @@ def getDataCalendar(request):
             })
 
     for calendar in calendarWorks:
-
+            
         className = ''
+        fecha_inicio = ''
+        fecha_fin = ''
+        allDay = False
 
-        if calendar.date:
+        if calendar.date_start:
 
-            fecha = timezone.localtime(calendar.date).strftime('%Y-%m-%d %H:%M')
-            color = calendar.responsible.color
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%Y-%m-%d %H:%M')
+
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%Y-%m-%d %H:%M')
+
+            if calendar.allday:
+                allDay = True
 
             if calendar.status == 2:
                 className = 'completed'
+
+            if calendar.date_end and calendar.status != 2:
+                if calendar.date_end < timezone.now():
+                    className = 'overdue'
+
+            if calendar.responsible:
+                color = calendar.responsible.color
                     
             events.append({
                 'id': calendar.id,
                 # 'title':  '✅' + wo.proyect.customer.address,
                 'title': calendar.workorder.proyect.customer.address,
-                'start': fecha,
+                'start': fecha_inicio,
+                'end': fecha_fin,
+                'allDay': allDay,
                 'description': calendar.workorder.proyect.customer.name,
-                'color': color,
-                'borderColor': '#FF5733', 
+                'color': color,                
                 'p': str(calendar.workorder.proyect.id),
                 'w': str(calendar.workorder.id),
                 'i': '0',
@@ -608,6 +644,7 @@ def getDataItem(request):
         qty = ''
         img = ''
         fileName = ''
+        id = '0'
 
         if itemMaterial.file:
             fileUrl = itemMaterial.file.url
@@ -633,6 +670,9 @@ def getDataItem(request):
         if itemMaterial.qty:
             qty = itemMaterial.qty
 
+        if itemMaterial.id:
+            id = str(itemMaterial.id)
+
         materialsHTML += '<tr class="baseRow">'
         materialsHTML += '<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial" value="' + itemMaterial.notes + '"></td>'
         materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'        
@@ -640,6 +680,7 @@ def getDataItem(request):
         materialsHTML += '<td valign="top" class="text-center">' + img + '</div></td>'
         materialsHTML += '<td valign="top" class="text-center">'
         materialsHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        materialsHTML += '<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="' + id + '">'
         materialsHTML += spanHTML
 
         materialsHTML += '</div>'
@@ -659,16 +700,21 @@ def getDataItem(request):
         fileUrl = '';
         style = 'style="display:none"';
         qty = ''
+        id = '0'
 
         if itemImag.file:
             fileUrl = itemImag.file.url
             style = ''
+
+        if itemImag.id:
+            id = str(itemImag.id)
         
         imagesHTML += '<tr class="baseRowImage">'
         imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
         imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>'
         imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
+        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        imagesHTML += '<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="IMG_' + id + '">'
         imagesHTML += spanHTML																								
         imagesHTML += '</div>'
         imagesHTML += '</td>'
@@ -683,6 +729,7 @@ def getDataItem(request):
         fileName = ''
         style = 'style="display:none"'
         img = ''
+        id = '0'
 
         if itemImag.file:
             fileUrl = itemImag.file.url
@@ -704,12 +751,16 @@ def getDataItem(request):
             else:
                 img = '<img src="/static/images/upload.svg" alt=""><br/>'
 
+        if itemImag.id:
+            id = str(itemImag.id)
+
 
         imagesHTML += '<tr class="baseRowImage">'
         imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
         imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]">'
         imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload" ' + style + '>' + img +'<a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a></div></td>'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'																										
+        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        imagesHTML += '<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="FIL_' + id + '">'
         imagesHTML += spanHTML																								
         imagesHTML += '</div>'
         imagesHTML += '</td>'
@@ -731,7 +782,7 @@ def getDataItem(request):
             'group': groupId,
             'place': item.place.id,
             'qty': item.qty,
-            'date': item.date_proposed.strftime("%Y-%m-%d"),
+            'date': item.date_proposed.strftime("%m/%d/%Y"),
             'notes': item.notes,
             'attributes': attributeHTML,
             'materials': materialsHTML,
@@ -1274,8 +1325,8 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         if calendar.responsible:
                             responsibleName = calendar.responsible.name
 
-                        if calendar.date:
-                            dueDate = timezone.localtime(calendar.date).strftime('%m/%d/%Y %I:%M %p')
+                        if calendar.date_start:
+                            dueDate = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %I:%M %p')
                     
 
                     itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
@@ -2160,12 +2211,11 @@ def saveEvent(request, type_event_id, workOrderId, description):
 
 #Instancia para guardar los datos del item.
 @login_required
-def saveItem(request):
+def saveItem(request):    
 
-    item_id = 0
-
-    if request.method == 'POST':
+    if request.method == 'POST':        
         workorder_id = request.POST.get('wo_id')
+        item_id = request.POST.get('item_id')
 
         subcategory_id = request.POST.get('subcategory')
         group_id = request.POST.get('group')
@@ -2183,9 +2233,26 @@ def saveItem(request):
             if Group.objects.filter(id=group_id):
                 group = Group.objects.get(id=group_id)
             
-        try:            
-            
-            item_save = Item.objects.create(workorder = WorkOrder.objects.get(id=workorder_id),                                            
+        try: 
+
+            item = Item.objects.filter(workorder = WorkOrder.objects.get(id=workorder_id), id=item_id).first() #No siempre estará, por eso no se usa get
+
+            if item:
+                item_id = item.id
+                
+                item.subcategory = Subcategory.objects.get(id=subcategory_id)
+                item.group = group
+                item.place = Place.objects.get(id=place_id)
+                item.qty = qty
+                item.notes = notes
+                item.date_proposed = date_proposed            
+                item.modification_by_user = request.user.id
+                item.modification_date = timezone.now()
+
+                item.save()
+
+            else:
+                item = Item.objects.create( workorder = WorkOrder.objects.get(id=workorder_id),                                            
                                             subcategory = Subcategory.objects.get(id=subcategory_id),
                                             group = group,
                                             place = Place.objects.get(id=place_id),
@@ -2194,7 +2261,7 @@ def saveItem(request):
                                             date_proposed = date_proposed,
                                             created_by_user = request.user.id,
                                             modification_by_user = request.user.id)
-            item_id = item_save.id
+                item_id = item.id
 
             saveEvent(request, 3, workorder_id, None)
 
@@ -2213,20 +2280,31 @@ def saveItem(request):
                         attribute_id = int(key[len(prefijo):])                        
                         attribute = Attribute.objects.get(id=attribute_id)
 
-                        itemattribute = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
-                                                                        attribute = attribute,
-                                                                        notes = value)
+                        item_atributte = ItemAttribute.objects.filter(item = item, attribute = attribute).first()
+
+                        if item_atributte:
+
+                            item_atributte.notes = value
+                            item_atributte.save()
+                        
+                        else:
+
+                            item_atributte = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
+                                                                            attribute = attribute,
+                                                                            notes = value)
 
                         if attribute.multiple:
                             options = request.POST.getlist(key)
                                             
                             for option in options:
-                                ItemAttributeNote.objects.create(   itemattribute = itemattribute,
-                                                                    attributeoption = AttributeOption.objects.get(id= option))
-                        
+                                
+                                item_atributte_option = ItemAttributeNote.objects.filter(itemattribute = item_atributte, attributeoption = AttributeOption.objects.get(id= option)).first()
 
-                        
-
+                                if item_atributte_option:
+                                    pass
+                                else:
+                                    ItemAttributeNote.objects.create(   itemattribute = item_atributte,
+                                                                        attributeoption = AttributeOption.objects.get(id= option))
 
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
@@ -2235,6 +2313,7 @@ def saveItem(request):
             ################################### Se recorren los materiales ###################################
 
             materials = request.POST.getlist('material[]')
+            materialsIds = request.POST.getlist('materialIds[]')
             materialsQTY = request.POST.getlist('materialQTY[]')
             materialsF = request.FILES.getlist('materialFile[]')
             materialsFileOK = request.POST.getlist('materialFileOk[]')            
@@ -2245,6 +2324,8 @@ def saveItem(request):
                 file = None
                 fileName = None
                 qty = ""
+                id = "0"
+
                 if material.strip() != "":                    
                     try:
                         
@@ -2263,19 +2344,50 @@ def saveItem(request):
                         if materialsQTY[index]:
                             qty = materialsQTY[index]
 
-                        ItemMaterial.objects.create(   item = Item.objects.get(id=item_id),
-                                                        file = file,
-                                                        name = fileName,
-                                                        qty = qty,                                                   
-                                                        notes = material)
+                        
+                        if materialsIds[index]:
+                            if materialsIds[index] != '0':
+                                id = materialsIds[index]
+
+                        item_material = ItemMaterial.objects.filter(item = item, id = id).first()
+
+                        if item_material:
+
+                            # item_material.file = file
+                            # item_material.name = fileName
+                            item_material.qty = qty
+                            item_material.notes = material
+
+                            item_material.save()                                                
+                        
+                        else:
+
+                            ItemMaterial.objects.create(    item = item,
+                                                            file = file,
+                                                            name = fileName,
+                                                            qty = qty,
+                                                            notes = material)
 
                     except OSError: #Guardarlo como archivo adjunto
+
+                        item_material = ItemMaterial.objects.filter(item = item, id = id).first()
+
+                        if item_material:
+
+                            # item_material.file = file
+                            # item_material.name = fileName
+                            item_material.qty = qty
+                            item_material.notes = material
+
+                            item_material.save()
                         
-                        ItemMaterial.objects.create(   item = Item.objects.get(id=item_id),
-                                                        file = None,
-                                                        name = '',
-                                                        qty = qty,                                                  
-                                                        notes = material)
+                        else:
+                        
+                            ItemMaterial.objects.create(   item = item,
+                                                            file = None,
+                                                            name = '',
+                                                            qty = qty,
+                                                            notes = material)
                             
                     except:
                         messages.error(request, 'Text images not found!')
@@ -2284,6 +2396,7 @@ def saveItem(request):
             ################################### Se recorren las imagenes ###################################
 
             images = request.POST.getlist('image[]')
+            imagesIds = request.POST.getlist('imageIds[]')
             imagesF = request.FILES.getlist('imageFile[]')
             imagesFileOk = request.POST.getlist('imageFileOk[]')            
             indexFile = 0
@@ -2292,7 +2405,9 @@ def saveItem(request):
             for index, image in enumerate(imagesFileOk):                
                 file = None
                 fileName = None
-                notes = None                 
+                notes = None
+                id = '0'
+                pre = ''
 
                 if int(image) == 1:
 
@@ -2303,22 +2418,45 @@ def saveItem(request):
                         indexFile += 1
                         fileName = file.name
 
+                        if imagesIds[index]:
+                            if imagesIds[index] != '0':
+                                pre = imagesIds[index].split('_')[0] 
+                                id = imagesIds[index].split('_')[1] 
+
                         if file:
                             if validateTypeFile(file.content_type):
                                 # Abrir la imagen usando PIL
-                                imagen = Image.open(file)
+                                imagen = Image.open(file)                        
 
-                        ItemImage.objects.create( item = Item.objects.get(id=item_id),
-                                                    file = file,
-                                                    name = fileName,                                                    
-                                                    notes = notes)
+                        if pre == 'IMG':
+
+                            item_image = ItemImage.objects.filter(item = item, id = id).first()
+                            
+                            if item_image:
+                                item_image.notes = notes
+                                item_image.save()
+                            else:
+
+                                ItemImage.objects.create( item = item,
+                                                            file = file,
+                                                            name = fileName,
+                                                            notes = notes)
 
                     except OSError: #Guardarlo como archivo adjunto
-                    
-                        ItemFile.objects.create(  item = Item.objects.get(id=item_id),
-                                                    file = file,
-                                                    name = fileName,
-                                                    notes = notes)
+
+                        if pre == 'FIL':
+
+                            item_file = ItemFile.objects.filter(item = item, id = id).first()
+                                
+                            if item_file:
+                                item_file.notes = notes
+                                item_file.save()
+                        
+                            else:
+                                ItemFile.objects.create(  item = item,
+                                                        file = file,
+                                                        name = fileName,
+                                                        notes = notes)
 
                     except:
                         messages.error(request, 'Text images not found!')
@@ -2437,7 +2575,12 @@ def saveCalendar(request):
         workOrderId = request.POST.get('id1')
         itemId = request.POST.get('id2')
         #commentId = request.POST.get('id3')        
-        date_get = request.POST.get('date')
+        dateStart_get = request.POST.get('dateA')
+        dateStartHour_get = request.POST.get('dateA2')        
+        dateEnd_get = request.POST.get('dateB')
+        dateEndHour_get = request.POST.get('dateB2')
+        checkAllDay = request.POST.get('checkAllDay')
+        
         responsible_id = request.POST.get('responsible')
         statusDate = request.POST.get('statusDate')
 
@@ -2445,12 +2588,34 @@ def saveCalendar(request):
         item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
         
         responsible = Responsible.objects.filter(id=responsible_id).first()
-        
-        if date_get != '' and date_get is not None:
+                
+        if dateStart_get != '' and dateStart_get is not None:
             # Es necesario dar formato a la fecha
-            date = datetime.strptime(date_get, "%m/%d/%Y %I:%M %p")
+            
+            if dateEnd_get == '' or dateEnd_get is None:
+                dateEnd_get = dateStart_get
+
+            if dateStartHour_get == '' or dateStartHour_get == None:
+                dateStartHour_get = '12:00 AM' 
+
+            if dateEndHour_get == '' or dateEndHour_get == None:
+                dateEndHour_get = '11:59 PM' 
+
+            if checkAllDay:
+                dateStart_get += ' 12:00 AM'
+                dateEnd_get += ' 11:59 PM'
+                checkAllDay = True
+            else:
+                dateStart_get += ' ' + dateStartHour_get
+                dateEnd_get += ' ' + dateEndHour_get
+                checkAllDay = False
+            
+            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
+            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+
         else:
-            date = None
+            dateStart = None
+            dateEnd = None
 
 
         #A nivel de item       
@@ -2461,11 +2626,13 @@ def saveCalendar(request):
             calendar = CalendarWorkOrder.objects.filter(workorder = workorder).first()
 
                 
-        if calendar:
+        if calendar and workOrderId != '0':
 
             try:
 
-                calendar.date = date
+                calendar.date_start = dateStart
+                calendar.date_end = dateEnd
+                calendar.allday = checkAllDay
                 calendar.responsible = responsible
                 calendar.modification_by_user = request.user.id
                 calendar.modification_date = datetime.now()
@@ -2476,7 +2643,6 @@ def saveCalendar(request):
                 calendar.save()
 
                 saveCalendarItems(request)
-
                 saveCalendarComments(request, calendar, item, workorder)
 
                 return JsonResponse({'result': "OK"})
@@ -2486,13 +2652,15 @@ def saveCalendar(request):
                 messages.error(request, 'Server error. Please contact to administrator!')
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
 
-        else:
+        elif itemId != '0':
 
             try:
                 
                 if item:
                     calendar_create = CalendarItem.objects.create(  item = item,
-                                                                    date = date,
+                                                                    date_start = dateStart,
+                                                                    date_end = dateEnd,
+                                                                    allday = checkAllDay,
                                                                     responsible = responsible,
                                                                     created_by_user = request.user.id,
                                                                     modification_by_user = request.user.id)
@@ -2504,7 +2672,9 @@ def saveCalendar(request):
                 elif workorder:
                     
                     calendar_create = CalendarWorkOrder.objects.create( workorder = workorder,
-                                                                        date = date,
+                                                                        date_start = dateStart,
+                                                                        date_end = dateEnd,
+                                                                        allday = checkAllDay,
                                                                         responsible = responsible,
                                                                         created_by_user = request.user.id,
                                                                         modification_by_user = request.user.id)
@@ -2638,7 +2808,7 @@ def saveCalendarItems(request):
                 else:
                     calendar.responsible = responsible
             
-            calendar.date = date
+            calendar.date_start = date
 
 
             if dates[index] != '' and dates[index] is not None:
@@ -3013,8 +3183,8 @@ def modalCalendar(request, workOrderId, itemId, id):
         calendar = CalendarItem.objects.filter(item=item).first()
         
         if calendar:            
-            if calendar.date:
-                fecha_fin = timezone.localtime(calendar.date).strftime('%m/%d/%Y %H:%M')
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%m/%d/%Y %H:%M')
 
             if calendar.responsible:
                 responsibleId = calendar.responsible.id        
@@ -3028,18 +3198,18 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<b style="margin-left:-10px">Item:</b>'
         itemsHTML += '<div class="row">'
 
-        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="35%" colspan=2>' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
         
-        itemsHTML += '<tr><td valign="middle">'
+        itemsHTML += '<tr><td valign="top">'
         itemsHTML += str(item.code)
         itemsHTML += '</td><td>'
         itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
         itemsHTML += htmlResponsibleSelect(responsibleId)
         itemsHTML += '</select>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/> '
-        itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2" placeholder="Pick a date" value="" style="width: 150px"/>'
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 90px"/> '
+        # itemsHTML += '</td><td>'
+        # itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2" placeholder="Pick a date" value="" style="width: 150px"/>'
         itemsHTML += '</td><td>'
         itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
         itemsHTML += '</td></tr>'
@@ -3048,9 +3218,13 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<br/>'
 
+        itemsHTML += htmlDivCommentCalendar()
+
+        itemsHTML += '<br/>'
+
         itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
 
-        itemsHTML += htmlDivCommentCalendar()
+        
 
         itemsHTML += '<div class="row text-end">'
 
@@ -3069,12 +3243,27 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         calendar = CalendarWorkOrder.objects.filter(workorder=workorder).first()
         responsibleId = 0
+        fecha_inicio = ''
         fecha_fin = ''
+        fechaDate_inicio = ''
+        fechaDate_fin = ''
+        style_display = ''
+
+        allDay = False
         status = 0
 
         if calendar:
-            if calendar.date:
-                fecha_fin = timezone.localtime(calendar.date).strftime('%m/%d/%Y %H:%M')
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %H:%M')
+                fechaDate_inicio = fecha_inicio[11:16]
+
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%m/%d/%Y %H:%M')
+                fechaDate_fin = fecha_fin[11:16]
+
+            if calendar.allday:
+                allDay = True
+                style_display = '; display:none'
 
             if calendar.responsible:
                 responsibleId = calendar.responsible.id
@@ -3089,37 +3278,64 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<b style="margin-left:-10px">Work Order:</b>'
         itemsHTML += '<div class="row">' 
                         
-        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="35%" colspan=2>' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="5%">N°</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
         
-        itemsHTML += '<tr><td valign="middle">'
+        itemsHTML += '<tr><td valign="top">'
         itemsHTML += str(workorder.code)
         itemsHTML += '</td><td>'
         itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
         itemsHTML += htmlResponsibleSelect(responsibleId)
         itemsHTML += '</select>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/>'
+        
+        # Date Start - End
+        
+        itemsHTML += '<table><tr><td>'
+        
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2" placeholder="Pick a date" value="" style="width: 150px"/>'
+        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
+        itemsHTML += '-'        
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '</td><td>'
+
+        itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
+
+        if allDay:
+            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" checked>'
+        else:
+            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
+        
+        itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
+        itemsHTML += '</td></tr></table>'
+        
+        
+        
+        
+        itemsHTML += '</td><td>'
+        itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')
         itemsHTML += '</td></tr>'
 
         itemsHTML += '</tbody></table>'
 
         itemsHTML += '</div>'
 
-        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
-
         itemsHTML += htmlDivCommentCalendar()
 
         itemsHTML += '<br/>'
+
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
+                
         itemsHTML += '<br/>'
 
 
         items = Item.objects.filter(workorder=workorder).order_by('id')
 
-        if id == '0' and len(items) > 0: # Para filtrar en el calendario
+        if id == '0' and len(items) > 0 and workorder.state.id == 6: # Para filtrar en el calendario, solo en la etapa 6.
         
             # Items
             
@@ -3180,9 +3396,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-1000px"); </script>'
 
         itemsHTML += '</form>'
-                    
-    
-    
+
     itemsHTML += '</div>'    
 
     return itemsHTML
@@ -3404,7 +3618,8 @@ def htmlSpanCalendar():
 
 def htmlDivCommentCalendar():
     html = '<div id="divComments">'
-    html += '<table id="tableComments" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">'
+    html += '<a href="javascript:void(0);" id="addComment">Add comment (+)</a>'
+    html += '<table id="tableComments" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" style="display:none">'
     html += '<thead class="fw-bolder text-muted">'
     html += '<tr>'
     html += '<th class="align-top" width="50%">Comment</th>'    
@@ -3430,7 +3645,6 @@ def htmlDivCommentCalendar():
     html += '</tr>'
     html += '</tbody>'
     html += '</table>'
-    html += '<a href="javascript:void(0);" id="addComment">Add comment (+)</a>'
     html += '</div>'
 
     return html
@@ -3442,7 +3656,7 @@ def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 
     
     itemsHTML = ''
     itemTxt = ''
-    itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+    itemsHTML += '<div class="col-xl-12 fv-row text-start" style="max-height: 200px; overflow: auto;">'
     calendar = None
     comments = None
 
@@ -3516,7 +3730,7 @@ def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 
                             
             itemsHTML += '</tr>'
     
-        itemsHTML += '</tbody></table></div>'
+        itemsHTML += '</tbody></table>'
 
     itemsHTML += '</div>'
 

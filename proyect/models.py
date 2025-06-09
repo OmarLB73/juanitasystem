@@ -322,7 +322,9 @@ class Item(models.Model):
     qty = models.CharField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
     quote = models.TextField(blank=True, null=True, max_length=2000)
-    date_proposed = models.DateTimeField(null=True)    
+    responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
+    date_proposed = models.DateTimeField(null=True)
+    date_due = models.DateTimeField(null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -421,6 +423,7 @@ class ItemCommentState(models.Model):
     id = models.AutoField(primary_key=True)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
     notes = models.TextField(blank=True, null=True)    
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
@@ -485,7 +488,9 @@ class UIElement(models.Model):
 class CalendarAttachment(models.Model):
     id = models.AutoField(primary_key=True)
     responsible = models.ForeignKey(Responsible, on_delete=models.SET_NULL, null=True)
-    date = models.DateTimeField(null=True)    
+    date_start = models.DateTimeField(null=True)    
+    date_end = models.DateTimeField(null=True) 
+    allday = models.BooleanField(default=False, null=True)
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -510,7 +515,14 @@ class CalendarWorkOrder(CalendarAttachment):
     workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)       
 
     def __str__(self):
-        return f'{self.id} - {self.workorder.id}'    
+        return f'{self.id} - {self.workorder.id}'  
+    
+
+class CalendarAppointment(CalendarAttachment):    
+    
+    def __str__(self):
+        return f'{self.id}'    
+
 
 
 ##############################################

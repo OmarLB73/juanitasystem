@@ -78,7 +78,7 @@
 
 								<div class="d-flex flex-column-fluid" style="margin-top: 2px;">
 									<!--begin::Container-->
-									<div id="kt_content_container" class="container-xxl">
+									<div class="container-xxl">
 										<!--begin::Card-->
 							
 											{% if labels.TITLE_PROYECT_VIEW != None %}
@@ -566,6 +566,7 @@
 																			<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>
 																			<td valign="top" class="text-center">
 																				<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
+																					<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="0">'
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-2">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -615,6 +616,7 @@
 																			<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>
 																			<td valign="top" class="text-center">
 																				<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
+																					<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="0">'
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-2">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -637,6 +639,7 @@
 															<br/><br/>
 															
 															<input id="wo_id" name="wo_id" type="hidden" value="" readonly/>
+															<input id="item_id" name="item_id" type="hidden" value="" readonly/>
 															
 															<div class="card-footer d-flex justify-content-end py-6 px-9">
 																<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()" data-bs-dismiss="modal">Cancel</button>
@@ -777,6 +780,7 @@
 				border-radius: 4px;
 				border: 1px solid #ddd;
 			}
+			
 		</style>
 
 		<script src="{% static 'js/jquery-3.7.1.js' %}"></script>				
@@ -1254,7 +1258,7 @@
 									// loadWOs();
 									// $('.grid-gallery').masonry_gallery();
 
-									var item = o.parentNode.parentNode.parentNode.parentNode.parentNode;
+									var item = o.parentNode.parentNode.parentNode.parentNode;
 									item.remove();
 
 									Swal.fire({
@@ -1306,6 +1310,8 @@
 
 				$("#tableMaterials tbody tr:not(:first)").remove();
 				$("#tableImages tbody tr:not(:first)").remove();
+
+				$('#item_id').val(0);
 				
 			}
 
@@ -1490,16 +1496,20 @@
 					success: function(response) {
 						$('#saveModal').html(response.result);
 						initializeFlatpickr();
+						initializeCheckAllDay();
 						// pickeColorReload();
 
 						$('#addComment').click(function() {
 							// Clonamos la fila con id "filaBase"					
-							var newRow = $('.baseRowComment:first').clone();										
-							newRow.find('input').val('');      										
-							newRow.removeAttr('style');
-							newRow.removeAttr('id');
 
-							$('#tableComments tbody').append(newRow);
+							$('#tableComments').show();
+							$('.baseRowComment:first').show();							
+							//var newRow = $('.baseRowComment:first').clone();
+							// newRow.find('input').val('');      										
+							// newRow.removeAttr('style');
+							// newRow.removeAttr('id');
+
+							// $('#tableComments tbody').append(newRow);
 							
 						});
 						
@@ -1731,13 +1741,51 @@
 
 
 			function initializeFlatpickr() {
-				// Aplicar flatpickr a los inputs con la clase 'date-picker'
-				$(".date-picker").flatpickr({
-					enableTime: true, // Deshabilitar la selección de hora
-					dateFormat: "m/d/Y h:i K", // Establecer el formato de fecha
+
+				$(".dateComplete-picker").flatpickr({
+					enableTime: true,
+					dateFormat: "m/d/Y h:i K",
 					time_24hr: false,
 					locale: "en"
 				});
+
+				// Aplicar flatpickr a los inputs con la clase 'date-picker'
+				$(".date-picker").flatpickr({
+					enableTime: true,
+					dateFormat: "m/d/Y",
+				});
+
+				$(".hour-picker").flatpickr({
+					enableTime: true,
+					noCalendar: true,
+					dateFormat: "h:i K",
+					time_24hr: false,
+					locale: "en"
+				});
+
+
+				$('#dateA').on('change', function() {
+					var dateAVal = $(this).val();
+					var dateBVal = $('#dateB').val();
+
+					if (dateBVal == "") {
+						$('#dateB').val(dateAVal);
+					}
+				});
+
+				flatpickr("#dateA", {
+					scrollToInput: false,
+					appendTo: document.querySelector('#modalComment'), // o el contenedor correcto
+					position: 'auto', // opcional
+					dateFormat: "m/d/Y",
+				});
+
+				// document.getElementById('#dateA').addEventListener('focus', function(e) {
+				// // Previene el scroll automático al hacer focus
+				// e.preventDefault();
+				// }, { passive: false });
+
+
 			}
 
 			
@@ -1912,6 +1960,9 @@
 						$('#divAttributes').html(response.attributes);
 						$('#tableMaterials').append(response.materials);
 						$('#tableImages').append(response.images);
+
+						$('#wo_id').val(w);
+						$('#item_id').val(i);
 
 						autoCompleteReload();
 
@@ -2205,6 +2256,19 @@
 				});
 			}
 			
+
+			function initializeCheckAllDay() {
+
+				 $('.checkAllDay').on('change', function() {
+					if ($(this).is(':checked')) {
+					$('.hour-picker').hide();
+					} else {
+					$('.hour-picker').show();
+					}
+				});
+			}
+
+
 
 			// function app(t,i){
 			// 	$.ajax({					

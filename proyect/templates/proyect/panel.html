@@ -43,7 +43,7 @@
 				<!--begin::Content-->
 				<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
 					<!--begin::Toolbar-->
-					<div class="toolbar" id="kt_toolbar">
+					<div class="toolbar" id="kt_toolbar"> <!-- Div fijo-->
 						<!--begin::Container-->
 						<div id="kt_toolbar_container" class="container-xxl d-flex flex-stack">
 
@@ -155,9 +155,9 @@
 																																													
 															<div class="row mb-6">
 															
-																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
 																	<div class="row">       
-																		<div class="col-xl-12">
+																		<div class="col-xl-6">
 																			<label class="fs-7 form-label fw-bolder text-dark">Date from</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
@@ -176,15 +176,10 @@
 																					</svg>
 																				</span>
 																				<!--end::Svg Icon-->
-																				<input class="form-control form-control-solid ps-12" name="dateFrom" placeholder="Pick a date" id="dateFrom" value="{{date_from}}"/>
+																				<input class="form-control form-control-solid ps-12" name="dateFrom" placeholder="Pick a date" id="dateFrom" value="{{date_from}}" style="max-width: 120px;"/>
 																			</div>
 																		</div>
-																	</div>
-																</div>
-
-																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
-																	<div class="row">
-																		<div class="col-xl-12">
+																		<div class="col-xl-6">
 																			<label class="fs-7 form-label fw-bolder text-dark">Date until</label>
 																			<div class="position-relative d-flex align-items-center">
 																				<!--begin::Svg Icon | path: icons/duotune/general/gen014.svg-->
@@ -203,13 +198,17 @@
 																					</svg>
 																				</span>
 																				<!--end::Svg Icon-->
-																				<input class="form-control form-control-solid ps-12" name="dateUntil" placeholder="Pick a date" id="dateUntil" value="{{date_until}}"/>
+																				<input class="form-control form-control-solid ps-12" name="dateUntil" placeholder="Pick a date" id="dateUntil" value="{{date_until}}" style="max-width: 120px;"/>
 																			</div>
 																		</div>
+
+
 																	</div>
 																</div>
 
-																<div class="col-lg-4" style="border:1px solid white; border-width:1px;">
+						
+
+																<div class="col-lg-2" style="border:1px solid white; border-width:1px;">
 																	<div class="row">
 																		<div class="col-xl-12">
 																			<label class="fs-7 form-label fw-bolder text-dark">{{ labels.LABEL_DECORATOR }}</label>
@@ -257,23 +256,34 @@
 																	</div>
 																</div>
 
+																<div class="col-lg-3" style="border:1px solid white; border-width:1px;">
+																	<div class="row">
+																		<label class="fs-7 form-label fw-bolder text-dark">Filter</label>
+																		<div class="position-relative w-md-400px me-md-2">
+																		<!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
+																			<span class="svg-icon svg-icon-3 svg-icon-gray-500 position-absolute top-50 translate-middle ms-6">
+																				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																					<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black" />
+																					<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black" />
+																				</svg>
+																			</span>
+																			<!--end::Svg Icon-->
+																			<input id="globalSearch" type="text" class="form-control form-control-solid ps-10" name="search" value="" placeholder="Search" />
+																		</div>
+
+
+																	</div>
+																</div>
+
+
+
 															</div>
 
 															<div class="row">
 
 																<div class="col-lg-8" style="border:1px solid white; border-width:1px;">
 																	
-																	<div class="position-relative w-md-400px me-md-2">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
-																		<span class="svg-icon svg-icon-3 svg-icon-gray-500 position-absolute top-50 translate-middle ms-6">
-																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																				<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black" />
-																				<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																		<input id="globalSearch" type="text" class="form-control form-control-solid ps-10" name="search" value="" placeholder="Filter" />
-																	</div>
+																	
 
 																</div>
 
@@ -430,6 +440,10 @@
 												<a href="../../sistema/apps/calendar.html"
 													class="btn btn-primary">Gestionar calendario</a>
 											</div> -->
+
+											<div class="d-flex align-items-center py-1">							
+												<a href="#" class="btn btn-sm btn-primary">New task</a>
+											</div>
 										</div>
 										<!--end::Card header-->
 										<!--begin::Card body-->
@@ -1094,12 +1108,19 @@
 
 		<style>
 			.fc-event.completed {
-				/*background-color: #ffffff !important; /* celeste claro */
-				border-color: #1bc537 !important;     /* verde */
-				/*color: #7c0000 !important;*/
+				background-color: #55ff00 !important; 	/* verde */
+				border-color: #1bc537 !important;     	/* verde */
+				/* color: #ffffff !important;*/			/* blanco* */
 				text-decoration: line-through;        /* opcional: tachar el texto */
 				opacity: 0.7;                         /* opcional: semi-transparente */
 			}
+
+			.fc-event.overdue {
+				background-color: #ff9844 !important; 	/* verde */
+				border-color: #ff9844 !important;     	/* verde */			
+				color: #ffffff !important;			/* blanco**/
+			}
+
 		</style>
 
 
@@ -1203,8 +1224,10 @@
 								id: agendy.id,								
 								title: agendy.title,
 								start: agendy.start,
+								end: agendy.end,
 								description: agendy.description,
 								color: agendy.color,
+								allDay: agendy.allDay,
 								// backgroundColor: 'red',								
 								//display: 'block',
 								classNames: agendy.className,
@@ -1377,17 +1400,27 @@
 				success: function(response) {
 					$('#saveModal').html(response.result);
 					initializeFlatpickr();		
-
-					$('#addComment').click(function() {						
-						// Clonamos la fila con id "filaBase"					
-						var newRow = $('.baseRowComment:first').clone();										
-						newRow.find('input').val('');      										
-						newRow.removeAttr('style');
-						newRow.removeAttr('id');
-
-						$('#tableComments tbody').append(newRow);
+					initializeCheckAllDay();
+						// pickeColorReload();
 						
-					});
+						$('#addComment').click(function() {
+							// Clonamos la fila con id "filaBase"					
+
+							$('#tableComments').show();
+							$('.baseRowComment:first').show();							
+							//var newRow = $('.baseRowComment:first').clone();
+							// newRow.find('input').val('');      										
+							// newRow.removeAttr('style');
+							// newRow.removeAttr('id');
+
+							// $('#tableComments tbody').append(newRow);
+							
+						});
+						
+						if(c == 1){							
+							initializeSelectResponsible();							
+						}
+
 				},
 				error: function() {
 					console.error("Error server: " + error, event.error);
@@ -1581,12 +1614,34 @@
 
 		
 		function initializeFlatpickr() {
-			// Aplicar flatpickr a los inputs con la clase 'date-picker'
-			$(".date-picker").flatpickr({
-				enableTime: true, // Deshabilitar la selección de hora
-				dateFormat: "m/d/Y h:i K", // Establecer el formato de fecha
+			$(".dateComplete-picker").flatpickr({				
+				enableTime: true,
+				dateFormat: "m/d/Y h:i K",
 				time_24hr: false,
 				locale: "en"
+			});
+
+			// Aplicar flatpickr a los inputs con la clase 'date-picker'
+			$(".date-picker").flatpickr({
+				enableTime: true,
+				dateFormat: "m/d/Y",
+			});
+
+			$(".hour-picker").flatpickr({
+				enableTime: true,
+				noCalendar: true,
+				dateFormat: "h:i K",
+				time_24hr: false,
+				locale: "en"
+			});
+
+			$('#dateA').on('change', function() {				
+				var dateAVal = $(this).val();
+				var dateBVal = $('#dateB').val();
+
+				if (dateBVal == "") {
+					$('#dateB').val(dateAVal);
+				}
 			});
 		}
 
@@ -1698,6 +1753,70 @@
 			});
 		}
 
+
+		function initializeSelectResponsible() {			
+			
+			$('.selectResponsible').select2({
+				
+				minimumResultsForSearch: Infinity,
+				templateResult: function(data) {									
+					var color = $(data.element).data('color'); // Obtener el color de la opción
+					if (color) {
+						// Crear un elemento de círculo con el color indicado
+						var circle = createColorCircle(color);
+						
+						var container = $('<span></span>')
+							.append(circle)  // Añadimos el círculo
+							.append(data.text);  // Añadimos el texto de la opción
+
+						return container;
+
+					}
+
+					return data.text;  // Si no hay color, solo devolvemos el texto
+				},
+				templateSelection: function(data) {
+					var color = $(data.element).data('color'); // Obtener el color de la opción
+					if (color) {
+						// Crear un elemento de círculo con el color indicado
+						var circle = createColorCircle(color);
+						
+						var container = $('<span></span>')
+							.append(circle)  // Añadimos el círculo
+							.append(data.text);  // Añadimos el texto de la opción
+
+						return container;
+
+					}
+				}
+			});
+		}
+
+
+		function initializeCheckAllDay() {
+			
+			$('.checkAllDay').on('change', function() {
+			   if ($(this).is(':checked')) {
+			   $('.hour-picker').hide();
+			   } else {
+			   $('.hour-picker').show();
+			   }
+		   });
+	   	}
+
+
+		function createColorCircle(color) {
+			
+			return $('<span></span>')
+			.addClass('rounded-circle me-2') // Añade clases para darle estilo al círculo
+			.css({
+				'background-color': color,
+				'width': '10px',
+				'height': '10px',
+				'display': 'inline-block',
+				'margin-right': '8px' // Espacio entre el círculo y el texto
+			});
+		}
 
 	</script>
 
