@@ -319,6 +319,11 @@
 															<b>Proyect description:</b> {{ proyect.description}} {% endif %}
 														</div>
 													</div>
+
+													<br/>
+													
+													{{ resumenWos|safe}} 
+
 													<!--end: Content-->
 												</div>
 												<!--end::Text-->
@@ -566,7 +571,7 @@
 																			<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>
 																			<td valign="top" class="text-center">
 																				<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
-																					<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="0">'
+																					<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="0">
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-2">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -642,7 +647,7 @@
 															<input id="item_id" name="item_id" type="hidden" value="" readonly/>
 															
 															<div class="card-footer d-flex justify-content-end py-6 px-9">
-																<button id="reset" type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()" data-bs-dismiss="modal">Cancel</button>
+																<button type="reset" class="btn btn-light btn-active-light-primary me-2 px-8 py-2 mr-4" onclick="cleanItemForm()" data-bs-dismiss="modal">Cancel</button>
 																
 																<button type="submit" class="btn btn-primary px-8 py-2 mr-4" id="submitItem" data-kt-indicator="off">
 																	<span class="indicator-label">Save</span>
@@ -670,7 +675,7 @@
 							<!--begin::Modal Comment-->							
 							<div class="modal fade" id="modalComment" tabindex="-1" aria-hidden="true"> <!-- aria-hidden="true" -->
 								<!--begin::Modal dialog-->
-								<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-650px">
+								<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-1000px">
 									<!--begin::Modal content-->
 									<div class="modal-content">
 										<!--begin::Modal header-->
@@ -711,6 +716,42 @@
 											<input id="id3" name="id3" type="hidden" value="" readonly/>
 											<!--begin::Row-->
 											<div id="saveModal">
+																
+											</div>
+											<!--end::Row-->
+										</div>
+										<!--end::Modal body-->
+									</div>
+								</div>
+							</div>
+
+							<!--begin::Modal Comment-->							
+							<div class="modal fade" id="modalWO" tabindex="-1" aria-hidden="true"> <!-- aria-hidden="true" -->
+								<!--begin::Modal dialog-->
+								<div class="modal-dialog modal-dialog-centered mw-1000px">
+									<!--begin::Modal content-->
+									<div class="modal-content">
+										<!--begin::Modal header-->
+										<div class="modal-header border-0 justify-content-end">											
+											<!--begin::Close-->
+											<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+												<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+												<span class="svg-icon svg-icon-1">
+													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+														<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+														<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+													</svg>
+												</span>
+												<!--end::Svg Icon-->
+											</div>
+											<!--end::Close-->
+										</div>
+										<!--end::Modal header-->
+										<!--begin::Modal body-->
+										<div class="modal-body pt-0 pb-15 px-lg-17">
+																						
+											<!--begin::Row-->
+											<div id="saveModalWO">
 																
 											</div>
 											<!--end::Row-->
@@ -847,20 +888,26 @@
 				$('#addImage').click(function() {
 					// Clonamos la fila con id "filaBase"					
 					var newRow = $('.baseRowImage:first').clone();										
-					newRow.find('input').val('');      					
-					newRow.find('.previewImage').hide();					
+					// newRow.find('input').val(''); 
+					// newRow.find('.previewImage').hide();					
 					newRow.removeAttr('style');
 					newRow.removeAttr('id');
 
 					$('#tableImages tbody').append(newRow);					
 				});
 				
-				$(document).on('click', '.deleteMaterial', function() {
-      				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+				$(document).on('click', '.deleteMaterial', function() {      				
+					let tr = $(this).closest('tr');
+					let i = tr.find('input[name="materialIds[]"]').val();
+					delAttachedFile(tr, i)
     			});
 
 				$(document).on('click', '.deleteImage', function() {
-      				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+					
+					let tr = $(this).closest('tr');
+					let i = tr.find('input[name="imageIds[]"]').val();
+					delAttachedFile(tr, i)
+					
     			});
 
 				$(document).on('click', '.deleteCommentCalendar', function() {
@@ -1288,6 +1335,18 @@
 
 			function cleanItemForm(){
 
+				const formEl = document.getElementById("formItem");
+
+				// Limpia inputs con clases visuales
+				formEl.querySelectorAll(".is-valid, .is-invalid").forEach(el => {
+				el.classList.remove("is-valid", "is-invalid");
+				});
+
+				// Opcional: si hay íconos, suelen estar en elementos con clase `.fv-plugins-icon`
+				formEl.querySelectorAll(".fv-plugins-icon").forEach(el => {
+				el.style.display = "none";
+				});
+
 				var select = document.getElementById('selectCategory');
 				select.selectedIndex = 0; // Establece el primer elemento como seleccionado
 
@@ -1514,14 +1573,18 @@
 						});
 						
 						if(c == 1){							
-							initializeSelectResponsible();							
+							initializeSelectResponsible();			
+							$('#modalCommentDelete').hide();
+						}
+						else{
+							$('#modalCommentDelete').show();
 						}
 					},
 					error: function() {
 						console.error("Error server: " + error, event.error);
 					}
 				});
-				}
+			}
 
 			
 			function saveComm(w,i,c){
@@ -1746,13 +1809,15 @@
 					enableTime: true,
 					dateFormat: "m/d/Y h:i K",
 					time_24hr: false,
-					locale: "en"
+					locale: "en",
+					allowInput: true, 
 				});
 
 				// Aplicar flatpickr a los inputs con la clase 'date-picker'
 				$(".date-picker").flatpickr({
-					enableTime: true,
+					enableTime: false,
 					dateFormat: "m/d/Y",
+					allowInput: true, 
 				});
 
 				$(".hour-picker").flatpickr({
@@ -1760,7 +1825,8 @@
 					noCalendar: true,
 					dateFormat: "h:i K",
 					time_24hr: false,
-					locale: "en"
+					locale: "en",
+					allowInput: true, 
 				});
 
 
@@ -1773,18 +1839,27 @@
 					}
 				});
 
-				flatpickr("#dateA", {
-					scrollToInput: false,
-					appendTo: document.querySelector('#modalComment'), // o el contenedor correcto
-					position: 'auto', // opcional
-					dateFormat: "m/d/Y",
-				});
+				
 
-				// document.getElementById('#dateA').addEventListener('focus', function(e) {
-				// // Previene el scroll automático al hacer focus
-				// e.preventDefault();
-				// }, { passive: false });
+				// flatpickr("#dateA", {
+				// 	scrollToInput: false,
+				// 	appendTo: document.querySelector('#modalComment'), // o el contenedor correcto
+				// 	position: 'auto', // opcional
+				// 	dateFormat: "m/d/Y",
+				// });
 
+				// document.querySelectorAll('.date-picker').forEach(function(el) {
+				// 	el.addEventListener('focus', function(e) {
+				// 		e.preventDefault();
+				// 	}, { passive: false });
+				// });
+
+				// document.querySelectorAll('.hour-picker').forEach(function(el) {
+				// 	el.addEventListener('focus', function(e) {
+				// 		e.preventDefault();
+				// 	}, { passive: false });
+				// });
+								
 
 			}
 
@@ -1965,6 +2040,8 @@
 						$('#item_id').val(i);
 
 						autoCompleteReload();
+						initializeSelect2();
+						viewAttributesImages();
 
 					},
 					error: function() {
@@ -2259,14 +2336,141 @@
 
 			function initializeCheckAllDay() {
 
-				 $('.checkAllDay').on('change', function() {
+				$('.checkAllDay').on('change', function() {
+					const $table = $(this).closest('table'); // selecciona el tr más cercano
+					const $hiddenInput = $(this).siblings('input[type=hidden].checkAllDayItem');					
+					
 					if ($(this).is(':checked')) {
-					$('.hour-picker').hide();
+						$table.find('.hour-picker').hide(); // solo oculta en ese tr
+						$hiddenInput.val(1);
 					} else {
-					$('.hour-picker').show();
+						$table.find('.hour-picker').show(); // solo muestra en ese tr
+						$hiddenInput.val(0);
+					}
+				});
+
+
+
+
+			}
+
+			
+			function delAttachedFile(t,f){
+
+				i = $('#item_id').val()				
+
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'This action will delete the selected data. Do you want to continue?',
+					icon: 'warning',
+					showCancelButton: true,  // Muestra el botón de cancelación
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {			
+						
+		
+						$.ajax({					
+							url: "{% url 'deleteFile_url' %}",  // La URL que manejará la consulta AJAX
+							method: 'POST',
+							data: {								
+								'f': f,
+								'i': i
+							},
+							beforeSend: function(xhr, settings) {
+								// Añadir el token CSRF en las cabeceras
+								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+							},
+							success: function(response) {
+								// Rellena los campos con los datos obtenidos de la respuesta
+								if(response.result = "1"){
+
+									t.remove();  // Elimina la fila correspondiente									
+
+									Swal.fire({
+										title: 'Deleted!',
+										text: 'The data has been successfully deleted.',
+										icon: 'info',
+										confirmButtonText: 'Ok.'
+									});									
+									//loadWOs();
+
+								}
+								else{
+									Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+								}
+
+							},
+							error: function(xhr, status, error) {																
+								Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+							}
+						});	
+
+
+
 					}
 				});
 			}
+			
+
+			function loadModalWO(w){
+
+				$('#saveModalWO').html('');
+
+				$.ajax({
+					url: "{% url 'getDataWO_url' %}",  // La URL que manejará la consulta AJAX
+					method: 'GET',
+					data: {
+						'id1': w,						
+					},		
+					success: function(response) {
+						$('#saveModalWO').html(response.result);						
+					},
+					error: function() {
+						console.error("Error server: " + error, event.error);
+					}
+				});
+			}
+
+
+			function saveWO(){
+
+				const form = document.getElementById('formWO');
+				const formData = new FormData(form);
+							
+				$.ajax({
+					type: "POST",
+					url: "{% url 'saveWO_url' %}",  // Reemplaza con la URL de tu vista
+					data: formData,
+					processData: false,  // Esto es importante para enviar archivos correctamente
+					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+					beforeSend: function(xhr, settings) {
+						// Añadir el token CSRF en las cabeceras
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					},
+					success: function(response) {
+						if(response.result = "OK"){																						
+							$('#modalWO').modal('hide');
+							$('#linkPDF')[0].click();
+						}						
+					},
+					error: function() {
+						console.error("Error server: " + error, event.error);
+					}
+				});
+
+			}
+
 
 
 

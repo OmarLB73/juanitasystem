@@ -19,6 +19,7 @@ urlpatterns = [
     path('getDataModal/', views.getDataModal, name='getDataModal_url'),
     path('getDataMaterial/', views.getDataMaterial, name='getDataMaterial_url'),
     path('getDataItem/', views.getDataItem, name='getDataItem_url'),
+    path('getDataWO/', views.getDataWO, name='getDataWO_url'),
 
     path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
     path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
@@ -26,14 +27,14 @@ urlpatterns = [
     path('selectAttibutes/', views.selectAttibutes, name='getSelectAttribute_url'),
     path('selectWOs/', views.selectWOs, name='getSelectWOs_url'),
     
-    path('ssData/', views.saveSessionState, name='saveSessionState_url'),
-    
+    path('ssData/', views.saveSessionState, name='saveSessionState_url'),        
     
     path('saveItem/', views.saveItem, name='saveItem_url'),
     path('saveComment/', views.saveComment, name='saveComment_url'),
     path('saveCalendar/', views.saveCalendar, name='saveCalendar_url'),
     path('saveQuote/', views.saveQuote, name='saveQuote_url'),
     path('saveMaterial/', views.saveMaterial, name='saveMaterial_url'),
+    path('saveWO/', views.saveWO, name='saveWO_url'),
 
 
     path('addWorkOrder/', views.addWorkOrder, name='addWorkOrder_url'),
@@ -43,6 +44,7 @@ urlpatterns = [
     path('deleteItemCommentFile/', views.deleteItemCommentFile, name='deleteItemCommentFile_url'),
     path('deleteComment/', views.deleteComment, name='deleteComment_url'),
     path('deleteCommentCalendar/', views.deleteCommentCalendar, name='deleteCommentCalendar_url'),
+    path('deleteFile/', views.deleteFile, name='deleteFile_url'),
     
 
     path('updateStatus/', views.updateStatus, name='updateStatus_url'),

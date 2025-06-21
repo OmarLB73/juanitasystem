@@ -441,8 +441,8 @@
 													class="btn btn-primary">Gestionar calendario</a>
 											</div> -->
 
-											<div class="d-flex align-items-center py-1">							
-												<a href="#" class="btn btn-sm btn-primary">New task</a>
+											<div class="d-flex align-items-center py-1">																			
+												<button id="btnNewTask" type="button" class="btn btn-sm btn-primary px-6 py-2 mr-4" onclick="loadModal(0,0,0,2)">New task</button>
 											</div>
 										</div>
 										<!--end::Card header-->
@@ -978,20 +978,20 @@
 		<div class="popover-body">
 			<div class="fw-bolder mb-2"><span id="tooltipTitle"></span></div>
 			<div class="fs-7"><span class="fw-bold">Date: </span><span id="tooltipDate"></span></div>
-			<div class="fs-7 mb-4"><span class="fw-bold">Customer: </span> <span id="tooltipDescription"></span></div>			
+			<div id="tooltipCustomer" class="fs-7 mb-4"><span class="fw-bold">Customer: </span> <span id="tooltipDescription"></span></div>			
 		</div>
 	</div>
 
-	<!--begin::Modal - New Product-->
-	<div class="modal fade" id="kt_modal_view_event" tabindex="-1" aria-hidden="true">
+	<!--begin::Modal - CalendarA-->
+	<div class="modal fade" id="modal_CalendarA" tabindex="-1" aria-hidden="true">
 		<!--begin::Modal dialog-->
-		<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-650px">
+		<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-1000px">
 			<!--begin::Modal content-->
 			<div class="modal-content">
 				<!--begin::Modal header-->
 				<div class="modal-header border-0 justify-content-end">
 					<!--begin::Edit-->
-					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-primary me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Edit proyect" id="kt_modal_view_event_edit">
+					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-primary me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Edit proyect" id="modal_CalendarA_edit">
 						<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
 						<span class="svg-icon svg-icon-2">
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1000,21 +1000,8 @@
 							</svg>
 						</span>
 						<!--end::Svg Icon-->
-					</div>
-					<!--end::Edit-->
-					<!--begin::Edit-->
-					<!-- <div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="kt_modal_view_event_delete">						
-						<span class="svg-icon svg-icon-2">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
-								<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
-								<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
-							</svg>
-						</span>
-					</div> -->
-					<!--end::Edit-->
-					<!--begin::Close-->
-					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Hide Event" data-bs-dismiss="modal">
+					</div>					
+					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
 						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
 						<span class="svg-icon svg-icon-1">
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1055,28 +1042,21 @@
 					</div>
 					<!--end::Row-->
 					<!--begin::Row-->
-					<div class="d-flex align-items-center mb-2">
-						<!--begin::Icon-->
-						<!--begin::Svg Icon | path: icons/duotune/abstract/abs050.svg-->
+					<!-- <div class="d-flex align-items-center mb-2">						
 						<span class="svg-icon svg-icon-1 svg-icon-success me-5">
 							<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
 								<circle fill="#000000" cx="12" cy="12" r="8" />
 							</svg>
-						</span>
-						<!--end::Svg Icon-->
-						<!--end::Icon-->
-						<!--begin::Event start date/time-->
+						</span>						
 						<div class="fs-6">
 							<span class="fw-bolder">Date: </span>
 							<span data-kt-calendar="event_start_date"><span id="tooltipDateMd"></span></span>
-						</div>
-						<!--end::Event start date/time-->
-					</div>
+						</div>						
+					</div> -->
 					<!--end::Row-->
 					<input id="id1" name="id1" type="hidden" value="" readonly/>
 					<input id="id2" name="id2" type="hidden" value="" readonly/>
 
-					<br/>
 					<!--begin::Row-->
 					<div id="saveModal">
 										
@@ -1087,7 +1067,53 @@
 			</div>
 		</div>
 	</div>
-	<!--end::Modal - New Product-->
+	<!--end::Modal - Calendar A-->
+
+
+	<!--begin::Modal - CalendarB-->
+	<div class="modal fade" id="modal_CalendarB" tabindex="-1" aria-hidden="true">
+		<!--begin::Modal dialog-->
+		<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-1000px">
+			<!--begin::Modal content-->
+			<div class="modal-content">
+				<!--begin::Modal header-->
+				<div class="modal-header border-0 justify-content-end">					
+					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="modal_CalendarB_delete">						
+						<span class="svg-icon svg-icon-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+								<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+								<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+							</svg>
+						</span>
+					</div>					
+					<!--begin::Close-->
+					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+						<span class="svg-icon svg-icon-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+							</svg>
+						</span>
+						<!--end::Svg Icon-->
+					</div>
+					<!--end::Close-->
+				</div>
+				<!--end::Modal header-->
+				<!--begin::Modal body-->
+				<div class="modal-body pt-0 pb-15 px-lg-17">										
+					<!--begin::Row-->
+					<div id="saveModal2">
+										
+					</div>
+					<!--end::Row-->
+				</div>
+				<!--end::Modal body-->
+			</div>
+		</div>
+	</div>
+	<!--end::Modal - Calendar A-->
 	
 
 	<script>var KTAppSettings = { "breakpoints": { "sm": 576, "md": 768, "lg": 992, "xl": 1200, "xxl": 1400 }, "colors": { "theme": { "base": { "white": "#ffffff", "primary": "#3699FF", "secondary": "#E5EAEE", "success": "#1BC5BD", "info": "#8950FC", "warning": "#FFA800", "danger": "#F64E60", "light": "#E4E6EF", "dark": "#181C32" }, "light": { "white": "#ffffff", "primary": "#E1F0FF", "secondary": "#EBEDF3", "success": "#C9F7F5", "info": "#EEE5FF", "warning": "#FFF4DE", "danger": "#FFE2E5", "light": "#F3F6F9", "dark": "#D6D6E0" }, "inverse": { "white": "#ffffff", "primary": "#ffffff", "secondary": "#3F4254", "success": "#ffffff", "info": "#ffffff", "warning": "#ffffff", "danger": "#ffffff", "light": "#464E5F", "dark": "#ffffff" } }, "gray": { "gray-100": "#F3F6F9", "gray-200": "#EBEDF3", "gray-300": "#E4E6EF", "gray-400": "#D1D3E0", "gray-500": "#B5B5C3", "gray-600": "#7E8299", "gray-700": "#5E6278", "gray-800": "#3F4254", "gray-900": "#181C32" } }, "font-family": "Poppins" };</script>
@@ -1108,152 +1134,46 @@
 
 		<style>
 			.fc-event.completed {
-				background-color: #55ff00 !important; 	/* verde */
-				border-color: #1bc537 !important;     	/* verde */
-				/* color: #ffffff !important;*/			/* blanco* */
-				text-decoration: line-through;        /* opcional: tachar el texto */
-				opacity: 0.7;                         /* opcional: semi-transparente */
+				background-color: #55ff00 !important; 	
+				border-color: #1bc537 !important;     			
+				text-decoration: line-through;        
+				opacity: 0.7;                         
 			}
 
 			.fc-event.overdue {
-				background-color: #ff9844 !important; 	/* verde */
-				border-color: #ff9844 !important;     	/* verde */			
+				background-color: #f4ff54 !important; 
+				border-color: #f4ff54 !important;
+				color: #737373 !important;			/* blanco**/
+			}
+
+			.fc-event.item {
+				background-color: rgb(211, 60, 211) !important; 
+				border-color: rgb(211, 60, 211) !important;
 				color: #ffffff !important;			/* blanco**/
 			}
+
+			.fc-event.itemCompleted {
+				background-color: rgb(211, 60, 211) !important; 
+				border-color: rgb(211, 60, 211) !important;						
+				text-decoration: line-through;        
+				opacity: 0.7;										
+			}
+
+
+			.fc-stick.completed{
+				text-decoration: line-through;
+				opacity: 0.7;	
+			} 
+
 
 		</style>
 
 
 	<script>
-
-		function loadCalendar() {
-
-			if ("undefined" != typeof FullCalendar && document.querySelector("#kt_calendar_widget_1")) {
-			
-				var e = moment().startOf("day"),
-				t = e.format("YYYY-MM"),
-				a = e.clone().subtract(1, "day").format("YYYY-MM-DD"),
-				o = e.format("YYYY-MM-DD"),
-				s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
-				r = document.getElementById("kt_calendar_widget_1");
-	
-				var calendar = new FullCalendar.Calendar(r, {
-					headerToolbar: {
-						left: "prev,next today",
-						center: "title",
-						right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
-					},
-					height: 800,
-					contentHeight: 780,
-					aspectRatio: 3,
-					nowIndicator: !0,
-					//now: o + "T09:25:00",
-					views: {
-						dayGridMonth: { buttonText: "month" },
-						timeGridWeek: { buttonText: "week" },
-						timeGridDay: { buttonText: "day" }
-					},
-					initialView: "dayGridMonth",
-					initialDate: o,
-					editable: true,
-					dayMaxEvents: true,
-					navLinks: true,
-					 // Evento al pasar el ratón sobre el evento
-					// Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
-					eventDidMount: function(info) {
-						// Detectar el mouseover y mouseout
-						var eventEl = info.el; // El elemento DOM del evento
-
-						// Mostrar el tooltip cuando el ratón pasa sobre el evento
-						eventEl.addEventListener('mouseenter', function(jsEvent) {
-							var tooltip = document.getElementById('tooltip');
-							tooltip.style.display = 'block';
-							document.getElementById('tooltipTitle').textContent = info.event.title;
-							document.getElementById('tooltipDescription').textContent = info.event.extendedProps.description;
-
-							var eventDate = info.event.start;
-							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
-
-							document.getElementById('tooltipDate').textContent = formattedDate;							
-							// Posicionar el tooltip cerca del ratón
-							tooltip.style.top = jsEvent.pageY + 10 + 'px';
-							tooltip.style.left = jsEvent.pageX + 10 + 'px';
-						});
-
-						// // Ocultar el tooltip cuando el ratón salga del evento
-						eventEl.addEventListener('mouseleave', function() {
-							document.getElementById('tooltip').style.display = 'none';
-						});
-					},
-					// Nuevo: evento click en un evento
-					eventClick: function(info) {
-		// 
-						var myModal = new bootstrap.Modal(document.getElementById('kt_modal_view_event'));
-    					myModal.show();
-
-						document.getElementById('kt_modal_view_event_edit').addEventListener('click', function() {														
-    						window.location.href = "/proyect/view/" + info.event.extendedProps.p; // Combinar URL de Django con el ID
-						});
-
-
-						var eventDate = info.event.start;
-							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
-
-						document.getElementById('tooltipTitleMd').textContent = info.event.title;
-						document.getElementById('tooltipDescriptionMd').textContent = info.event.extendedProps.description;
-						document.getElementById('tooltipDateMd').textContent = formattedDate;
-						// document.getElementById('id1').value = info.event.groupId;
-						// document.getElementById('id2').value = info.event.id;
-						loadModal(info.event.extendedProps.w, info.event.extendedProps.i, info.event.id, 1);
-					}
-
-
-				})
-	
-				calendar.render();
 				
-				$.ajax({
-					url: "{% url 'getDataCalendar_url' %}",  // URL de la vista AJAX
-					method: "GET",  // El método de la solicitud (GET para obtener datos)
-					success: function(response) {
-						
-						// Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
-						response.calendar.forEach(function(agendy) {
-							
-							calendar.addEvent({
-								id: agendy.id,								
-								title: agendy.title,
-								start: agendy.start,
-								end: agendy.end,
-								description: agendy.description,
-								color: agendy.color,
-								allDay: agendy.allDay,
-								// backgroundColor: 'red',								
-								//display: 'block',
-								classNames: agendy.className,
-								
-								extendedProps: {
-									w: agendy.w,
-									i: agendy.i,
-									p: agendy.p,									
-								}
-								
-							});						
-	
-						});
-					},
-					error: function(xhr, status, error) {
-						console.error("Error en la solicitud AJAX:", error);
-					}
-				
-	
-	
-				});	
-			}
-		}
-
-		
 		$(document).ready(function() {	
+			
+			
 			
 			$('#kt_datatable').hide();
 			
@@ -1318,10 +1238,148 @@
 			});
 
 			$(document).on('click', '.deleteCommentCalendar', function() {				
-				$(this).closest('tr').remove();  // Elimina la fila correspondiente
+				//$(this).closest('tr').remove();  // Elimina la fila correspondiente
+				$(this).closest('tr').hide();  // Elimina la fila correspondiente
 		  	});
 
+
+			/**$(".fc-event.completed").css("background-color", "{{ labels.CALENDAR_COLOR_COMPLETED|escapejs }}");
+			$(".fc-event.completed").css("border-color", "{{ labels.CALENDAR_COLOR_COMPLETED|escapejs }}");
+
+			$(".fc-event.overdue").css("background-color", "{{ labels.CALENDAR_COLOR_OVERDUE|escapejs }}");
+			$(".fc-event.overdue").css("border-color", "{{ labels.CALENDAR_COLOR_OVERDUE|escapejs }}");*/
+
         });
+
+
+		function loadCalendar() {
+
+			if ("undefined" != typeof FullCalendar && document.querySelector("#kt_calendar_widget_1")) {
+			
+				var e = moment().startOf("day"),
+				t = e.format("YYYY-MM"),
+				a = e.clone().subtract(1, "day").format("YYYY-MM-DD"),
+				o = e.format("YYYY-MM-DD"),
+				s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
+				r = document.getElementById("kt_calendar_widget_1");
+	
+				var calendar = new FullCalendar.Calendar(r, {
+					headerToolbar: {
+						left: "prev,next today",
+						center: "title",
+						right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+					},
+					height: 800,
+					contentHeight: 780,
+					aspectRatio: 3,
+					nowIndicator: !0,
+					//now: o + "T09:25:00",
+					views: {
+						dayGridMonth: { buttonText: "month" },
+						timeGridWeek: { buttonText: "week" },
+						timeGridDay: { buttonText: "day" }
+					},
+					initialView: "dayGridMonth",
+					initialDate: o,
+					editable: true,
+					dayMaxEvents: true,
+					navLinks: true,
+					 // Evento al pasar el ratón sobre el evento
+					// Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
+					eventDidMount: function(info) {
+						// Detectar el mouseover y mouseout
+						var eventEl = info.el; // El elemento DOM del evento
+
+						// Mostrar el tooltip cuando el ratón pasa sobre el evento
+						eventEl.addEventListener('mouseenter', function(jsEvent) {
+							var tooltip = document.getElementById('tooltip');
+							tooltip.style.display = 'block';
+							document.getElementById('tooltipTitle').textContent = info.event.title;
+							document.getElementById('tooltipDescription').textContent = info.event.extendedProps.description;
+
+							if (info.event.extendedProps.m == 2){
+								document.getElementById('tooltipCustomer').style.display = 'none';								
+							}
+
+							var eventDate = info.event.start;
+							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
+
+							document.getElementById('tooltipDate').textContent = formattedDate;							
+							// Posicionar el tooltip cerca del ratón
+							tooltip.style.top = jsEvent.pageY + 10 + 'px';
+							tooltip.style.left = jsEvent.pageX + 10 + 'px';
+						});
+
+						// // Ocultar el tooltip cuando el ratón salga del evento
+						eventEl.addEventListener('mouseleave', function() {
+							document.getElementById('tooltip').style.display = 'none';
+						});
+					},
+					// Nuevo: evento click en un evento
+					eventClick: function(info) {
+		// 
+						// var myModal = new bootstrap.Modal(document.getElementById('modal_CalendarA'));
+    					// myModal.show();
+
+						document.getElementById('modal_CalendarA_edit').addEventListener('click', function() {														
+    						window.location.href = "/proyect/view/" + info.event.extendedProps.p; // Combinar URL de Django con el ID
+						});
+
+
+						var eventDate = info.event.start;
+							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
+
+						document.getElementById('tooltipTitleMd').textContent = info.event.title;
+						document.getElementById('tooltipDescriptionMd').textContent = info.event.extendedProps.description;
+						// document.getElementById('tooltipDateMd').textContent = formattedDate;
+						// // document.getElementById('id1').value = info.event.groupId;
+						// // document.getElementById('id2').value = info.event.id;						
+						loadModal(info.event.extendedProps.w, info.event.extendedProps.i, info.event.id, info.event.extendedProps.m);
+					}
+
+				})
+	
+				calendar.render();
+				
+				$.ajax({
+					url: "{% url 'getDataCalendar_url' %}",  // URL de la vista AJAX
+					method: "GET",  // El método de la solicitud (GET para obtener datos)
+					success: function(response) {
+						
+						// Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
+						response.calendar.forEach(function(agendy) {
+							
+							calendar.addEvent({
+								id: agendy.id,								
+								title: agendy.title,
+								start: agendy.start,
+								end: agendy.end,
+								description: agendy.description,
+								color: agendy.color,
+								allDay: agendy.allDay,								
+								//display: 'block',
+								classNames: agendy.className,
+								
+								extendedProps: {
+									w: agendy.w,
+									i: agendy.i,
+									p: agendy.p,
+									m: agendy.m,
+								}
+								
+							});						
+	
+						});
+					},
+					error: function(xhr, status, error) {
+						console.error("Error en la solicitud AJAX:", error);
+					}
+				
+	
+	
+				});	
+			}
+		}
 
 
 		function del_p(b,p){
@@ -1384,10 +1442,11 @@
 		}
 
 		
-		function loadModal(w, t, i,c){
+		function loadModal(w, t, i, c){
 
 			$('#saveModal').html('');
-			
+			$('#saveModal2').html('');
+						
 			$.ajax({
 				url: "{% url 'getDataModal_url' %}",  // La URL que manejará la consulta AJAX
 				method: 'GET',
@@ -1398,28 +1457,36 @@
 					'id4': c,
 				},		
 				success: function(response) {
-					$('#saveModal').html(response.result);
+
+					if(c == 1){							
+						$('#saveModal').html(response.result);
+						var myModal = new bootstrap.Modal(document.getElementById('modal_CalendarA'));
+					}
+					
+					if(c == 2){							
+						$('#saveModal2').html(response.result);
+						var myModal = new bootstrap.Modal(document.getElementById('modal_CalendarB'));
+						
+						if (i == 0){
+							$('#modal_CalendarB_delete').hide();
+							$('#addComment').hide();
+							$('#tableComments').show();
+							$('.baseRowComment:first').show();
+
+						}
+
+					}					
+					
 					initializeFlatpickr();		
 					initializeCheckAllDay();
-						// pickeColorReload();
+					initializeSelectResponsible();					
+					myModal.show();
+																	
+					$('#addComment').click(function() {							
+						$('#tableComments').show();
+						$('.baseRowComment:first').show();
 						
-						$('#addComment').click(function() {
-							// Clonamos la fila con id "filaBase"					
-
-							$('#tableComments').show();
-							$('.baseRowComment:first').show();							
-							//var newRow = $('.baseRowComment:first').clone();
-							// newRow.find('input').val('');      										
-							// newRow.removeAttr('style');
-							// newRow.removeAttr('id');
-
-							// $('#tableComments tbody').append(newRow);
-							
-						});
-						
-						if(c == 1){							
-							initializeSelectResponsible();							
-						}
+					});													
 
 				},
 				error: function() {
@@ -1430,11 +1497,12 @@
 		}
 
 
-		function saveCalendar(w,i){
+		function saveCalendar(w,i,t){
 
 			var formData = new FormData();  // Creamos un objeto FormData vacío
 				formData.append('id1', w);
-				formData.append('id2', i);				
+				formData.append('id2', i);
+				formData.append('id3', t);
 
 				var rows = document.querySelectorAll("#tableComments tbody tr");                                                                                                                    
 				
@@ -1444,6 +1512,7 @@
 					var hiddenInput = rows[y].querySelector('input[type="hidden"]');
 
 					hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;
+					i = t > 0 ? t : 0;
 					
 				}
 
@@ -1489,60 +1558,15 @@
 					success: function(response) {
 						if(response.result = "OK"){								
 							loadCalendar();
-							$('#kt_modal_view_event').modal('hide');							
+							$('#modal_CalendarA').modal('hide');
+							$('#modal_CalendarB').modal('hide');
 						}						
 					},
 					error: function() {
 						console.error("Error server: " + error, event.error);
 					}
 				});
-								
-			// var formData = new FormData();  // Creamos un objeto FormData vacío
-			// formData.append('id1', w);
-			// formData.append('id2', i);				
-			// // Serializamos los datos del formulario (excepto los archivos)
-			// var serializedData = $('#formItem_' + String(i)).serialize();
-						
-			// // Convertimos los datos serializados en un objeto y lo agregamos al FormData
-			// var params = serializedData.split('&');
-			// params.forEach(function(param) {
-			// 	var keyValue = param.split('=');
-			// 	var key = decodeURIComponent(keyValue[0]);
-			// 	var value = decodeURIComponent(keyValue[1] || '');
-			// 	formData.append(key, value);
-			// });
-
-			// var inputFile = $('#formItem_' + String(i) + ' input[type="file"]')[0];  // Seleccionamos el input dentro de form1
 			
-			// if (inputFile && inputFile.files.length > 0) {
-
-			// 	for (var i = 0; i < inputFile.files.length; i++) {
-			// 		formData.append('files[]', inputFile.files[i]); // Usamos '[]' para manejar múltiples archivos
-			// 	}
-			// }
-
-			// $.ajax({
-			// 	type: "POST",
-			// 	url: "{% url 'saveComment_url' %}",  // Reemplaza con la URL de tu vista
-			// 	data: formData,
-			// 	processData: false,  // Esto es importante para enviar archivos correctamente
-			// 	contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-			// 	beforeSend: function(xhr, settings) {
-			// 		// Añadir el token CSRF en las cabeceras
-			// 		xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-			// 	},
-			// 	success: function(response) {
-			// 		if(response.result = "OK"){								
-			// 			loadCalendar();
-			// 			$('#kt_modal_view_event').modal('hide');												
-			// 		}						
-			// 	},
-			// 	error: function() {
-			// 		console.error("Error server: " + error, event.error);
-			// 	}
-			// });
-
-
 		}
 		
 
@@ -1618,13 +1642,15 @@
 				enableTime: true,
 				dateFormat: "m/d/Y h:i K",
 				time_24hr: false,
-				locale: "en"
+				locale: "en",
+				allowInput: true,
 			});
 
 			// Aplicar flatpickr a los inputs con la clase 'date-picker'
 			$(".date-picker").flatpickr({
-				enableTime: true,
+				enableTime: false,
 				dateFormat: "m/d/Y",
+				allowInput: true,
 			});
 
 			$(".hour-picker").flatpickr({
@@ -1632,7 +1658,8 @@
 				noCalendar: true,
 				dateFormat: "h:i K",
 				time_24hr: false,
-				locale: "en"
+				locale: "en",
+				allowInput: true,
 			});
 
 			$('#dateA').on('change', function() {				

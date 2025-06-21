@@ -23,7 +23,7 @@ from django.conf import settings #Para el PDF, manejar las rutas
 from django.http import HttpRequest #Para las sesiones
 
 from django.contrib.auth.models import User #Datos del usuario
-from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement, AttributeOption, ItemAttributeNote, CalendarItem, CalendarWorkOrder, CalendarItemComment, CalendarItemCommentFile, CalendarWorkOrderComment, CalendarWorkOrderCommentFile #Aquí importamos a los modelos que necesitamos
+from .models import Type, Responsible, Customer, State, Proyect, ProyectDecorator, Event, Category, Subcategory, Place, CategoryAttribute, Attribute, Item, ItemAttribute, ItemImage, Group, ItemFile, ItemCommentState, ItemCommentStateFile, WorkOrder, ItemMaterial, WorkOrderCommentState, WorkOrderCommentStateFile, UIElement, AttributeOption, ItemAttributeNote, CalendarItem, CalendarWorkOrder, CalendarItemComment, CalendarItemCommentFile, CalendarWorkOrderComment, CalendarWorkOrderCommentFile, CalendarTask, CalendarTaskComment, CalendarTaskCommentFile #Aquí importamos a los modelos que necesitamos
 
 import ast #Usado para pasar una lista string a lista de verdad
 
@@ -310,6 +310,7 @@ def proyect_view(request, proyect_id):
 
     decoratorsHTML = getDecoratorsTable(decorators)
     ascociatesHTML = getDecoratorsTable(ascociates)
+    resumenWos = getResumenWOs(proyect)
     #notesHTML = funct_data_events(proyect_id)
 
     uielement = UIElement.objects.all()
@@ -326,7 +327,8 @@ def proyect_view(request, proyect_id):
                                                 'decoratorsHTML': decoratorsHTML,
                                                 'ascociatesHTML': ascociatesHTML,
                                                 'labels': labels,
-                                                'stateId': stateId
+                                                'stateId': stateId,
+                                                'resumenWos': resumenWos
                                                 #'notesHTML': notesHTML,
                                                 }) 
 
@@ -459,16 +461,17 @@ def getDataCalendar(request):
     #Consulta los items desde la BD    
     calendarItems = CalendarItem.objects.filter(date_start__isnull=False, status__in = [1, 2])
     calendarWorks = CalendarWorkOrder.objects.filter(date_start__isnull=False, status__in = [1, 2])
-    events = []
-    color = ''
+    calendarTasks = CalendarTask.objects.filter(date_start__isnull=False, status__in = [1, 2])
+    events = []    
     
     # Fechas de los items
     for calendar in calendarItems:
 
-        className = ''
+        className = 'item'
         fecha_inicio = ''
         fecha_fin = ''
-        allDay = True
+        allDay = False
+        color = ''
 
         if calendar.date_start:
 
@@ -478,15 +481,15 @@ def getDataCalendar(request):
             if calendar.date_end:
                 fecha_fin = timezone.localtime(calendar.date_end).strftime('%Y-%m-%d %H:%M')
 
-            # if calendar.allday:
-            #     allDay = True
+            if calendar.allday:
+                 allDay = True
 
             if calendar.status == 2:
-                className = 'completed'
+                className = 'itemCompleted'
 
-            if calendar.date_end and calendar.status != 2:
-                if calendar.date_end < timezone.now():
-                    className = 'overdue'
+            # if calendar.date_end and calendar.status != 2:
+            #     if calendar.date_end < timezone.now():
+            #         className = 'overdue'
 
             if calendar.responsible:
                 color = calendar.responsible.color
@@ -502,6 +505,7 @@ def getDataCalendar(request):
                 'p': str(calendar.item.workorder.proyect.id),
                 'w': str(calendar.item.workorder.id),
                 'i': str(calendar.item.id),
+                'm': 1, # modo 1: item o wo
                 'className': className
             })
 
@@ -511,6 +515,7 @@ def getDataCalendar(request):
         fecha_inicio = ''
         fecha_fin = ''
         allDay = False
+        color = ''
 
         if calendar.date_start:
 
@@ -541,13 +546,59 @@ def getDataCalendar(request):
                 'end': fecha_fin,
                 'allDay': allDay,
                 'description': calendar.workorder.proyect.customer.name,
-                'color': color,                
+                'color': color,          
                 'p': str(calendar.workorder.proyect.id),
                 'w': str(calendar.workorder.id),
-                'i': '0',
+                'i': 0,
+                'm': 1, # modo 1: item o wo
                 'className': className
             })
-                
+                    
+    for calendar in calendarTasks:
+            
+        className = ''
+        fecha_inicio = ''
+        fecha_fin = ''
+        allDay = False
+        color = ''
+
+        if calendar.date_start:
+
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%Y-%m-%d %H:%M')
+
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%Y-%m-%d %H:%M')
+
+            if calendar.allday:
+                allDay = True
+
+            if calendar.status == 2:
+                className = 'completed'
+
+            if calendar.date_end and calendar.status != 2:
+                if calendar.date_end < timezone.now():
+                    className = 'overdue'
+
+            if calendar.responsible:
+                color = calendar.responsible.color
+                    
+            events.append({
+                'id': calendar.id,
+                # 'title':  '✅' + wo.proyect.customer.address,
+                'title': calendar.responsible.name,
+                'start': fecha_inicio,
+                'end': fecha_fin,
+                'allDay': allDay,
+                'description': calendar.responsible.name,
+                'color': color,          
+                'p': 0,
+                'w': 0,
+                'i': 0,
+                'm': 2, # modo 2: task
+                'className': className
+            })
+
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'calendar': events})
     
@@ -565,7 +616,7 @@ def getDataModal(request):
     
         if case == '0': #Comentario
             itemHtml = modalComment(workOrderId, itemId,id)
-        elif case == '1': #Calendario
+        elif case == '1' or case == '2': #Calendario 1: wo/item -  2: tasks
             itemHtml = modalCalendar(request, workOrderId, itemId, id)
         else:
             itemHtml = 'Server error. Please contact to administrator!'    
@@ -603,21 +654,45 @@ def getDataItem(request):
 
     ######### Atributos ##########
 
-    attributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = item.subcategory.category.id)).order_by('order','attribute')
+    categoryAttributes = CategoryAttribute.objects.filter(category = Category.objects.get(id = item.subcategory.category.id)).order_by('order','attribute')
 
     attributeHTML = ""
         
-    for attribute in attributes:
+    for category in categoryAttributes:
         attributeHTML += '<div class="row mb-2">'
-        attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + attribute.attribute.name + ':</div></div>'
-        notes = ''
-        value = []
-  
-        if ItemAttribute.objects.filter(item = item, attribute = attribute.attribute).exists():
-            value = ItemAttribute.objects.filter(item = item, attribute = attribute.attribute).values('notes').first()  
-            notes = str(value['notes'])
-        
-        attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(attribute.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + attribute.attribute.description + '" value="' + notes + '"/></div></div>'
+        attributeHTML += '<div class="col-xl-3"><div class="fs-7 fw-bold mt-2 mb-3">' + category.attribute.name + ':</div></div>'
+        notes = ''        
+
+        itemAttribute = ItemAttribute.objects.filter(item = item, attribute = category.attribute).first()
+
+        if itemAttribute:
+            notes = itemAttribute.notes              
+
+        if category.attribute.multiple:
+            options = AttributeOption.objects.filter(attribute = category.attribute)
+            optionsSelected = ItemAttributeNote.objects.filter(itemattribute = itemAttribute)
+
+            attributeHTML += '<div class="col-xl-8"><select class="form-select form-select-sm form-select-solid selectAttribute" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="true" name="attribute_' + str(category.attribute.id) + '" multiple>'
+                
+            for option in options:
+                selected = ''
+
+                if optionsSelected.filter(attributeoption=option).exists():
+                    selected = 'selected'
+                    
+                if option.file:
+                    attributeHTML += '<option value=' + str(option.id) + ' data-image="' + str(option.file.url) + '" ' + selected + '>' + option.name + '</option>'
+                else:
+                    attributeHTML += '<option value=' + str(option.id) + ' data-image="/static/images/no-image.png" ' + selected + '>' + option.name + '</option>'
+
+            attributeHTML += '</select></div>'
+
+            attributeHTML += '<div id="image-tooltip" style="position: absolute; display: none; border: none; background: none; padding: 5px; z-index: 9999;"><img src="" id="tooltip-img" style="max-height: 300px;" /></div>'
+            
+        else:                                      
+            attributeHTML += '<div class="col-xl-8"><input name="attribute_' + str(category.attribute.id) + '" type="text" class="form-control form-control-solid" maxlength="150" placeholder="' + category.attribute.description + '" value="' + notes + '"/></div>'
+
+        attributeHTML += '</div>'
     
     ##############################
 
@@ -680,7 +755,7 @@ def getDataItem(request):
         materialsHTML += '<td valign="top" class="text-center">' + img + '</div></td>'
         materialsHTML += '<td valign="top" class="text-center">'
         materialsHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
-        materialsHTML += '<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="' + id + '">'
+        materialsHTML += '<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="MAT_' + id + '">'
         materialsHTML += spanHTML
 
         materialsHTML += '</div>'
@@ -697,14 +772,17 @@ def getDataItem(request):
     
     for itemImag in itemImages:
 
-        fileUrl = '';
-        style = 'style="display:none"';
+        fileUrl = ''
+        style = 'style="display:none"'
+        style2 = 'style="display:none"'
         qty = ''
         id = '0'
 
         if itemImag.file:
             fileUrl = itemImag.file.url
             style = ''
+        else:
+            style2 = ''
 
         if itemImag.id:
             id = str(itemImag.id)
@@ -712,8 +790,8 @@ def getDataItem(request):
         imagesHTML += '<tr class="baseRowImage">'
         imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
         imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]"></td>'
-        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="' + fileUrl + '" alt="Preview" ' + style + '><div class="symbol symbol-100px mb-5 fileUpload" ' + style2 + ' ><img src="/static/images/upload.svg" alt=""></div></td>'
+        imagesHTML += '<td valign="top" class="text-center"><div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
         imagesHTML += '<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="IMG_' + id + '">'
         imagesHTML += spanHTML																								
         imagesHTML += '</div>'
@@ -759,7 +837,7 @@ def getDataItem(request):
         imagesHTML += '<td valign="top"><textarea name="image[]" class="form-control form-control-solid h-80px" maxlength="2000">' + itemImag.notes + '</textarea></td>'        
         imagesHTML += '<td valign="top" class="text-center"><input type="file" name="imageFile[]" class="form-control form-control"><input type="hidden" name="imageFileOk[]">'
         imagesHTML += '<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none"><div class="symbol symbol-100px mb-5 fileUpload" ' + style + '>' + img +'<a href="' + fileUrl + '" class="fs-7 text-hover-primary" target="_blank">' + fileName + '</a></div></td>'
-        imagesHTML += '<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
+        imagesHTML += '<td valign="top" class="text-center"><div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteImage" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">'
         imagesHTML += '<input type="hidden" name="imageIds[]" class="form-control form-control-solid" value="FIL_' + id + '">'
         imagesHTML += spanHTML																								
         imagesHTML += '</div>'
@@ -801,6 +879,44 @@ def addWorkOrder(request):
                     
     # Devolvemos la lista de ascociates como respuesta JSON
     return JsonResponse({'result': result})
+
+
+#Funcion para agregar comentarios a la WO
+@login_required
+def getDataWO(request):
+    
+    workOrderId = request.GET.get('id1')
+    woHTML = ''
+               
+    try:    
+
+        wo = WorkOrder.objects.filter(id=workOrderId).first()
+
+        woHTML += '<div class="col-xl-12 fv-row text-start">'      
+        woHTML += '<form id="formWO" method="POST">'
+            
+        woHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+        woHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(wo.description) + '</textarea><br/>'
+        woHTML += '<input type="hidden" name="woId" value="' + workOrderId + '">'
+        woHTML += '</div>'
+
+        woHTML += '<div class="row text-end">'
+
+        woHTML += '<div class="col-md-12">'
+        woHTML += '<button type="button" class="btn btn-primary btn-sm px-8 py-2 mr-2" onclick="saveWO()">Download PDF</button>'
+        woHTML += '<a id="linkPDF"  href="../../generate_pdf/' + workOrderId + '" target="_blank"></a>'
+        woHTML += '</div>'    
+                    
+                                    
+        woHTML += '</div>'
+
+          
+    except:
+         itemHtml = 'Server error. Please contact to administrator!'
+    
+    # Devolvemos la lista de proyectos como respuesta JSON
+    return JsonResponse({'result': woHTML})
+
 
 
 ###############################
@@ -1061,6 +1177,8 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
         
         woN += 1
 
+        items =  Item.objects.filter(workorder__in = workOrders, workorder__status = 1)
+
         if not request.session.get('stateId'):
             if not wo.code or wo.code != str(woN):
                 wo.code = woN
@@ -1089,7 +1207,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
 
             workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
             workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
-            workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12" style="border:1px solid white; border-width:1px;">' #BORDE ITEM
+            workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12">' #BORDE ITEM style="border:1px solid white; border-width:1px;"
             
             #Titulo
             workOrdersHTML += '<div class="card-header pt-5">'
@@ -1101,7 +1219,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '<div class="col-lg-7">' #style="border:1px solid red; border-width:1px;"
             
             workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
-            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id) + '</span>' 
+            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id, '6') + '</span>' 
 
             #Subtitulo
             workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
@@ -1140,28 +1258,38 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             #Fin Titulo
 
             #Lista de Items
-            workOrdersHTML += '<div class="card-body">'
+            workOrdersHTML += '<div class="card-body" style="padding-top:0">'
 
 
-            if mode == 1: # Solo si se edita
+            if mode == 1 and len(items) > 0: # Solo si se edita
 
                 if wo.state.id == 2:
 
-                    workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+                    workOrdersHTML += '<div class="col-xl-2 py-1 fv-row">'
+                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
                     workOrdersHTML += '</div>'
 
-                if wo.state.id >= 3 and wo.state.id <= 9:
 
-                    workOrdersHTML += '<div class="col-xl-2 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
+                if wo.state.id == 3:
+
+                    workOrdersHTML += '<div class="col-xl-2 py-1 fv-row">'
+                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general approve quote (+)</a>'
+                    workOrdersHTML += '</div>'
+
+                if wo.state.id >= 4 and wo.state.id <= 9:
+
+                    workOrdersHTML += '<div class="col-xl-2 py-1 fv-row">'
+                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general comment (+)</a>'
                     workOrdersHTML += '</div>'
 
             if wo.state.id >= 5:
 
                 workOrdersHTML += '<div class="col-xl-2 fv-row">'
                 if mode == 1:
-                    workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+                    
+                    # workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+                    workOrdersHTML += '<a id="downloadWO" class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalWO" onclick="loadModalWO(' + str(wo.id) + ')">Download WO</a>'
+
                 else:
                     workOrdersHTML += '<a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
                 workOrdersHTML += '</div>'
@@ -1183,7 +1311,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '</div>' #FIN WO
 
     
-    items =  Item.objects.filter(workorder__in = workOrders, workorder__status = 1)
+    
 
     if len(items) > 0 and mode == 1: # Solo si se edita:
     
@@ -1239,14 +1367,14 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                 itemsHTML += '<div class="row itemCount_' + str(workOrderId) + ' mb-10" style="border: 1px solid #d7d9dc; border-radius: .475rem">' #fila item
                 
-                itemsHTML += '<div class="col-lg-12" style="border:3px solid white; border-width:1px;">'  #contenedor generico
+                itemsHTML += '<div class="col-lg-12">'  #contenedor generico style="border:3px solid white; border-width:1px;"
 
                 #Inicio Fila 1
                 
                 itemsHTML += '<div class="row">'
 
                 #Codigo item
-                itemsHTML += '<div class="col-xl-7 align-items-start" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-7 align-items-start">' # style="border:1px solid white; border-width:1px;"
 
                 itemsHTML += '<div class="fs-6 fw-bold mt-3">'
                 itemsHTML += '<b>' + code  + '</b>'
@@ -1256,21 +1384,24 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
 
                 # #Acciones (cotizar, calendario)
-                itemsHTML += '<div class="col-xl-4 align-items-start" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-4 align-items-start">' # style="border:1px solid white; border-width:1px;"
 
                 if mode == 1: #edicion
 
                     if workOrder.state.id == 2:
                         itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
 
-                    if workOrder.state.id >= 3:
+                    if workOrder.state.id == 3:
+                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Approve quote (+)</a>'
+
+                    if workOrder.state.id >= 4:
                         itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
                     
                 itemsHTML += '</div>'
 
 
                 # #Acciones (editar, eliminar)
-                itemsHTML += '<div class="col-xl-1 text-center" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-1 text-center">' # style="border:1px solid white; border-width:1px;"
 
                 if mode == 1: #edicion
 
@@ -1326,8 +1457,10 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                             responsibleName = calendar.responsible.name
 
                         if calendar.date_start:
-                            dueDate = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %I:%M %p')
-                    
+                            if calendar.allday:
+                                dueDate = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y')
+                            else:
+                                dueDate = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %I:%M %p')
 
                     itemsHTML += '<tr><td><b>Responsible:</b> ' + responsibleName + '</td></tr>'
                     itemsHTML += '<tr><td><b>Due date:</b> ' + dueDate + '</td></tr>'
@@ -1353,8 +1486,11 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         attributenotes = ItemAttributeNote.objects.filter(itemattribute = attribute)
                         for note in attributenotes:
                             # itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<img src=\'' + note.attributeoption.file.url + '\' style=\'width: 100px; height: 100px;\'"></i>, '
+                            
                             if note.attributeoption.file:
                                 itemsHTML += note.attributeoption.name + ' <i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="&lt;img src=\'' + note.attributeoption.file.url + '\' width=\'200\' >"></i>, '
+                            else:
+                                itemsHTML += note.attributeoption.name + ', '
                             #itemsHTML = f"{note.attributeoption.name} <i class='fas fa-question-circle' data-bs-toggle='tooltip' data-bs-html='true' data-bs-title='<img src=\"{note.attributeoption.file.url}\" style=\"width: 50px; height: 50px; object-fit: cover;\">'></i>, "
 
                         itemsHTML = itemsHTML[:-2]
@@ -1439,8 +1575,8 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         itemsHTML += '</tr>'
 
                     if workOrder.state.id == 4 and mode == 1: #edicion
-                        itemsHTML += '<tr><td></td><td></td><td><br/></td></tr>'
-                        itemsHTML += '<tr><td></td><td></td><td align="right"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
+                        itemsHTML += '<tr><td colspan=3></td></tr>'
+                        itemsHTML += '<tr><td colspan=3 align="right" class="bg-white"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
 
                 itemsHTML += '</tbody></table></form>'    
 
@@ -1461,238 +1597,238 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 
                 itemsHTML += getDataComments(request, workOrder.id, item.id, mode)
 
-                #Aprobar cotizacion
-                if workOrder.state.id == 3:
+                # #Aprobar cotizacion
+                # if workOrder.state.id == 3:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Do you approve the quote?</h6>'
+                #     itemsHTML += '<h6>Do you approve the quote?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtQuote_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + str(quote) + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtQuote_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + str(quote) + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
 
 
-                #Aprobar instalación
-                if workOrder.state.id == 6:
+                # #Aprobar instalación
+                # if workOrder.state.id == 6:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Has the installation been completed?</h6>'
+                #     itemsHTML += '<h6>Has the installation been completed?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtInstalling_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtInstalling_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
 
 
-                #Aprobación del cliente
-                if workOrder.state.id == 7:
+                # #Aprobación del cliente
+                # if workOrder.state.id == 7:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Has the customer fully accepted the work?</h6>'
+                #     itemsHTML += '<h6>Has the customer fully accepted the work?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
 
 
-                #Aprobación del cliente
-                if workOrder.state.id == 8:
+                # #Aprobación del cliente
+                # if workOrder.state.id == 8:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Are there any additional items or changes that need to be included in the final invoice?</h6>'
+                #     itemsHTML += '<h6>Are there any additional items or changes that need to be included in the final invoice?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
 
 
-                #Últimos ajustes
-                if workOrder.state.id == 8:
+                # #Últimos ajustes
+                # if workOrder.state.id == 8:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Are there any additional items or changes that need to be included in the final invoice?</h6>'
+                #     itemsHTML += '<h6>Are there any additional items or changes that need to be included in the final invoice?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
 
 
-                #Últimos ajustes
-                if workOrder.state.id == 9:
+                # #Últimos ajustes
+                # if workOrder.state.id == 9:
 
-                    itemsHTML += '<div class="col-lg-11 fv-row text-start">'
-                    itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
-                    itemsHTML += '<div class="card-body my-1">'                
+                #     itemsHTML += '<div class="col-lg-11 fv-row text-start">'
+                #     itemsHTML += '<div class="card rounded border-success border border-dashed p-1">'
+                #     itemsHTML += '<div class="card-body my-1">'                
 
-                    itemsHTML += '<form method="POST" class="formQuote">'
+                #     itemsHTML += '<form method="POST" class="formQuote">'
                     
-                    itemsHTML += '<h6>Has the final payment been received from the customer?</h6>'
+                #     itemsHTML += '<h6>Has the final payment been received from the customer?</h6>'
 
-                    quote = ''
-                    id = str(item.id)
+                #     quote = ''
+                #     id = str(item.id)
 
-                    if item.quote:
-                        quote = item.quote
+                #     if item.quote:
+                #         quote = item.quote
 
-                    # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
-                    #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
+                #     # itemsHTML += '<div class="form-switch form-check-custom form-check-solid me-1">'
+                #     #itemsHTML += '<input class="form-check-input approve" type="checkbox">'
                     
-                    # checked = ''
+                #     # checked = ''
                     
-                    # if int(item.status) == 2:
-                    #     checked = 'checked="checked"'
+                #     # if int(item.status) == 2:
+                #     #     checked = 'checked="checked"'
                     
-                    # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
-                    # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
-                    # itemsHTML += '</div>'
+                #     # itemsHTML += '<input class="form-check-input approve" type="checkbox" value="1" ' + checked + ' style="height: 1.75rem;" onchange="app(this,' + str(item.id) + ')">'                                                
+                #     # itemsHTML += '<span class="form-check-label fw-bold text-muted">  Yes</span>'
+                #     # itemsHTML += '</div>'
 
-                    itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
-                    itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
+                #     itemsHTML += '<br/><textarea name="txtCustomer_' + id + '" class="form-control form-control-solid h-80px" maxlength="2000">' + '                 ' + '</textarea>'
+                #     itemsHTML += '<div class="text-end"><br/><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></div>'
 
-                    itemsHTML += '</form>'
+                #     itemsHTML += '</form>'
 
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
-                    itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
+                #     itemsHTML += '</div>'
                 
 
                 ##############################################################################################################
@@ -1935,7 +2071,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
         item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
-            itemCSs = ItemCommentState.objects.filter(item=item).order_by('id')  
+            itemCSs = ItemCommentState.objects.filter(item=item).order_by('-id')  
 
             if len(itemCSs) > 0:
                 itemsHTML += '<div class="separator border-secondary my-10"></div>'
@@ -1943,7 +2079,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
 
     else: 
         itemsHTML += '<div class="col-xl-12 fv-row text-start">'
-        itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('id')
+        itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('-id')
 
         if len(itemCSs) > 0:
                 itemsHTML += '<h7><b>General comments:</b></h7>'
@@ -1969,10 +2105,10 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
         itemTxt = ''
 
         if int(itemId) != 0:        
-            itemCSF = ItemCommentStateFile.objects.filter(item_comment_state = itemCS).order_by('id')
+            itemCSF = ItemCommentStateFile.objects.filter(item_comment_state = itemCS).order_by('-id')
             state += str(itemCS.state.id)
         else:            
-            itemCSF = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS).order_by('id')
+            itemCSF = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS).order_by('-id')
             state += 'G_' + str(itemCS.state.id) + '_' + str(workorder.id)
 
         if itemCS.notes:
@@ -1985,7 +2121,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             time = timezone.localtime(itemCS.modification_date).strftime('%H:%M %p')
 
         if itemCS.state:
-            stateName = itemCS.state.name
+            stateName = getStateName(itemCS.state.id, '7')
 
         user = User.objects.get(id=itemCS.modification_by_user)
 
@@ -2001,13 +2137,14 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             itemTxt += "</ul>"
 
 
-        itemsHTML += '<tr class="py-1 fw-bold fs-7 ' + state + '"><td>' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+        itemsHTML += '<tr class="py-0 fw-bold fs-7 ' + state + '"><td style="padding:0; border:0">' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
 
         user_session = request.user
 
         if user == user_session and workorder.state == itemCS.state and mode == 1: #edicion
-            itemsHTML += '<td><a class="py-1 btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
-                
+            itemsHTML += '<td><a class="py-0 btn btn-link fs-7" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrderId) + ',' + str(itemId) + ',' + str(itemCS.id) + ',0)">Edit</a></td>'
+        else:
+             itemsHTML += '<td></td>'
         itemsHTML += '</tr>'
     
     itemsHTML += '</table></div>'
@@ -2273,8 +2410,13 @@ def saveItem(request):
             prefijo = "attribute_"
             options = []
 
+            atributos_permitidos = CategoryAttribute.objects.filter(category=item.subcategory.category).values_list('attribute_id', flat=True)
+            item_attributes_permitidos = ItemAttribute.objects.filter(attribute_id__in=atributos_permitidos).values_list('id', flat=True)
+            ItemAttribute.objects.filter(item=item).exclude(attribute_id__in=atributos_permitidos).delete()
+            ItemAttributeNote.objects.exclude(itemattribute_id__in=item_attributes_permitidos).delete()
+
             for key, value in data.items():
-                if key.startswith(prefijo) and value.strip() != "":
+                if key.startswith(prefijo):
                     try:
 
                         attribute_id = int(key[len(prefijo):])                        
@@ -2285,26 +2427,37 @@ def saveItem(request):
                         if item_atributte:
 
                             item_atributte.notes = value
-                            item_atributte.save()
+
+                            if value.strip() != '':
+                                item_atributte.save()
+                            else:
+                                item_atributte.delete()
                         
                         else:
 
-                            item_atributte = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
-                                                                            attribute = attribute,
-                                                                            notes = value)
+                            if value.strip() != '':
 
-                        if attribute.multiple:
+                                item_atributte = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
+                                                                                attribute = attribute,
+                                                                                notes = value)
+
+                        if attribute.multiple:                                     
                             options = request.POST.getlist(key)
+
+                            ItemAttributeNote.objects.filter(itemattribute=item_atributte).exclude(attributeoption__id__in = options).delete()
                                             
                             for option in options:
                                 
-                                item_atributte_option = ItemAttributeNote.objects.filter(itemattribute = item_atributte, attributeoption = AttributeOption.objects.get(id= option)).first()
+                                if option != '':
+                                                                        
+                                    item_atributte_option = ItemAttributeNote.objects.filter(itemattribute = item_atributte, attributeoption = AttributeOption.objects.get(id= option)).first()
 
-                                if item_atributte_option:
-                                    pass
-                                else:
-                                    ItemAttributeNote.objects.create(   itemattribute = item_atributte,
-                                                                        attributeoption = AttributeOption.objects.get(id= option))
+                                    if not item_atributte_option:                                        
+                                        ItemAttributeNote.objects.create(   itemattribute = item_atributte,
+                                                                            attributeoption = AttributeOption.objects.get(id= option))
+                                        
+
+                            
 
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
@@ -2347,16 +2500,19 @@ def saveItem(request):
                         
                         if materialsIds[index]:
                             if materialsIds[index] != '0':
-                                id = materialsIds[index]
+                                id = materialsIds[index].split('_')[1] 
 
                         item_material = ItemMaterial.objects.filter(item = item, id = id).first()
 
-                        if item_material:
-
-                            # item_material.file = file
-                            # item_material.name = fileName
+                        if item_material:                            
+                            
                             item_material.qty = qty
                             item_material.notes = material
+
+                            if file:
+
+                                item_material.file = file
+                                item_material.name = fileName
 
                             item_material.save()                                                
                         
@@ -2402,54 +2558,71 @@ def saveItem(request):
             indexFile = 0
             
 
-            for index, image in enumerate(imagesFileOk):                
+            for index, imageId in enumerate(imagesIds):                
                 file = None
                 fileName = None
                 notes = None
                 id = '0'
                 pre = ''
 
-                if int(image) == 1:
+                if int(imagesFileOk[index]) == 1 or imageId != '0':
 
                     try:
-
-                        file = imagesF[indexFile]
-                        notes = images[index]
-                        indexFile += 1
-                        fileName = file.name
 
                         if imagesIds[index]:
                             if imagesIds[index] != '0':
                                 pre = imagesIds[index].split('_')[0] 
                                 id = imagesIds[index].split('_')[1] 
 
-                        if file:
+                        notes = images[index]
+                        
+                        if int(imagesFileOk[index]) == 1:                        
+                            file = imagesF[indexFile]
+                            fileName = file.name
+                            indexFile += 1
+
                             if validateTypeFile(file.content_type):
                                 # Abrir la imagen usando PIL
-                                imagen = Image.open(file)                        
+                                imagen = Image.open(file)  
 
-                        if pre == 'IMG':
+
+                        if pre == 'FIL' and id != '0':
+                            ItemFile.objects.filter(item = item, id = id).delete()
+                            id = '0'
+
+                                                                                                                                                                                             
+                        if pre == 'IMG' or id == '0':
 
                             item_image = ItemImage.objects.filter(item = item, id = id).first()
                             
                             if item_image:
                                 item_image.notes = notes
+
+                                if file:
+                                    item_image.file = file
+                                    item_image.name = fileName
+
                                 item_image.save()
                             else:
 
-                                ItemImage.objects.create( item = item,
+                                ItemImage.objects.create(   item = item,
                                                             file = file,
                                                             name = fileName,
                                                             notes = notes)
-
+                                                       
                     except OSError: #Guardarlo como archivo adjunto
 
-                        if pre == 'FIL':
+                        if pre == 'FIL' or id == '0':
 
                             item_file = ItemFile.objects.filter(item = item, id = id).first()
                                 
                             if item_file:
                                 item_file.notes = notes
+                                
+                                if file:
+                                    item_file.file = file
+                                    item_file.name = fileName
+
                                 item_file.save()
                         
                             else:
@@ -2574,6 +2747,7 @@ def saveCalendar(request):
     if request.method == 'POST':
         workOrderId = request.POST.get('id1')
         itemId = request.POST.get('id2')
+        taskId = request.POST.get('id3')
         #commentId = request.POST.get('id3')        
         dateStart_get = request.POST.get('dateA')
         dateStartHour_get = request.POST.get('dateA2')        
@@ -2584,8 +2758,9 @@ def saveCalendar(request):
         responsible_id = request.POST.get('responsible')
         statusDate = request.POST.get('statusDate')
 
+        #No siempre estará, por eso no se usa get
         workorder = WorkOrder.objects.filter(id=workOrderId).first()
-        item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
+        item = Item.objects.filter(workorder = workorder, id=itemId).first() 
         
         responsible = Responsible.objects.filter(id=responsible_id).first()
                 
@@ -2618,15 +2793,17 @@ def saveCalendar(request):
             dateEnd = None
 
 
+        calendar = None
+
         #A nivel de item       
         if item:
             calendar = CalendarItem.objects.filter(item = item).first()
-
+        #A nivel de work order 
         elif workorder:
             calendar = CalendarWorkOrder.objects.filter(workorder = workorder).first()
-
-                
-        if calendar and workOrderId != '0':
+                    
+                        
+        if calendar:
 
             try:
 
@@ -2652,7 +2829,8 @@ def saveCalendar(request):
                 messages.error(request, 'Server error. Please contact to administrator!')
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
 
-        elif itemId != '0':
+
+        elif workorder or item:
 
             try:
                 
@@ -2689,17 +2867,53 @@ def saveCalendar(request):
                     messages.error(request, 'Server error. Please contact to administrator!')
                     return JsonResponse({'result': "Server error. Please contact to administrator."})
             
+            except:
+
+                messages.error(request, 'Server error. Please contact to administrator!')
+                return JsonResponse({'result': "Server error. Please contact to administrator."})
+            
+
+        elif workorder is None and item is None:
+
+            try:
+                
+                calendar = CalendarTask.objects.filter(id = taskId).first()
+
+                if calendar:
+                    
+                    calendar.date_start = dateStart
+                    calendar.date_end = dateEnd
+                    calendar.allday = checkAllDay
+                    calendar.responsible = responsible
+                    calendar.modification_by_user = request.user.id
+                    calendar.modification_date = datetime.now()
+
+                    if statusDate:
+                        calendar.status = statusDate
+
+                    calendar.save()
+
+                else:
+
+                    calendar = CalendarTask.objects.create( date_start = dateStart,
+                                                            date_end = dateEnd,
+                                                            allday = checkAllDay,
+                                                            responsible = responsible,
+                                                            created_by_user = request.user.id,
+                                                            modification_by_user = request.user.id)
+
+                    #saveCalendarItems(request)
+                saveCalendarComments(request, calendar, None, None)
+
+                return JsonResponse({'result': "OK"})
+            
 
             except:
 
                 messages.error(request, 'Server error. Please contact to administrator!')
                 return JsonResponse({'result': "Server error. Please contact to administrator."})
-
-        
+         
             
-            
-                    
-
 #Instancia para cambiar estado del item
 @login_required
 def saveQuote(request):
@@ -2786,19 +3000,56 @@ def saveCalendarItems(request):
 
     ids = request.POST.getlist('id[]')
     responsibles = request.POST.getlist('responsible[]')
-    dates = request.POST.getlist('date[]')
-    status = request.POST.getlist('statusDate[]')
+    dates_start = request.POST.getlist('dateItemA[]')
+    dates_end = request.POST.getlist('dateItemB[]')
+    dates_start_hour = request.POST.getlist('dateItemA2[]')
+    dates_end_hour = request.POST.getlist('dateItemB2[]')
+    checkAllDays = request.POST.getlist('checkAllDayItem[]')
+    statuss = request.POST.getlist('statusDate[]')
 
     for index, id in enumerate(ids):     
 
         calendar = CalendarItem.objects.filter(item__id = id).first()
         responsible = Responsible.objects.filter(id = responsibles[index]).first()
+        dateStart_get = dates_start[index]
+        dateEnd_get = dates_end[index]
+        dateStartHour_get = dates_start_hour[index]
+        dateEndHour_get = dates_end_hour[index]
+        checkAllDay = checkAllDays[index]
+        status = statuss[index]
 
-        if dates[index] != '' and dates[index] is not None:
+        dateStart = ''
+        dateEnd = ''
+
+
+        if dateStart_get != '' and dateStart_get is not None:
             # Es necesario dar formato a la fecha
-            date = datetime.strptime(dates[index], "%m/%d/%Y %I:%M %p")
+            
+            if dateEnd_get == '' or dateEnd_get is None:
+                dateEnd_get = dateStart_get
+
+            if dateStartHour_get == '' or dateStartHour_get == None:
+                dateStartHour_get = '12:00 AM' 
+
+            if dateEndHour_get == '' or dateEndHour_get == None:
+                dateEndHour_get = '11:59 PM' 
+
+            if checkAllDay and checkAllDay == '1':
+                dateStart_get += ' 12:00 AM'
+                dateEnd_get += ' 11:59 PM'
+                checkAllDay = True
+            else:
+                dateStart_get += ' ' + dateStartHour_get
+                dateEnd_get += ' ' + dateEndHour_get
+                checkAllDay = False
+            
+            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
+            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+
         else:
-            date = None
+            dateStart = None
+            dateEnd = None
+
 
         if calendar:
             if responsible:
@@ -2808,13 +3059,13 @@ def saveCalendarItems(request):
                 else:
                     calendar.responsible = responsible
             
-            calendar.date_start = date
+            calendar.date_start = dateStart
+            calendar.date_end = dateEnd
+            
+            if status and str(calendar.status) != status:
+                calendar.status = status
 
-
-            if dates[index] != '' and dates[index] is not None:
-                if str(calendar.status) != status[index]:
-                    calendar.status = status[index]
-
+            calendar.allday = checkAllDay
             calendar.modification_by_user = request.user.id
             calendar.modification_date = datetime.now()
 
@@ -2823,7 +3074,10 @@ def saveCalendarItems(request):
         else:
 
             CalendarItem.objects.create(    item = Item.objects.filter(id = id).first(),
-                                            date = date,
+                                            date_start = dateStart,
+                                            date_end = dateEnd,
+                                            allday = checkAllDay,
+                                            status = 1,
                                             responsible = responsible,
                                             created_by_user = request.user.id,
                                             modification_by_user = request.user.id)
@@ -2857,6 +3111,14 @@ def saveCalendarComments(request, calendar, item, workorder):
                                                                                         notes = comment,
                                                                                         created_by_user = request.user.id,
                                                                                         modification_by_user = request.user.id)
+                
+
+            elif item is None and workorder is None:
+                
+                calendar_task_comment = CalendarTaskComment.objects.create( calendar_task = calendar,
+                                                                            notes = comment,
+                                                                            created_by_user = request.user.id,
+                                                                            modification_by_user = request.user.id)
 
 
             try:
@@ -2884,6 +3146,13 @@ def saveCalendarComments(request, calendar, item, workorder):
                         CalendarWorkOrderCommentFile.objects.create(    calendar_workorder_comment = calendar_workorder_comment,
                                                                         file = file,
                                                                         name = fileName)
+                        
+
+                    elif item is None and workorder is None:
+                        
+                        CalendarTaskCommentFile.objects.create( calendar_task_comment = calendar_task_comment,
+                                                                file = file,
+                                                                name = fileName)
                 
                     
             except:
@@ -2891,6 +3160,24 @@ def saveCalendarComments(request, calendar, item, workorder):
                 messages.error(request, 'File not found!')    
 
 
+#Instancia para guardar notas WO
+@login_required
+def saveWO(request):
+
+    woId = request.POST.get('woId')
+    notes = request.POST.get('notes')
+                            
+    try:
+        
+        wo = WorkOrder.objects.filter(id=woId).first()
+        wo.description = notes
+        wo.save()
+                            
+        return JsonResponse({'result': "OK"})
+
+    except ValueError:
+        messages.error(request, 'Server error. Please contact to administrator!')
+        return JsonResponse({'result': "Error"})
 
 
 
@@ -2989,20 +3276,28 @@ def deleteCommentCalendar(request):
         #Si es un item 
         if itemId != '0':
 
-            comment = CalendarItemComment.objects.get(id = id)
+            comment = CalendarItemComment.objects.filter(id = id)
             if comment:
                 comment.delete()
-            
+        
+        #Si es una wo
         elif workorderId != '0':
 
-            comment = CalendarWorkOrderComment.objects.get(id = id)
+            comment = CalendarWorkOrderComment.objects.filter(id = id)
+            if comment:
+                comment.delete()
+
+        #Si es una wo
+        elif itemId == '0' and workorderId == '0':
+
+            comment = CalendarTaskComment.objects.filter(id = id)
             if comment:
                 comment.delete()
 
     except ValueError:
         status = -1
         messages.error('Server error. Please contact to administrator!')
-
+ 
     return JsonResponse({'result': status})
 
 
@@ -3040,6 +3335,58 @@ def deleteItemCommentFile(request):
                 status = 2
 
         # saveEvent(request, 4, item.proyect.id, None) ## Borrar item
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
+
+
+
+#Funcion ejecutada para eliminar una imagen o material adjunto al item.
+@login_required
+def deleteFile(request):
+    itemId = request.POST.get('i')
+    fileId = request.POST.get('f')    
+    status = 0
+    item = None
+
+    try:
+        
+        if int(itemId) != 0:
+            item = Item.objects.get(id = itemId)
+
+        pre = fileId.split('_')[0] 
+        id = fileId.split('_')[1] 
+
+        if pre == 'IMG':                    
+            itemFile = ItemImage.objects.get(id = id, item = item)
+
+            if itemFile: #Si pertenece al item, se borra
+                itemFile.delete()        
+                status = 1
+            else:
+                status = 2
+
+        if pre == 'FIL':
+            itemFile = ItemFile.objects.get(id = id, item = item)
+
+            if itemFile: #Si pertenece al item, se borra
+                itemFile.delete()        
+                status = 1
+            else:
+                status = 2
+
+        if pre == 'MAT':
+            itemFile = ItemMaterial.objects.get(id = id, item = item)
+
+            if itemFile: #Si pertenece al item, se borra
+                itemFile.delete()        
+                status = 1
+            else:
+                status = 2
+
 
     except ValueError:
         status = -1
@@ -3153,8 +3500,8 @@ def modalComment(workOrderId, itemId, commentId):
     # Borrar archivos
     if itemCS:
         itemsHTML += '<script>$("#modalCommentDelete").show(); $("#modalCommentDelete").click(function() { delComm(' + itemCSId + ', ' + itemId + ', ' + str(workorder.id) + ',event)});</script>'
-    else:
-        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-1000px").addClass("mw-650px");</script>'
+    # else:
+    #     itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-900px").addClass("mw-650px");</script>'
 
     
     itemsHTML += '</form>'
@@ -3169,13 +3516,16 @@ def modalCalendar(request, workOrderId, itemId, id):
     
     workorder = WorkOrder.objects.filter(id=workOrderId).first()
     item = Item.objects.filter(id=itemId).first()
-    itemsHTML = ''
-    fecha_fin = ''
-    status = 0   
-
-    itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+    itemsHTML = '<div class="col-xl-12 fv-row text-start">'
 
     responsibleId = 0
+    fecha_inicio = ''
+    fecha_fin = ''
+    fechaDate_inicio = ''
+    fechaDate_fin = ''
+    style_display = ''
+    allDay = False
+    status = 0
     
     #Por item
     if item:
@@ -3183,8 +3533,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         calendar = CalendarItem.objects.filter(item=item).first()
         
         if calendar:            
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %H:%M')
+                fechaDate_inicio = fecha_inicio[11:16]
+
             if calendar.date_end:
                 fecha_fin = timezone.localtime(calendar.date_end).strftime('%m/%d/%Y %H:%M')
+                fechaDate_fin = fecha_fin[11:16]
 
             if calendar.responsible:
                 responsibleId = calendar.responsible.id        
@@ -3192,13 +3547,19 @@ def modalCalendar(request, workOrderId, itemId, id):
             if calendar.status:
                 status = calendar.status
 
+            if calendar.allday:
+                allDay = True
+
         itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
 
 
         itemsHTML += '<b style="margin-left:-10px">Item:</b>'
         itemsHTML += '<div class="row">'
 
-        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
+        if allDay:
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
+        else:
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="0%"></th></tr></thead><tbody>'
         
         itemsHTML += '<tr><td valign="top">'
         itemsHTML += str(item.code)
@@ -3207,9 +3568,39 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += htmlResponsibleSelect(responsibleId)
         itemsHTML += '</select>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 90px"/> '
-        # itemsHTML += '</td><td>'
-        # itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2" placeholder="Pick a date" value="" style="width: 150px"/>'
+        
+        if not allDay:
+            itemsHTML += '<table><tr><td>'
+        
+            itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
+            itemsHTML += '</td><td>'
+            itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += '</td><td>'
+            itemsHTML += '-'        
+            itemsHTML += '</td><td>'
+            itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
+            itemsHTML += '</td><td>'
+            itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += '</td><td>'
+
+            itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
+
+            if allDay:
+                itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" checked>'
+            else:
+                itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
+            
+            itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
+            itemsHTML += '</td></tr></table>'
+
+        else:        
+            itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Pick a date" value="' + fecha_inicio + '" style="width: 90px"/> <input name="checkAllDay" type="hidden" value="1">'
+            # itemsHTML += '</td><td>'
+            # itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2" placeholder="Pick a date" value="" style="width: 150px"/>'
+        
+        
+        
+        
         itemsHTML += '</td><td>'
         itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
         itemsHTML += '</td></tr>'
@@ -3222,35 +3613,26 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<br/>'
 
-        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, None, 1)
 
         
 
         itemsHTML += '<div class="row text-end">'
 
         itemsHTML += '<div class="col-md-12">'
-        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',' + itemId + ')">Save</button>'                
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',' + itemId + ',0)">Save</button>'
         itemsHTML += '</div>'                            
         
         itemsHTML += '</div>'
         
-        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-1000px"); </script>'
+        # itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-900px"); </script>'
 
         itemsHTML += '</form>'
 
-    #General
+    #Work order
     elif workorder:
         
-        calendar = CalendarWorkOrder.objects.filter(workorder=workorder).first()
-        responsibleId = 0
-        fecha_inicio = ''
-        fecha_fin = ''
-        fechaDate_inicio = ''
-        fechaDate_fin = ''
-        style_display = ''
-
-        allDay = False
-        status = 0
+        calendar = CalendarWorkOrder.objects.filter(workorder=workorder).first()        
 
         if calendar:
             if calendar.date_start:
@@ -3313,9 +3695,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
         itemsHTML += '</td></tr></table>'
         
-        
-        
-        
+                        
         itemsHTML += '</td><td>'
         itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')
         itemsHTML += '</td></tr>'
@@ -3328,7 +3708,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<br/>'
 
-        itemsHTML += htmlDataCommentCalendar(request, workorder, item, 1)
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, None, 1)
                 
         itemsHTML += '<br/>'
 
@@ -3341,40 +3721,75 @@ def modalCalendar(request, workOrderId, itemId, id):
             
             itemsHTML += '<b style="margin-left:-10px">Items:</b>'
             itemsHTML += '<div class="row">'                            
-            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="35%" colspan=2>' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="35%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
 
             itemN = 0
             for item in items:
                 
                 itemN+= 1
                 responsibleId = 0
+                fecha_inicio = ''
                 fecha_fin = ''
+                fechaDate_inicio = ''
+                fechaDate_fin = ''
                 status = 0
+                allDay = False
+                style_display = ''
                 
                 if item.status == 1:
 
                     calItem = CalendarItem.objects.filter(item = item).first()
 
                     if calItem:
+                        if calItem.date_start:
+                            fecha_inicio = timezone.localtime(calItem.date_start).strftime('%m/%d/%Y %H:%M')
+                            fechaDate_inicio = fecha_inicio[11:16]
+
+                        if calItem.date_end:
+                            fecha_fin = timezone.localtime(calItem.date_end).strftime('%m/%d/%Y %H:%M')
+                            fechaDate_fin = fecha_fin[11:16]
+
+                        if calItem.allday:
+                            allDay = True
+                            style_display = '; display:none'
+
                         if calItem.responsible:
                             responsibleId = calItem.responsible.id
-
-                        if calItem.date:
-                            fecha_fin = timezone.localtime(calItem.date).strftime('%m/%d/%Y %H:%M')
 
                         if calItem.status:
                             status = calItem.status
 
-                    itemsHTML += '<tr><td valign="middle">'
+                    itemsHTML += '<tr><td valign="top">'
                     itemsHTML += workorder.proyect.code + '-' + str(itemN)
                     itemsHTML += '</td><td>'
                     itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible[]">'
                     itemsHTML += htmlResponsibleSelect(responsibleId)
                     itemsHTML += '</select>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date[]" placeholder="Pick a date" value="' + fecha_fin + '" style="width: 150px"/>'
+                    
+                    itemsHTML += '<table><tr><td>'
+        
+                    itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemA[]" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="date2[]" placeholder="Pick a date" value="" style="width: 150px"/>'
+                    itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateItemA2[]" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += '</td><td>'
+                    itemsHTML += '-'        
+                    itemsHTML += '</td><td>'
+                    itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemB[]" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
+                    itemsHTML += '</td><td>'
+                    itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateItemB2[]" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += '</td><td>'
+
+                    itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
+
+                    if allDay:
+                        itemsHTML += '<input class="checkAllDayItem" type="hidden" name="checkAllDayItem[]" value="1"><input class="form-check-input checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" checked>'
+                    else:
+                        itemsHTML += '<input class="checkAllDayItem" type="hidden" name="checkAllDayItem[]" value="0"><input class="form-check-input checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
+                    
+                    itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
+                    itemsHTML += '</td></tr></table>'
+                    
                     itemsHTML += '</td><td>'
                     itemsHTML += htmlStatusCalendar(status, fecha_fin, calItem, 'statusDate[]')
                     itemsHTML += '<input type="hidden" name="id[]" value="' + str(item.id) + '" readonly/>'
@@ -3388,15 +3803,107 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<div class="row text-end">'
 
         itemsHTML += '<div class="col-md-12">'
-        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',0)">Save</button>'                
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',0,0)">Save</button>'                
         itemsHTML += '</div>'                            
             
         itemsHTML += '</div>'
             
-        itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-1000px"); </script>'
+        # itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-900px"); </script>'
 
         itemsHTML += '</form>'
 
+    # Tareas particulares
+    else:
+
+        calendar = CalendarTask.objects.filter(id=id).first()              
+        
+        if calendar:
+            if calendar.date_start:
+                fecha_inicio = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %H:%M')
+                fechaDate_inicio = fecha_inicio[11:16]
+
+            if calendar.date_end:
+                fecha_fin = timezone.localtime(calendar.date_end).strftime('%m/%d/%Y %H:%M')
+                fechaDate_fin = fecha_fin[11:16]
+
+            if calendar.allday:
+                allDay = True
+                style_display = '; display:none'
+
+            if calendar.responsible:
+                responsibleId = calendar.responsible.id
+
+            if calendar.status:
+                status = calendar.status
+
+        itemsHTML += '<form id="formItem_' + str(id) + '" method="POST" enctype="multipart/form-data">'
+
+
+        itemsHTML += '<div class="row">' 
+                        
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="35%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+        
+        itemsHTML += '<tr><td>'
+        itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
+        itemsHTML += htmlResponsibleSelect(responsibleId)
+        itemsHTML += '</select>'
+        itemsHTML += '</td><td>'
+        
+        # Date Start - End
+        
+        itemsHTML += '<table><tr><td>'
+        
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '-'        
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
+        itemsHTML += '</td><td>'
+        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '</td><td>'
+
+        itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
+
+        if allDay:
+            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" checked>'
+        else:
+            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
+        
+        itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
+        itemsHTML += '</td></tr></table>'
+        
+                        
+        itemsHTML += '</td><td>'
+        itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')
+        itemsHTML += '</td></tr>'
+
+        itemsHTML += '</tbody></table>'
+
+        itemsHTML += '</div>'
+
+        itemsHTML += htmlDivCommentCalendar()
+
+        itemsHTML += '<br/>'
+
+        itemsHTML += htmlDataCommentCalendar(request, workorder, item, id, 1)
+                
+        itemsHTML += '<br/>'        
+
+        itemsHTML += '<div class="row text-end">'
+
+        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(0,0,' + str(id) + ')">Save</button>'
+        itemsHTML += '</div>'                            
+        
+        itemsHTML += '</div>'
+        
+        # itemsHTML += '<script>$("#modalCommentDelete").hide(); $("#divModalDialog").removeClass("mw-650px").addClass("mw-900px"); </script>'
+
+        itemsHTML += '</form>'
+        
+            
     itemsHTML += '</div>'    
 
     return itemsHTML
@@ -3451,7 +3958,8 @@ def getDecoratorsTable(decorators):
 
     if len(decorators) > 0:
 
-        decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
+        #decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
+        decoratorsHTML = '<table class="table table-striped"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
         decoratorsHTML += '<th title="Field #1">Name</th>'
         decoratorsHTML += '<th title="Field #3">Phone</th>'
         decoratorsHTML += '<th title="Field #2">Email</th>'        
@@ -3490,7 +3998,7 @@ def getDecoratorsTable(decorators):
     return decoratorsHTML
 
 #Retorna el nombre del estado, junto con su clase css
-def getStateName(stateId):
+def getStateName(stateId, fs):
     
     state = State.objects.get(id = stateId)
 
@@ -3501,11 +4009,54 @@ def getStateName(stateId):
 
     #stateHTML += '<i class="fas fa-question-circle" data-bs-toggle="tooltip" title="' + description + '"></i>'
 
-    stateHTML += '<div class="fs-6 fw-bold p-2 badge-state-' + str(stateId) + '">'
+    stateHTML += '<div class="fs-' + fs + ' fw-bold p-2 badge-state-' + str(stateId) + '">'
     stateHTML += name
     stateHTML += '</div>'
 
     return stateHTML																									
+
+#Retorna resumen WO´s
+def getResumenWOs(proyect):
+
+    wos = WorkOrder.objects.filter(proyect = proyect, status=1)
+    states = State.objects.filter(status = 1).order_by('id')
+
+    html = '<table><thead><tr><th width="100px"></th>'
+
+    for state in states:
+
+        html += '<th class="fs-30" style="padding:0">'
+        html += getStateName(state.id, '8')
+        html += '</th><th style="border 1px #f1f1f1">Ant</th>'
+
+    html += '</tr>'
+
+
+    for wo in wos:
+
+        html += '<tr><th class="fs-30">'
+        html +=  'Work order ' + wo.code
+        html += '</th>'
+
+        for state in states:
+
+            html += '<th>Fecha'        
+            html += '</th>'
+
+            html += '<th> 1'        
+            html += '</th>'
+
+        html += '</tr>'
+
+
+    html += '</table>'
+
+    return html
+
+
+
+
+
 
 #Retorna el nombre del estado, junto con su clase css
 def newWO(request, proyectId):
@@ -3649,9 +4200,8 @@ def htmlDivCommentCalendar():
 
     return html
 
-
 #Consulta realizada para obtener los datos de cada uno de los comentarios para el calendario.
-def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 2: lectura
+def htmlDataCommentCalendar(request, workorder, item, task, mode): # mode 1: edicion, 2: lectura
 
     
     itemsHTML = ''
@@ -3659,13 +4209,20 @@ def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 
     itemsHTML += '<div class="col-xl-12 fv-row text-start" style="max-height: 200px; overflow: auto;">'
     calendar = None
     comments = None
+    workorderId = 0
+    itemId = 0
 
     if item:
         calendar = CalendarItem.objects.filter(item = item).first()
-        comments = CalendarItemComment.objects.filter(calendar_item = calendar)
+        comments = CalendarItemComment.objects.filter(calendar_item = calendar).order_by('-id')
+        itemId = item.id
     elif workorder:
         calendar = CalendarWorkOrder.objects.filter(workorder = workorder).first()
-        comments = CalendarWorkOrderComment.objects.filter(calendar_workorder = calendar)
+        comments = CalendarWorkOrderComment.objects.filter(calendar_workorder = calendar).order_by('-id')
+        workorderId = workorder.id
+    elif task:
+        calendar = CalendarTask.objects.filter(id = task).first()
+        comments = CalendarTaskComment.objects.filter(calendar_task = calendar).order_by('-id')
     
         
     # itemsHTML += '<h7><b>Comments:</b></h7>'
@@ -3704,6 +4261,8 @@ def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 
                 files = CalendarItemCommentFile.objects.filter(calendar_item_comment = comment)
             elif workorder:
                 files = CalendarWorkOrderCommentFile.objects.filter(calendar_workorder_comment = comment)
+            elif task:
+                files = CalendarTaskCommentFile.objects.filter(calendar_task_comment = comment)
 
             if files:            
                 itemTxt += '<ul class="text-start py-1">'
@@ -3714,20 +4273,15 @@ def htmlDataCommentCalendar(request, workorder, item, mode): # mode 1: edicion, 
                 itemTxt += "</ul>"
 
 
-            itemsHTML += '<tr class="py-1 fw-bold fs-7"><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+            itemsHTML += '<tr class="py-0 fw-bold fs-7"><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
 
             user_session = request.user
-
-            itemId = 0
-
-
-            if item:
-                if item.id:
-                    itemId = item.id
-            
+                        
             if user == user_session and mode == 1: #edicion
-                itemsHTML += '<td><a href="#" class="py-1 btn btn-link fs-7" onclick="delCommCalendar(' + str(workorder.id) + ',' + str(itemId) + ',' + str(comment.id) + ',event, this)"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a></td>'
-                            
+                itemsHTML += '<td><a href="#" class="py-0 btn btn-link fs-7" onclick="delCommCalendar(' + str(workorderId) + ',' + str(itemId) + ',' + str(comment.id) + ',event, this)"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a></td>'
+            else:
+                itemsHTML += '<td></td>'
+
             itemsHTML += '</tr>'
     
         itemsHTML += '</tbody></table>'
@@ -3779,7 +4333,7 @@ def generate_pdf(request, workorderId):
         
         
         htmlCabecera += "<tr><th colspan=2></th><th></th><th>Code:</th><td>" + str(code) + "</td></tr>"
-        htmlCabecera += "<tr><th>Address:</th><td style='width: 350px'>" + address + "</td><th></th><th>Phone:</th><td>" + str(phone) + "</td></tr>"
+        htmlCabecera += "<tr><th style='width: 88px'>Address:</th><td style='width: 340px'>" + address + "</td><th></th><th style='width: 80px'>Phone:</th><td style='width: 250px'>" + str(phone) + "</td></tr>"
         htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td><th></th><th>Email:</th><td>" + str(email) + "</td></tr>"        
         
         htmlCabecera += "</table>"
@@ -3794,7 +4348,7 @@ def generate_pdf(request, workorderId):
 
         if decorators:
 
-            htmlCabecera += "<tr><th rowspan='" + str(len(decorators)) + "' style='text-align: left; vertical-align: top;'>Decorator:</th>"
+            htmlCabecera += "<tr><th rowspan='" + str(len(decorators)) + "' style='width: 85px; text-align: left; vertical-align: top;'>Decorator:</th>"
             n = 0
 
             for decorator in decorators:
@@ -3826,7 +4380,7 @@ def generate_pdf(request, workorderId):
 
                 #htmlCabecera += " <div class='new-page'><table class='table_item'>"
                 htmlCabecera += "<div><table class='table_item'>"
-                htmlCabecera += "<tr><th colspan='2' style='background-color:#f1f1f1'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                htmlCabecera += "<tr><th colspan='2' style='background-color:#f1f1f1; border:1px solid'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
                 htmlCabecera += "</table></div>"
 
 
@@ -3849,21 +4403,27 @@ def generate_pdf(request, workorderId):
                 
                 qty = item.qty if str(item.qty) != "" else "--"
 
+                
+                
+                
                 date_end = "--"
-                # if item.date:             
-                #     #date_end = timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M') if str(timezone.localtime(item.date_end).strftime('%Y-%m-%d %H:%M')) != "" else "--"
-                #     date_end = timezone.localtime(item.date).strftime('%Y/%m/%d %I:%M %p')
-                
-
-
-                
-
-                notes = item.notes if str(item.notes) != "" else "--"
-
                 responsible = " "
 
-                # if item.responsible:
-                #     responsible = item.responsible.name
+
+                calendar = CalendarItem.objects.filter(item = item).first()
+
+                if calendar:
+
+                    if calendar.responsible:
+                        responsible = calendar.responsible.name
+
+                    if calendar.date_start:
+                        if calendar.allday:
+                            date_end = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y')
+                        else:
+                            date_end = timezone.localtime(calendar.date_start).strftime('%m/%d/%Y %I:%M %p')
+
+                notes = item.notes if str(item.notes) != "" else "--"
 
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
@@ -3934,13 +4494,67 @@ def generate_pdf(request, workorderId):
                 htmlCabecera1 += "</table>"
                 htmlCabecera += htmlCabecera1
 
+            
+                materials= ItemMaterial.objects.filter(item = item).order_by('id')
+
+                htmlCabeceraMat = ""
+                htmlCabeceraImg = ""
+
+                if materials:
+                    
+                    htmlCabecera += "<table class='table_item'>"
+                    htmlCabecera += "<tr><td colspan='3' style='background-color:#f1f1f1'><b>Materials:</b></td></tr>"                    
+                    table_img = ""
+                    nt = 1
+
+                    htmlCabeceraMat += "<table><tr><td style='width:300px; border-left:none; border-top:none'></td><td style='width:170px'>QTY</td><td style='width:170px'>Received QTY</td><td style='width:100px'>Received Date</td></tr>"
+                    
+                    for material in materials:
+
+                        materialName = str(material.notes)
+                        qty = str(material.qty)   
+                        qtyR = ''             
+                        dateR = ''
+
+                        if material.qty_received:
+                            qtyR = material.qty_received
+
+                        if material.date_received:                            
+                            dateR = material.date_received
+
+                        htmlCabeceraMat += '<tr><td>' + materialName + '</td>' 
+                        htmlCabeceraMat += '<td>' + qty + '</td>' 
+                        htmlCabeceraMat += '<td>' + qtyR + '</td>'
+                        htmlCabeceraMat += '<td>' + dateR + '</td>'
+
+                        htmlCabeceraMat += '</tr>'
+                    
+                    htmlCabeceraMat += "</table><br/>"                     
+                    htmlCabecera += htmlCabeceraMat
+                    
                 
+                    
+                    for material in materials:
+                        file = material.file.name if str(material.file.name) != "" else "--"
+                        notes = material.notes if str(material.notes) != "" else "--"
+                        
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        
+                        if material.file:
+                            if material.file.url[-4:] not in ('.pdf','.doc','.xls','.ppt') and material.file.url[-5:] not in ('.docx','.xlsx','.pptx'):
+                                if nt == 1:
+                                    htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                                elif nt == 2:
+                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
+                                elif nt == 3:
+                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td></tr>"
+                                    nt = 0
+                            
+                                nt += 1
+                    
+                    htmlCabecera += htmlCabeceraImg
 
-
-
-                
-
-
+                    htmlCabecera += "</table>"
 
 
                 images= ItemImage.objects.filter(item = item)
@@ -3972,39 +4586,12 @@ def generate_pdf(request, workorderId):
 
 
 
+                if wo.description and wo.description.strip() != '':
 
-
-                materials= ItemMaterial.objects.filter(item = item).order_by('id')
-
-                if materials:
-                    
                     htmlCabecera += "<table class='table_item'>"
-                    htmlCabecera += "<tr><td colspan='3' style='background-color:#f1f1f1'><b>Materials:</b></td></tr>"
-                    htmlCabeceraImg = ""
-                    table_img = ""
-                    nt = 1
-                    for material in materials:
-                        file = material.file.name if str(material.file.name) != "" else "--"
-                        notes = material.notes if str(material.notes) != "" else "--"
-                        
-                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
-                        
-                        if material.file:
-                            if material.file.url[-4:] not in ('.pdf','.doc','.xls','.ppt') and material.file.url[-5:] not in ('.docx','.xlsx','.pptx'):
-                                if nt == 1:
-                                    htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
-                                elif nt == 2:
-                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
-                                elif nt == 3:
-                                    htmlCabeceraImg += "<td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td></tr>"
-                                    nt = 0
-                            
-                                nt += 1
-                    
-                    htmlCabecera += htmlCabeceraImg
-
+                    htmlCabecera += "<tr><td style='background-color:#f1f1f1'><b>Notes:</b></td></tr>"
+                    htmlCabecera += "<tr><td>" + wo.description + "</td></tr>"
                     htmlCabecera += "</table>"
-
             
 
 
