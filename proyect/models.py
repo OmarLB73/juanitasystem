@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 import os #Para el tema del archivo
 from django.utils import timezone #Para definir la ruta del archivo
 
-from django.db.models.signals import pre_delete #Para borrar imagenes fisicas antes del borrado de la base de datos
+from django.db.models.signals import pre_delete, pre_save #Para borrar imagenes fisicas antes del borrado de la base de datos
 from django.dispatch import receiver #Para borrar imagenes fisicas antes del borrado de la base de datos
 
 from django.core.exceptions import PermissionDenied #Para no borrar registros
@@ -50,6 +50,9 @@ def getUploadTo(instance, filename):
 
     if model_name in ('CalendarWorkOrderCommentFile'):
         proyectId = instance.calendar_workorder_comment.calendar_workorder.workorder.proyect.id
+
+    if model_name in ('CalendarTaskCommentFile'):
+        proyectId = 'Tasks'
 
 
     return f"{model_name}/{proyectId}/{filename}"
@@ -152,7 +155,7 @@ class WorkOrder(models.Model):
     proyect = models.ForeignKey(Proyect, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)        
     code = models.CharField(max_length=50, null=True)
-    description = models.TextField(blank=True, null=True, max_length=2000)    
+    description = models.TextField(blank=True, null=True, max_length=2000, default='')    
     status = models.IntegerField(choices=ESTADOS,  default=1)
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)   
@@ -518,7 +521,7 @@ class CalendarWorkOrder(CalendarAttachment):
         return f'{self.id} - {self.workorder.id}'  
     
 
-class CalendarAppointment(CalendarAttachment):    
+class CalendarTask(CalendarAttachment):    
     
     def __str__(self):
         return f'{self.id}'    
@@ -546,15 +549,21 @@ class CalendarItemComment(CalendarCommentAttachment):
     calendar_item = models.ForeignKey(CalendarItem, on_delete=models.CASCADE)
         
     def __str__(self):
-        return f'{self.id} - {self.item.id} - {self.notes}'
+        return f'{self.id} - {self.calendar_item.id} - {self.notes}'
     
 
 class CalendarWorkOrderComment(CalendarCommentAttachment):    
     calendar_workorder = models.ForeignKey(CalendarWorkOrder, on_delete=models.CASCADE)
         
     def __str__(self):
-        return f'{self.id} - {self.workorder.id} - {self.notes}'
+        return f'{self.id} - {self.calendar_workorder} - {self.notes}'
 
+
+class CalendarTaskComment(CalendarCommentAttachment):    
+    calendar_task = models.ForeignKey(CalendarTask, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id} - {self.id} - {self.notes}'
 
 ##############################################
 
@@ -585,6 +594,12 @@ class CalendarWorkOrderCommentFile(CalendarCommentFileAttachment):
         return f'{self.id}'
 
 
+class CalendarTaskCommentFile(CalendarCommentFileAttachment):    
+    calendar_task_comment = models.ForeignKey(CalendarTaskComment, on_delete=models.CASCADE)
+        
+    def __str__(self):
+        return f'{self.id}'
+
 
 def generalDelete(sender, instance, **kwargs):
     if instance.file:
@@ -600,7 +615,31 @@ def generalDelete(sender, instance, **kwargs):
 @receiver(pre_delete, sender=WorkOrderCommentStateFile)
 @receiver(pre_delete, sender=CalendarItemCommentFile)
 @receiver(pre_delete, sender=CalendarWorkOrderCommentFile)
+@receiver(pre_delete, sender=CalendarTaskCommentFile)
 def deleteFile(sender, instance, **kwargs):
     generalDelete(sender, instance, **kwargs)
 
 
+# Función genérica para borrar archivo viejo si cambia
+def delete_old_file_on_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return  # Es nuevo, no hay archivo anterior
+
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+
+    old_file = old_instance.file
+    new_file = instance.file
+
+    if old_file and old_file != new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
+
+# Registrar señal para modelos específicos
+@receiver(pre_save, sender=ItemFile)
+@receiver(pre_save, sender=ItemImage)
+@receiver(pre_save, sender=ItemMaterial)
+def pre_save_delete_file(sender, instance, **kwargs):
+    delete_old_file_on_change(sender, instance, **kwargs)
