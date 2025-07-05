@@ -612,21 +612,30 @@ def getDataModal(request):
     id = request.GET.get('id3')
     case = request.GET.get('id4')
 
+    title = ''
+    
     try:
     
         if case == '0': #Comentario
             itemHtml = modalComment(workOrderId, itemId,id)
+
+            wo = WorkOrder.objects.filter(id = workOrderId).first()
+
+            if wo:
+                title = wo.state.modalTitle
+
         elif case == '1' or case == '2': #Calendario 1: wo/item -  2: tasks
             itemHtml = modalCalendar(request, workOrderId, itemId, id)
+            title = 'Calendar'
         else:
-            itemHtml = 'Server error. Please contact to administrator!'    
+            itemHtml = 'Server error. Please contact to administrator!'            
     
     except:
 
         itemHtml = 'Server error. Please contact to administrator!'
     
     # Devolvemos la lista de proyectos como respuesta JSON
-    return JsonResponse({'result': itemHtml})
+    return JsonResponse({'result': itemHtml, 'title': title})
 
 
 #Funcion autocomplete de materiales por Ajax, para crear un item.
@@ -916,6 +925,74 @@ def getDataWO(request):
     
     # Devolvemos la lista de proyectos como respuesta JSON
     return JsonResponse({'result': woHTML})
+
+
+
+@login_required
+def getStateValidate(request):
+    
+    workOrderId = request.POST.get('w')
+    status = 0
+    message = ''
+               
+    try:    
+
+        wo = WorkOrder.objects.filter(id=workOrderId).first()
+        items = Item.objects.filter(workorder=wo).count()
+
+        itemsC = Item.objects.filter(workorder=wo, itemcommentstate__state_id=wo.state.id).distinct().count()
+        itemsG = WorkOrder.objects.filter(workordercommentstate__state_id=wo.state.id).distinct().count()
+
+
+        if wo.state.id == 1:
+            if len(items) > 0:
+                message = wo.state.positiveMessage
+                status = 1
+            else:
+                message = wo.state.negativeMessage
+
+        if wo.state.id == 4:
+
+            has_materials = False
+
+            items = Item.objects.filter(workorder=wo)
+
+            for item in items:
+                has_materials = ItemMaterial.objects.filter(item=item).exists()
+            
+            todos_completos = all(ItemMaterial.objects.filter(
+                                        item=item,
+                                        date_received__isnull=False,
+                                        qty_received__isnull=False
+                                    ).exclude(
+                                        date_received='',
+                                        qty_received=''
+                                    ).exists()
+                                    for item in items
+                                )
+
+            if has_materials and todos_completos:
+                message = wo.state.positiveMessage
+                status = 1
+            else:
+                message = wo.state.negativeMessage  
+
+
+        if wo.state.id in (2,3,5,6,7,8,9,10):
+
+            if items == itemsC or itemsG > 0:
+                message = wo.state.positiveMessage
+                status = 1
+            else:
+                message = wo.state.negativeMessage        
+
+          
+    except:
+        message = ''
+        status = 0
+    
+    # Devolvemos la lista de proyectos como respuesta JSON
+    return JsonResponse({'result1':status, 'result2': message})
 
 
 
@@ -1388,14 +1465,14 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                 if mode == 1: #edicion
 
-                    if workOrder.state.id == 2:
-                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add quote (+)</a>'
+                    if workOrder.state.id >= 2:
+                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">' + workOrder.state.linkDescription + '</a>'
 
-                    if workOrder.state.id == 3:
-                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Approve quote (+)</a>'
+                    # if workOrder.state.id == 3:
+                    #     itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Approve quote (+)</a>'
 
-                    if workOrder.state.id >= 4:
-                        itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
+                    # if workOrder.state.id >= 4:
+                    #     itemsHTML += '<a class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,0)">Add comment (+)</a>'
                     
                 itemsHTML += '</div>'
 
@@ -2409,6 +2486,8 @@ def saveItem(request):
 
             prefijo = "attribute_"
             options = []
+            atributtesIds = []
+
 
             atributos_permitidos = CategoryAttribute.objects.filter(category=item.subcategory.category).values_list('attribute_id', flat=True)
             item_attributes_permitidos = ItemAttribute.objects.filter(attribute_id__in=atributos_permitidos).values_list('id', flat=True)
@@ -2420,6 +2499,8 @@ def saveItem(request):
                     try:
 
                         attribute_id = int(key[len(prefijo):])                        
+                        atributtesIds.append(attribute_id)
+
                         attribute = Attribute.objects.get(id=attribute_id)
 
                         item_atributte = ItemAttribute.objects.filter(item = item, attribute = attribute).first()
@@ -2445,7 +2526,7 @@ def saveItem(request):
                             options = request.POST.getlist(key)
 
                             ItemAttributeNote.objects.filter(itemattribute=item_atributte).exclude(attributeoption__id__in = options).delete()
-                                            
+
                             for option in options:
                                 
                                 if option != '':
@@ -2462,6 +2543,8 @@ def saveItem(request):
                     except ValueError:
                         messages.error(request, 'Server error. Please contact to administrator!')
 
+            
+            ItemAttribute.objects.exclude(id__in=atributtesIds).delete()
 
             ################################### Se recorren los materiales ###################################
 
@@ -3411,10 +3494,10 @@ def updateStatus(request):
 
         description = "Change to status:" + workOrder.state.name
 
-        Event.objects.create(   type_event_id = 6,                                        
-                                workorder=workOrder, 
-                                description = description,
-                                user=request.user.id)
+        # Event.objects.create(   type_event_id = 6,                                        
+        #                         workorder=workOrder, 
+        #                         description = description,
+        #                         user=request.user.id)
 
         
         status = 1
@@ -3437,6 +3520,8 @@ def modalComment(workOrderId, itemId, commentId):
     itemsHTML = ''    
     itemTxt = ''    
     fecha_fin = ''
+
+    modalSubTitle = workorder.state.modalSubTitle
 
     item = None    
     files = None
@@ -3470,11 +3555,24 @@ def modalComment(workOrderId, itemId, commentId):
                 
             
     #itemsHTML += '<div class="d-flex justify-content-start flex-shrink-0">'
+
+    # itemsHTML += '<div class="modal-header">'
+    # itemsHTML += '<h2>Title</h2>'
+    # itemsHTML += '<div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">'
+    # itemsHTML += '<span class="svg-icon svg-icon-1">'
+    # itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    # itemsHTML += '<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />'
+    # itemsHTML += '<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />'
+    # itemsHTML += '</svg>'
+    # itemsHTML += '</span>'
+    # itemsHTML += '</div>'
+    # itemsHTML += '</div>'
+    
     itemsHTML += '<div class="col-xl-12 fv-row text-start">'      
     itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
     
     
-    itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">Notes:</div>'
+    itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + modalSubTitle + '</div>'
     itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(itemTxt) + '</textarea><br/>'
         
     if files:        

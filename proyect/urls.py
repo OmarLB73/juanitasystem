@@ -20,6 +20,9 @@ urlpatterns = [
     path('getDataMaterial/', views.getDataMaterial, name='getDataMaterial_url'),
     path('getDataItem/', views.getDataItem, name='getDataItem_url'),
     path('getDataWO/', views.getDataWO, name='getDataWO_url'),
+    path('getStateValidate/', views.getStateValidate, name='getStateValidate_url'),
+
+
 
     path('selectAscociate/', views.selectAscociate, name='getSelectAscociate_url'),
     path('selectSubcategory/', views.selectSubcategory, name='getSelectSubcategory_url'),
