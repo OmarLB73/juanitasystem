@@ -679,32 +679,40 @@
 									<!--begin::Modal content-->
 									<div class="modal-content">
 										<!--begin::Modal header-->
-										<div class="modal-header border-0 justify-content-end">
-											<!--begin::Edit-->
-											<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete" id="modalCommentDelete">
-												<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-												<span class="svg-icon svg-icon-2">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-														<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
-														<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
-														<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
-													</svg>
-												</span>
-												<!--end::Svg Icon-->
+										<!-- <div class="modal-header border-0 justify-content-end"> -->
+										<div class="modal-header d-flex justify-content-between align-items-center p-5">
+
+											<h4 id="h2Title" class="mb-0">Comment</h4>
+
+											<div class="d-flex gap-2">
+												<!--begin::Edit-->
+												<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete" id="modalCommentDelete">
+													<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+													<span class="svg-icon svg-icon-2">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+															<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+															<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+															<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+														</svg>
+													</span>
+													<!--end::Svg Icon-->
+												</div>
+												<!--end::Edit-->
+												<!--begin::Close-->
+												<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+													<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+													<span class="svg-icon svg-icon-1">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+															<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+															<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+														</svg>
+													</span>
+													<!--end::Svg Icon-->
+												</div>
+												<!--end::Close-->
+
 											</div>
-											<!--end::Edit-->
-											<!--begin::Close-->
-											<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
-												<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
-												<span class="svg-icon svg-icon-1">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-														<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
-														<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
-													</svg>
-												</span>
-												<!--end::Svg Icon-->
-											</div>
-											<!--end::Close-->
+										
 										</div>
 										<!--end::Modal header-->
 										<!--begin::Modal body-->
@@ -725,7 +733,7 @@
 								</div>
 							</div>
 
-							<!--begin::Modal Comment-->							
+							<!--begin::Modal WO Comment-->							
 							<div class="modal fade" id="modalWO" tabindex="-1" aria-hidden="true"> <!-- aria-hidden="true" -->
 								<!--begin::Modal dialog-->
 								<div class="modal-dialog modal-dialog-centered mw-1000px">
@@ -1383,18 +1391,16 @@
 			}
 
 
-			function state(w,e){
-
-				var state = document.querySelector('#stateAfter').value;
-				var cant = validateState(w,e).c;
-				var txt = validateState(w,e).m;
+			async function state(w,e){
 				
-				if(cant > 0){
+				const [s, txt]  = await validateState(w);
+				
+				if(s == '1' && txt != ''){
 
 					//var state = "next";
 					Swal.fire({
-						title: 'Are you sure?',
-						text: 'Do you want to advance to "' + state + '" status?',
+						title: 'Alert!',
+						text: txt,
 						icon: 'warning',
 						showCancelButton: true,  // Muestra el botón de cancelación
 						confirmButtonText: 'Yes',
@@ -1542,6 +1548,7 @@
 			function loadModal(w, t, i,c){
 
 				$('#saveModal').html('');
+				$('#h2Title').html('');
 
 				$.ajax({
 					url: "{% url 'getDataModal_url' %}",  // La URL que manejará la consulta AJAX
@@ -1554,6 +1561,7 @@
 					},		
 					success: function(response) {
 						$('#saveModal').html(response.result);
+						$('#h2Title').html(response.title);
 						initializeFlatpickr();
 						initializeCheckAllDay();
 						// pickeColorReload();
@@ -2064,145 +2072,22 @@
 			}
 
 			
-			function validateState(w,e){
-
-				c = 0;		
-				m = '';						
-				if (e == 1) {
-					c = $('.itemCount_' + w).length;
-					m = 'You must add items.';
-				}
-
-				if (e == 2) {										
-					$('.itemCount_' + w).each(function() {
-						if ($(this).find('.state_2').length > 0) {
-							c++;
-						}
+			async function validateState(w) {
+				
+				try {
+					const response = await $.ajax({
+					url: "{% url 'getStateValidate_url' %}",
+					method: 'POST',
+					data: { w: w },
+					beforeSend: function(xhr, settings) {
+						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+					}
 					});
-					
-					if ($('.itemCount_' + w).length != c){
-						c = 0;
-					}
-					
-					if (c == 0){
-						c = $('.state_G_2_' + w).length;
-					}
-
-					m = 'You must enter quotes for each item.';
+					return [response.result1, response.result2];
+				} catch (error) {
+					console.error('AJAX error:', error);
+					return ['', 'Error server!']; // retornar dos valores vacíos en caso de error
 				}
-
-				if (e == 3) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	if ($(this).find('.approve:checked').length > 0) {
-					// 		c++;
-					// 	}
-					// });
-					
-					// if ($('.itemCount_' + w).length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must approve the quote for each item.';
-					c = 1
-				}
-
-				if (e == 4) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-				}
-
-				if (e == 5) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-					
-				}
-
-				if (e == 6) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-					
-				}
-
-				if (e == 7) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-					
-				}
-
-				if (e == 8) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-					
-				}
-
-				if (e == 9) {										
-					// $('.itemCount_' + w).each(function() {
-					// 	$(this).find('input.materialOK:checked').each(function() {
-					// 		c++;
-					// 	});
-					// });
-					
-					// if ($('.materialOK').length != c){
-					// 	c = 0;
-					// }
-
-					// m = 'You must check all the materials.';
-					c = 1
-					
-				}
-
-
-				return {c, m}
 			}
 			
 
