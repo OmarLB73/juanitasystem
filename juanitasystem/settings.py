@@ -147,7 +147,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ########## DESPLIEGUE ##########
 
-# SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true" # SECURITY WARNING: don't run with debug turned on in production!
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
@@ -165,6 +165,3 @@ database_url = os.environ.get("DATABASES_URL")
 DATABASES['default'] = dj_database_url.parse(database_url) 
 
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-
-
-
