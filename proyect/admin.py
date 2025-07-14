@@ -291,14 +291,14 @@ class UIElementAdmin(admin.ModelAdmin):
 
 
 class WorkOrderAdmin(admin.ModelAdmin):
-    list_display = ['proyect_address','state_name','status','modification_by_user_text','modification_date']
+    list_display = ['proyect_address','code','state_name','status','modification_by_user_text','modification_date']
     fields = ['proyect','state','status']
     #ordering = ['proyect_address','state__name']
-    search_fields = ['proyect_address', 'state_name']
+    search_fields = ['proyect_address','code','state_name']
 
     def proyect_address(self, obj):
         return obj.proyect.customer.address
-    proyect_address.admin_order_field = 'proyect__address'
+    proyect_address.admin_order_field = 'proyect__customer__address'
 
     def state_name(self, obj):
         return obj.state.name

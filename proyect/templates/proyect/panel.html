@@ -358,7 +358,14 @@
 																		<td class="text-start text fs-8">{{ proyect.customerName }}</td>
 																		
 																		<td class="text-start text fs-8">{{ proyect.creationDate }}</td>
-																		<td class="text-center text fs-8">{{ proyect.difference }}</td>
+																		
+																		<td class="text-center text fs-8">
+																			{% if proyect.difference != -1 %}
+																				{{ proyect.difference }}
+																			{% else %}0
+																			{% endif %}
+																		</td>
+																		
 																		<td class="text-start text fs-8">{{ proyect.categories }}</td>
 																		<td class="text-start text fs-8">{{ proyect.qty_items }}</td>
 																		<td class="text-start fs-8">
@@ -978,7 +985,8 @@
 		<div class="popover-body">
 			<div class="fw-bolder mb-2"><span id="tooltipTitle"></span></div>
 			<div class="fs-7"><span class="fw-bold">Date: </span><span id="tooltipDate"></span></div>
-			<div id="tooltipCustomer" class="fs-7 mb-4"><span class="fw-bold">Customer: </span> <span id="tooltipDescription"></span></div>			
+			<div id="tooltipResponsible" class="fs-7 mb-0"><span class="fw-bold">Responsible: </span><span id="tooltipDescriptionResponsible"></span></div>
+			<div id="tooltipCustomer" class="fs-7 mb-4"><span class="fw-bold">Customer: </span> <span id="tooltipDescriptionCustomer"></span></div>
 		</div>
 	</div>
 
@@ -1281,17 +1289,23 @@
 					// Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
 					eventDidMount: function(info) {
 						// Detectar el mouseover y mouseout
-						var eventEl = info.el; // El elemento DOM del evento
+						var eventEl = info.el; // El elemento DOM del evento						
 
 						// Mostrar el tooltip cuando el ratón pasa sobre el evento
 						eventEl.addEventListener('mouseenter', function(jsEvent) {
 							var tooltip = document.getElementById('tooltip');
 							tooltip.style.display = 'block';
+
+							document.getElementById('tooltipCustomer').style.display = '';
+							document.getElementById('tooltipResponsible').style.display = '';
+
 							document.getElementById('tooltipTitle').textContent = info.event.title;
-							document.getElementById('tooltipDescription').textContent = info.event.extendedProps.description;
+							document.getElementById('tooltipDescriptionResponsible').textContent = info.event.extendedProps.descriptionB;
+							document.getElementById('tooltipDescriptionCustomer').textContent = info.event.extendedProps.descriptionA;
 
 							if (info.event.extendedProps.m == 2){
-								document.getElementById('tooltipCustomer').style.display = 'none';								
+								document.getElementById('tooltipCustomer').style.display = 'none';
+								document.getElementById('tooltipResponsible').style.display = 'none';
 							}
 
 							var eventDate = info.event.start;
@@ -1347,7 +1361,8 @@
 								title: agendy.title,
 								start: agendy.start,
 								end: agendy.end,
-								description: agendy.description,
+								descriptionA: agendy.descriptionA,
+								descriptionB: agendy.descriptionB,
 								color: agendy.color,
 								allDay: agendy.allDay,								
 								//display: 'block',
@@ -1493,73 +1508,73 @@
 		function saveCalendar(w,i,t){
 
 			var formData = new FormData();  // Creamos un objeto FormData vacío
-				formData.append('id1', w);
-				formData.append('id2', i);
-				formData.append('id3', t);
-
-				var rows = document.querySelectorAll("#tableComments tbody tr");                                                                                                                    
-				
-				// Recorrer todas las filas
-				for (var y = 0; y < rows.length; y++) {
-					var fileInput = rows[y].querySelector('input[type="file"]');
-					var hiddenInput = rows[y].querySelector('input[type="hidden"]');
-
-					hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;
-					i = t > 0 ? t : 0;
-					
-				}
-
-
-				// Serializamos los datos del formulario (excepto los archivos)
-				var serializedData = $('#formItem_' + String(i)).serialize();
-							
-				// Convertimos los datos serializados en un objeto y lo agregamos al FormData
-				var params = serializedData.split('&');
-				params.forEach(function(param) {
-					var keyValue = param.split('=');
-					var key = decodeURIComponent(keyValue[0]);
-					var value = decodeURIComponent(keyValue[1] || '');
-					formData.append(key, value);
-				});
-
-				// Seleccionamos todos los inputs de tipo file				
-				$('input[type="file"]').each(function() {
-					var input = $(this)[0]; // Obtener el campo de archivo actual
-					var inputName = input.name; // Obtenemos el nombre del campo (images1, images2, images3, etc.)
-
-					// Verificamos si hay archivos seleccionados
-					if (input.files.length > 0) {
-						// Iteramos sobre los archivos seleccionados
-						for (var i = 0; i < input.files.length; i++) {
-							// Agregamos el archivo al FormData usando el nombre del input como clave
-							formData.append(inputName, input.files[i]);
-						}
-					}
-				});			
-				
-
-				$.ajax({
-					type: "POST",
-					url: "{% url 'saveCalendar_url' %}",  // Reemplaza con la URL de tu vista
-					data: formData,
-					processData: false,  // Esto es importante para enviar archivos correctamente
-					contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-					beforeSend: function(xhr, settings) {
-						// Añadir el token CSRF en las cabeceras
-						xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-					},
-					success: function(response) {
-						if(response.result = "OK"){								
-							loadCalendar();
-							$('#modal_CalendarA').modal('hide');
-							$('#modal_CalendarB').modal('hide');
-						}						
-					},
-					error: function() {
-						console.error("Error server: " + error, event.error);
-					}
-				});
 			
+			formData.append('id1', w);
+			formData.append('id2', i);
+			formData.append('id3', t);
+
+			var rows = document.querySelectorAll("#tableComments tbody tr");
+
+			// Recorrer todas las filas
+			for (var y = 0; y < rows.length; y++) {
+				var fileInput = rows[y].querySelector('input[type="file"]');
+				var hiddenInput = rows[y].querySelector('input[type="hidden"]');
+
+				hiddenInput.value = fileInput.files.length > 0 ? 1 : 0;		
+
+			}		
+
+
+			// Serializamos los datos del formulario (excepto los archivos)
+			var serializedData = $('#formItem_' + String(i)).serialize();		
+				
+			// Convertimos los datos serializados en un objeto y lo agregamos al FormData
+			var params = serializedData.split('&');
+			params.forEach(function(param) {
+				var keyValue = param.split('=');
+				var key = decodeURIComponent(keyValue[0]);
+				var value = decodeURIComponent(keyValue[1] || '');
+				formData.append(key, value);
+			});
+			
+			// Seleccionamos todos los inputs de tipo file
+			$('input[type="file"]').each(function() {
+				var input = $(this)[0]; // Obtener el campo de archivo actual
+				var inputName = input.name; // Obtenemos el nombre del campo (images1, images2, images3, etc.)
+
+				// Verificamos si hay archivos seleccionados
+				if (input.files.length > 0) {
+					// Iteramos sobre los archivos seleccionados
+					for (var i = 0; i < input.files.length; i++) {
+						// Agregamos el archivo al FormData usando el nombre del input como clave
+						formData.append(inputName, input.files[i]);
+					}
+				}
+			});			
+
+			
+			$.ajax({
+				type: "POST",
+				url: "{% url 'saveCalendar_url' %}",  // Reemplaza con la URL de tu vista
+				data: formData,
+				processData: false,  // Esto es importante para enviar archivos correctamente
+				contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+				beforeSend: function(xhr, settings) {
+					// Añadir el token CSRF en las cabeceras
+					xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+				},
+				success: function(response) {
+					if(response.result = "OK"){								
+						loadCalendar();
+						$('#modal_CalendarA').modal('hide');
+						$('#modal_CalendarB').modal('hide');
+					}						
+				},
+				error: function() {
+					console.error("Error server: " + error, event.error);
+				}
+			});
+
 		}
 		
 

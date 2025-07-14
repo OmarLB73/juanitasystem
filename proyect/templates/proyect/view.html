@@ -986,89 +986,7 @@
 				$('#selectSubcategory').change(function() {
 					loadGroup(0);
 				});
-
-
-				document.querySelectorAll('.formQuote').forEach(form => {
-
-					form.addEventListener('submit', function(e) {
-						e.preventDefault(); // Evita el envío tradicional
-						const formData = new FormData(form);
-						
-						$.ajax({
-						  type: "POST",
-						  url: "{% url 'saveQuote_url' %}",  // Reemplaza con la URL de tu vista
-						  data: formData,
-						  processData: false,  // Esto es importante para enviar archivos correctamente
-						  contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-						  beforeSend: function(xhr, settings) {
-							  // Añadir el token CSRF en las cabeceras
-							  xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-						  },
-						  success: function(response) {
-							  if(response.result = "OK"){
-
-								toastr.options = {
-									"closeButton": true,
-									"progressBar": true,
-									"positionClass": "toast-top-right",
-									"timeOut": "3000"
-								};
-
-								toastr.success("Data saved successfully!");
-							  }						
-						  },
-						  error: function() {
-							  console.error("Error server: " + error, event.error);
-						  }
-					  });
-					  
-					});
-
-				});
-
-
-				document.querySelectorAll('.formMaterial').forEach(form => {
-
-					form.addEventListener('submit', function(e) {
-						e.preventDefault(); // Evita el envío tradicional
-						const formData = new FormData(form);
-						
-						$.ajax({
-						  type: "POST",
-						  url: "{% url 'saveMaterial_url' %}",  // Reemplaza con la URL de tu vista
-						  data: formData,
-						  processData: false,  // Esto es importante para enviar archivos correctamente
-						  contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
-						  beforeSend: function(xhr, settings) {
-							  // Añadir el token CSRF en las cabeceras
-							  xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-						  },
-						  success: function(response) {
-							  if(response.result = "OK"){
-
-								toastr.options = {
-									"closeButton": true,
-									"progressBar": true,
-									"positionClass": "toast-top-right",
-									"timeOut": "3000"
-								};
-
-								toastr.success("Data saved successfully!");
-							  }						
-						  },
-						  error: function() {
-							  console.error("Error server: " + error, event.error);
-						  }
-					  });
-					  
-					});
-
-				});
-
-				
-
-
-				
+												
 
 			});
 
@@ -1255,7 +1173,7 @@
 				var selectValue = $("#p_id").val();
 				var selectValue2 = $("#stateId").val();		
 								
-				if(selectValue != "") {				
+				if(selectValue != "") {
 
 					$.ajax({
 						url: "{% url 'getSelectWOs_url' %}",  // La URL que manejará la consulta AJAX
@@ -1276,6 +1194,8 @@
 							$('html, body').animate({ scrollTop: 0 }, 'fast');
 							cleanItemForm();
 							showImgs();
+							saveMaterial();
+							initializeFlatpickr();
 						},
 						error: function(xhr, status, error) {
 							console.error("Error server: " + error, event.error);
@@ -1828,6 +1748,13 @@
 					allowInput: true, 
 				});
 
+				// Aplicar flatpickr a los inputs con la clase 'date-picker'
+				$(".receivedDate").flatpickr({
+					enableTime: false,
+					dateFormat: "m/d/Y",
+					allowInput: true, 
+				});
+
 				$(".hour-picker").flatpickr({
 					enableTime: true,
 					noCalendar: true,
@@ -2357,6 +2284,47 @@
 			}
 
 
+			function saveMaterial(){
+
+				document.querySelectorAll('.formMaterial').forEach(form => {
+
+					form.addEventListener('submit', function(e) {
+						e.preventDefault(); // Evita el envío tradicional
+						const formData = new FormData(form);
+						
+						$.ajax({
+						  type: "POST",
+						  url: "{% url 'saveMaterial_url' %}",  // Reemplaza con la URL de tu vista
+						  data: formData,
+						  processData: false,  // Esto es importante para enviar archivos correctamente
+						  contentType: false,  // Evitar que jQuery configure el tipo de contenido automáticamente
+						  beforeSend: function(xhr, settings) {
+							  // Añadir el token CSRF en las cabeceras
+							  xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						  },
+						  success: function(response) {
+							  if(response.result = "OK"){
+
+								toastr.options = {
+									"closeButton": true,
+									"progressBar": true,
+									"positionClass": "toast-top-right",
+									"timeOut": "3000"
+								};
+
+								toastr.success("Data saved successfully!");
+							  }						
+						  },
+						  error: function() {
+							  console.error("Error server: " + error, event.error);
+						  }
+					  });
+					  
+					});
+
+				});
+
+			}
 
 
 			// function app(t,i){
