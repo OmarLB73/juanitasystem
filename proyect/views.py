@@ -53,14 +53,14 @@ def panel_view(request):
 
         if date_from != '':
             try:
-                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')  # Convierte el string a datetime
+                date_from_obj = datetime.strptime(date_from, '%m/%d/%Y')  # Convierte el string a datetime
                 condiciones &= Q(creation_date__gte=date_from_obj)  # Fecha mayor o igual
             except ValueError:
                 pass  # Si hay un error de formato, no se aplica la condición
 
         if date_until != '':            
             try:
-                date_until_obj = datetime.strptime(date_until, '%Y-%m-%d')  # Convierte el string a datetime
+                date_until_obj = datetime.strptime(date_until, '%m/%d/%Y')  # Convierte el string a datetime
                 # Concatenamos las horas para asegurarnos de que sea hasta el final del día
                 date_until_end = datetime.combine(date_until_obj, datetime.max.time())  # Al final del día
                 condiciones &= Q(creation_date__lte=date_until_end)  # Fecha menor o igual
@@ -472,6 +472,7 @@ def getDataCalendar(request):
         fecha_fin = ''
         allDay = False
         color = ''
+        responsible = ''
 
         if calendar.date_start:
 
@@ -494,13 +495,19 @@ def getDataCalendar(request):
             if calendar.responsible:
                 color = calendar.responsible.color
 
+                if calendar.responsible.name:
+                    responsible = calendar.responsible.name
+
+        
+
             events.append({
                 'id': calendar.id,
                 'title': calendar.item.workorder.proyect.customer.address,
                 'start': fecha_inicio,
                 'end': fecha_fin,
                 'allDay': allDay,
-                'description': calendar.item.workorder.proyect.customer.name,
+                'descriptionA': calendar.item.workorder.proyect.customer.name,
+                'descriptionB': responsible,
                 'color': color,
                 'p': str(calendar.item.workorder.proyect.id),
                 'w': str(calendar.item.workorder.id),
@@ -537,6 +544,9 @@ def getDataCalendar(request):
 
             if calendar.responsible:
                 color = calendar.responsible.color
+                
+                if calendar.responsible.name:
+                    responsible = calendar.responsible.name
                     
             events.append({
                 'id': calendar.id,
@@ -544,8 +554,9 @@ def getDataCalendar(request):
                 'title': calendar.workorder.proyect.customer.address,
                 'start': fecha_inicio,
                 'end': fecha_fin,
-                'allDay': allDay,
-                'description': calendar.workorder.proyect.customer.name,
+                'allDay': allDay,                
+                'descriptionA': calendar.workorder.proyect.customer.name,
+                'descriptionB': responsible,
                 'color': color,          
                 'p': str(calendar.workorder.proyect.id),
                 'w': str(calendar.workorder.id),
@@ -927,7 +938,7 @@ def getDataWO(request):
     return JsonResponse({'result': woHTML})
 
 
-
+#Funcion para validar el avance entre los estados. Se gestionan los mensajes positivos y negativos
 @login_required
 def getStateValidate(request):
     
@@ -938,7 +949,7 @@ def getStateValidate(request):
     try:    
 
         wo = WorkOrder.objects.filter(id=workOrderId).first()
-        items = Item.objects.filter(workorder=wo).count()
+        items = Item.objects.filter(workorder=wo)
 
         itemsC = Item.objects.filter(workorder=wo, itemcommentstate__state_id=wo.state.id).distinct().count()
         itemsG = WorkOrder.objects.filter(workordercommentstate__state_id=wo.state.id).distinct().count()
@@ -980,7 +991,7 @@ def getStateValidate(request):
 
         if wo.state.id in (2,3,5,6,7,8,9,10):
 
-            if items == itemsC or itemsG > 0:
+            if len(items) == itemsC or itemsG > 0:
                 message = wo.state.positiveMessage
                 status = 1
             else:
@@ -988,7 +999,7 @@ def getStateValidate(request):
 
           
     except:
-        message = ''
+        message = 'Server error. Please contact to administrator!'
         status = 0
     
     # Devolvemos la lista de proyectos como respuesta JSON
@@ -2498,9 +2509,7 @@ def saveItem(request):
                 if key.startswith(prefijo):
                     try:
 
-                        attribute_id = int(key[len(prefijo):])                        
-                        atributtesIds.append(attribute_id)
-
+                        attribute_id = int(key[len(prefijo):])                                                
                         attribute = Attribute.objects.get(id=attribute_id)
 
                         item_atributte = ItemAttribute.objects.filter(item = item, attribute = attribute).first()
@@ -2510,15 +2519,13 @@ def saveItem(request):
                             item_atributte.notes = value
 
                             if value.strip() != '':
-                                item_atributte.save()
-                            else:
-                                item_atributte.delete()
-                        
+                                atributtesIds.append(attribute_id) # Se considera solo si tiene valor
+                                item_atributte.save()                                                    
                         else:
 
                             if value.strip() != '':
-
-                                item_atributte = ItemAttribute.objects.create(   item = Item.objects.get(id=item_id),
+                                atributtesIds.append(attribute_id) # Se considera solo si tiene valor
+                                item_atributte = ItemAttribute.objects.create(   item = item,
                                                                                 attribute = attribute,
                                                                                 notes = value)
 
@@ -2530,6 +2537,8 @@ def saveItem(request):
                             for option in options:
                                 
                                 if option != '':
+
+                                    atributtesIds.append(attribute_id) # Se considera solo si tiene valor
                                                                         
                                     item_atributte_option = ItemAttributeNote.objects.filter(itemattribute = item_atributte, attributeoption = AttributeOption.objects.get(id= option)).first()
 
@@ -2544,7 +2553,7 @@ def saveItem(request):
                         messages.error(request, 'Server error. Please contact to administrator!')
 
             
-            ItemAttribute.objects.exclude(id__in=atributtesIds).delete()
+            ItemAttribute.objects.filter(item=item).exclude(attribute__in=Attribute.objects.filter(id__in=atributtesIds)).delete() # Debe filtrar por el item!!! y luego excluir
 
             ################################### Se recorren los materiales ###################################
 
@@ -3614,7 +3623,7 @@ def modalCalendar(request, workOrderId, itemId, id):
     
     workorder = WorkOrder.objects.filter(id=workOrderId).first()
     item = Item.objects.filter(id=itemId).first()
-    itemsHTML = '<div class="col-xl-12 fv-row text-start">'
+    itemsHTML = '<div class="col-xl-12 fv-row text-start"><br/>'
 
     responsibleId = 0
     fecha_inicio = ''
@@ -3654,7 +3663,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<b style="margin-left:-10px">Item:</b>'
         itemsHTML += '<div class="row">'
 
-        if allDay:
+        if allDay and workorder.state.id > 5:
             itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
         else:
             itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="0%"></th></tr></thead><tbody>'
@@ -3667,7 +3676,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '</select>'
         itemsHTML += '</td><td>'
         
-        if not allDay:
+        if not allDay and workorder.state.id > 5:
             itemsHTML += '<table><tr><td>'
         
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
@@ -3709,7 +3718,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += htmlDivCommentCalendar()
 
-        itemsHTML += '<br/>'
+        #itemsHTML += '<br/>'
 
         itemsHTML += htmlDataCommentCalendar(request, workorder, item, None, 1)
 
@@ -4138,10 +4147,10 @@ def getResumenWOs(proyect):
 
         for state in states:
 
-            html += '<th>Fecha'        
+            html += '<th>'        
             html += '</th>'
 
-            html += '<th> 1'        
+            html += '<th>'        
             html += '</th>'
 
         html += '</tr>'
@@ -4267,8 +4276,8 @@ def htmlSpanCalendar():
 
 def htmlDivCommentCalendar():
     html = '<div id="divComments">'
-    html += '<a href="javascript:void(0);" id="addComment">Add comment (+)</a>'
-    html += '<table id="tableComments" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4" style="display:none">'
+    #html += '<a href="javascript:void(0);" id="addComment">Add comment (+)</a>'
+    html += '<table id="tableComments" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">' # Estaba en style="display:none"
     html += '<thead class="fw-bolder text-muted">'
     html += '<tr>'
     html += '<th class="align-top" width="50%">Comment</th>'    
@@ -4277,7 +4286,7 @@ def htmlDivCommentCalendar():
     html += '</tr>'
     html += '</thead>'
     html += '<tbody>'
-    html += '<tr class="baseRowComment" style="display:none">'
+    html += '<tr class="baseRowComment">' # Estaba en style="display:none"
     html += '<td valign="top"><textarea name="comment[]" class="form-control form-control-solid h-80px textareaComment" maxlength="2000"></textarea></td>'
     html += '<td valign="top" class="text-center"><input type="file" name="commentFile[]" class="form-control form-control"><input type="hidden" name="commentFileOk[]"></td>'
     html += '<td valign="top" class="text-center">'
