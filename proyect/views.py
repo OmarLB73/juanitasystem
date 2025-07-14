@@ -31,6 +31,12 @@ import ast #Usado para pasar una lista string a lista de verdad
 @login_required
 def panel_view(request):
 
+    if request.path == '/proyect/calendar/':        
+        mode = 'Calendar'
+    else:
+        # lógica general para panel
+        mode = 'Panel'
+
     #Consulta los proyectos/tipos/estados desde la base de datos    
     types = Type.objects.filter(status=1).order_by('id')
     states = State.objects.filter(status=1).order_by('id')
@@ -42,6 +48,7 @@ def panel_view(request):
     date_from = ''
     date_until = ''    
     condiciones = Q()
+    proyects_data = []
 
     if request.method == 'POST':       
 
@@ -77,7 +84,8 @@ def panel_view(request):
             condiciones &= Q(decoratorProyects__id = decorator_id) ##igual a fk            
 
 
-    proyects_data = getDataProyect(condiciones)
+    if mode == 'Panel':
+        proyects_data = getDataProyect(condiciones)
 
     uielement = UIElement.objects.all()
     # Crear un diccionario de claves y valores con la key y el label_text
@@ -92,7 +100,8 @@ def panel_view(request):
                                                   'types': types,
                                                   'states': states,
                                                   'decorators': decorators,
-                                                  'labels': labels})    
+                                                  'labels': labels,
+                                                  'mode': mode})    
 
 
 @login_required

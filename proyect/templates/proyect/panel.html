@@ -109,6 +109,9 @@
 						<div id="kt_content_container" class="container-xxl">
 
 							<!--begin::Row-->
+
+							{% if mode == 'Panel' %}
+
 							<div class="row gy-5 g-xl-8">
 
 								<!--begin::Col-->
@@ -427,7 +430,7 @@
 
 							</div>
 							<!--end::Row-->
-
+							{% endif %}
 
 							<!--begin::Row (Calendario)-->
 							<div class="row gy-5 g-xl-8">
@@ -1527,7 +1530,7 @@
 
 			// Serializamos los datos del formulario (excepto los archivos)
 			var serializedData = $('#formItem_' + String(i)).serialize();		
-				
+
 			// Convertimos los datos serializados en un objeto y lo agregamos al FormData
 			var params = serializedData.split('&');
 			params.forEach(function(param) {
