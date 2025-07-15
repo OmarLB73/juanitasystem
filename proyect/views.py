@@ -37,6 +37,12 @@ def panel_view(request):
         # lógica general para panel
         mode = 'Panel'
 
+
+    try:            
+        del request.session['stateId']
+    except:
+        None
+
     #Consulta los proyectos/tipos/estados desde la base de datos    
     types = Type.objects.filter(status=1).order_by('id')
     states = State.objects.filter(status=1).order_by('id')
@@ -291,7 +297,7 @@ def proyect_view(request, proyect_id):
     if request.session.get('stateId'):
         try:
             stateId = int(request.session['stateId'])
-            del request.session['stateId']
+            # del request.session['stateId']
         except:
             None
 
