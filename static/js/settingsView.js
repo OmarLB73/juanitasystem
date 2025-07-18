@@ -10,10 +10,10 @@ var KTProjectSettings = {
                 fields: {
                     category: { validators: { notEmpty: { message: " " } } },
                     subcategory: { validators: { notEmpty: { message: " " } } },
-                    //group: { validators: { notEmpty: { message: " " } } },
-                    place: { validators: { notEmpty: { message: " " } } },
-                    qty: { validators: { notEmpty: { message: " " } } },
-                    date_proposed: { validators: { notEmpty: { message: " " } } },
+                    ////group: { validators: { notEmpty: { message: " " } } },
+                    //place: { validators: { notEmpty: { message: " " } } },
+                    //qty: { validators: { notEmpty: { message: " " } } },
+                    //date_proposed: { validators: { notEmpty: { message: " " } } },
                 },
                 plugins: {
                     trigger: new FormValidation.plugins.Trigger,
