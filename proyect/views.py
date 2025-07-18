@@ -38,8 +38,9 @@ def panel_view(request):
         mode = 'Panel'
 
 
-    try:            
-        del request.session['stateId']
+    try: 
+        if 'stateId' in request.session:
+            del request.session['stateId']
     except:
         None
 
@@ -4143,7 +4144,7 @@ def getResumenWOs(proyect):
     wos = WorkOrder.objects.filter(proyect = proyect, status=1)
     states = State.objects.filter(status = 1).order_by('id')
 
-    html = '<table><thead><tr><th width="100px"></th>'
+    html = '<div class="table-responsive"><table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3"><thead><tr><th width="100px"></th>'
 
     for state in states:
 
@@ -4156,8 +4157,8 @@ def getResumenWOs(proyect):
 
     for wo in wos:
 
-        html += '<tr><th class="fs-30">'
-        html +=  'Work order ' + wo.code
+        html += '<tr><th class="fs-20 fw-bold">'
+        html +=  'WO ' + wo.code
         html += '</th>'
 
         for state in states:
@@ -4171,7 +4172,7 @@ def getResumenWOs(proyect):
         html += '</tr>'
 
 
-    html += '</table>'
+    html += '</table></div>'
 
     return html
 
