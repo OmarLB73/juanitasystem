@@ -23,12 +23,9 @@ YESNO = [
 
 EVENTOS = [
         (0, 'Other'),
-        (1, 'Create event'),
-        (2, 'Comment'),
-        (3, 'Create item'),
-        (4, 'Delete item'),
-        (5, 'Upload file/comment'),        
-        (6, 'Change state'),
+        (1, 'Create'),
+        (2, 'Update'),
+        (3, 'Delete'),
     ]
 
 
@@ -250,16 +247,7 @@ class ProyectDecorator(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.email}'
-    
-
-class Event(models.Model):
-    id = models.AutoField(primary_key=True)
-    type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
-    workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE, null=True)
-    description = models.CharField(max_length=2000, null=True)    
-    user  = models.IntegerField(null=True, blank=True)
-    creation_date = models.DateTimeField(auto_now_add=True, null=True)
-
+ 
 
 class Place(models.Model):
     id = models.AutoField(primary_key=True)
@@ -326,7 +314,7 @@ class Item(models.Model):
     code = models.CharField(max_length=50, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True)
-    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, null=True, blank=True)
     qty = models.CharField(blank=True, null=True, max_length=100)
     notes = models.TextField(blank=True, null=True, max_length=2000)
     quote = models.TextField(blank=True, null=True, max_length=2000)
@@ -368,6 +356,18 @@ class ItemAttributeNote(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class Event(models.Model):
+    id = models.AutoField(primary_key=True)
+    type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
+    workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE, null=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, null=True)
+    description = models.CharField(max_length=2000, null=True)    
+    user  = models.IntegerField(null=True, blank=True)
+    creation_date = models.DateTimeField(auto_now_add=True, null=True)
+
 
 #################################################################################################################################
 ###################################################### Archivos #################################################################

@@ -887,6 +887,17 @@ def getDataItem(request):
     if item.group:
         groupId = item.group.id
 
+    
+    place = ''
+    if item.place:
+        place = item.place.name
+
+    
+    date_proposed = ''
+    if item.date_proposed:
+        if item.date_proposed != '':
+            date_proposed = item.date_proposed.strftime("%m/%d/%Y")
+
     response_data = {}    
 
     if item:
@@ -894,9 +905,9 @@ def getDataItem(request):
             'category': item.subcategory.category.id,
             'subCategory': item.subcategory.id,
             'group': groupId,
-            'place': item.place.id,
+            'place': place,
             'qty': item.qty,
-            'date': item.date_proposed.strftime("%m/%d/%Y"),
+            'date': date_proposed,
             'notes': item.notes,
             'attributes': attributeHTML,
             'materials': materialsHTML,
@@ -1537,13 +1548,17 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 ############################################## Celda (cabecera) ##############################################
                 ##############################################################################################################
 
+                place = ''
+                if item.place:
+                    place = item.place.name
+
 
                 itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
                 itemsHTML += '<table><tbody>'
                 itemsHTML += '<tr><td><b>Category:</b> ' + item.subcategory.category.name + '</td></tr>'
                 itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
                 itemsHTML += '<tr><td><b>Group:</b> ' + group + '</td></tr>'
-                itemsHTML += '<tr><td><b>Place:</b> ' + item.place.name + '</td></tr>'
+                itemsHTML += '<tr><td><b>Place:</b> ' + place + '</td></tr>'
                 itemsHTML += '<tr><td><b>QTY:</b> ' + item.qty + '</td></tr>'
                 itemsHTML += '<tr><td><b>Proposed date:</b> ' + fecha_propuesta + '</td></tr>'
                 itemsHTML += '<tr><td><b>Notes:</b> ' + item.notes + '</td></tr>'
@@ -1614,7 +1629,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 
                 itemsHTML += '<div class="col-xl-5" style="border:1px solid white; border-width:1px;">'
                 itemsHTML += '<h6>Materials:</h6>'
-                itemsHTML += '<form method="POST" class="formMaterial">'
+                itemsHTML += '<form method="POST" class="formMaterial"><div class="table-responsive">'
                 itemsHTML += '<table class="table table-striped" width="100%"><tbody>'
                             
                 materials = ItemMaterial.objects.filter(item = item).order_by('notes')        # Notes es el nombre del archivo.             
@@ -1682,7 +1697,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         itemsHTML += '<tr><td colspan=3></td></tr>'
                         itemsHTML += '<tr><td colspan=3 align="right" class="bg-white"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
 
-                itemsHTML += '</tbody></table></form>'    
+                itemsHTML += '</tbody></table></div></form>'    
 
                 itemsHTML += '</div>'
 
@@ -2171,7 +2186,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
     stateName = ""
 
     if int(itemId) != 0:
-        itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+        itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
         item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
@@ -2182,7 +2197,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
                 itemsHTML += '<h7><b>Comments by item:</b></h7>'
 
     else: 
-        itemsHTML += '<div class="col-xl-12 fv-row text-start">'
+        itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
         itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('-id')
 
         if len(itemCSs) > 0:
@@ -2251,7 +2266,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
              itemsHTML += '<td></td>'
         itemsHTML += '</tr>'
     
-    itemsHTML += '</table></div>'
+    itemsHTML += '</table></div></div>'
 
     return itemsHTML
 
@@ -2463,16 +2478,24 @@ def saveItem(request):
         place_id = request.POST.get('place')
         qty = request.POST.get('qty')
         notes = request.POST.get('notes')
-        date_proposed = request.POST.get('date_proposed')
+        date_proposed = None
 
         # Es necesario dar formato a la fecha
-        date_proposed = datetime.strptime(date_proposed, "%m/%d/%Y")
+        if request.POST.get('date_proposed') != '':
+            date_proposed = request.POST.get('date_proposed')
+            date_proposed = datetime.strptime(date_proposed, "%m/%d/%Y")
 
         group = None
-
         if group_id != '':
             if Group.objects.filter(id=group_id):
                 group = Group.objects.get(id=group_id)
+
+        place = None
+        if place_id != '':
+            if Place.objects.get(id=place_id):
+                place = Place.objects.get(id=place_id)
+                
+
             
         try: 
 
@@ -2483,7 +2506,7 @@ def saveItem(request):
                 
                 item.subcategory = Subcategory.objects.get(id=subcategory_id)
                 item.group = group
-                item.place = Place.objects.get(id=place_id)
+                item.place = place
                 item.qty = qty
                 item.notes = notes
                 item.date_proposed = date_proposed            
@@ -2496,7 +2519,7 @@ def saveItem(request):
                 item = Item.objects.create( workorder = WorkOrder.objects.get(id=workorder_id),                                            
                                             subcategory = Subcategory.objects.get(id=subcategory_id),
                                             group = group,
-                                            place = Place.objects.get(id=place_id),
+                                            place = place,
                                             qty = qty,
                                             notes = notes,
                                             date_proposed = date_proposed,
@@ -3677,7 +3700,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
 
         itemsHTML += '<b style="margin-left:-10px">Item:</b>'
-        itemsHTML += '<div class="row">'
+        itemsHTML += '<div class="row"><div class="table-responsive">'
 
         if allDay and workorder.state.id > 5:
             itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
@@ -3693,7 +3716,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '</td><td>'
         
         if not allDay and workorder.state.id > 5:
-            itemsHTML += '<table><tr><td>'
+            itemsHTML += '<div class="table-responsive"><table><tr><td>'
         
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
             itemsHTML += '</td><td>'
@@ -3714,7 +3737,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                 itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
             
             itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
-            itemsHTML += '</td></tr></table>'
+            itemsHTML += '</td></tr></table></div>'
 
         else:        
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Pick a date" value="' + fecha_inicio + '" style="width: 90px"/> <input name="checkAllDay" type="hidden" value="1">'
@@ -3728,7 +3751,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')        
         itemsHTML += '</td></tr>'
 
-        itemsHTML += '</tbody></table>'
+        itemsHTML += '</tbody></table></div>'
 
         itemsHTML += '<br/>'
 
@@ -3781,7 +3804,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         # Work order
         
         itemsHTML += '<b style="margin-left:-10px">Work Order:</b>'
-        itemsHTML += '<div class="row">' 
+        itemsHTML += '<div class="row"><div class="table-responsive">' 
                         
         itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="5%">N°</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
         
@@ -3795,7 +3818,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         # Date Start - End
         
-        itemsHTML += '<table><tr><td>'
+        itemsHTML += '<div class="table-responsive"><table><tr><td>'
         
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
@@ -3816,14 +3839,14 @@ def modalCalendar(request, workOrderId, itemId, id):
             itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
         
         itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
-        itemsHTML += '</td></tr></table>'
+        itemsHTML += '</td></tr></table></div>'
         
                         
         itemsHTML += '</td><td>'
         itemsHTML += htmlStatusCalendar(status, fecha_fin, calendar, 'statusDate')
         itemsHTML += '</td></tr>'
 
-        itemsHTML += '</tbody></table>'
+        itemsHTML += '</tbody></table></div>'
 
         itemsHTML += '</div>'
 
@@ -3843,7 +3866,7 @@ def modalCalendar(request, workOrderId, itemId, id):
             # Items
             
             itemsHTML += '<b style="margin-left:-10px">Items:</b>'
-            itemsHTML += '<div class="row">'                            
+            itemsHTML += '<div class="row"><div class="table-responsive">'                            
             itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="35%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
 
             itemN = 0
@@ -3890,7 +3913,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                     itemsHTML += '</select>'
                     itemsHTML += '</td><td>'
                     
-                    itemsHTML += '<table><tr><td>'
+                    itemsHTML += '<div class="table-responsive"><table><tr><td>'
         
                     itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemA[]" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
@@ -3911,7 +3934,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                         itemsHTML += '<input class="checkAllDayItem" type="hidden" name="checkAllDayItem[]" value="0"><input class="form-check-input checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
                     
                     itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
-                    itemsHTML += '</td></tr></table>'
+                    itemsHTML += '</td></tr></table></div>'
                     
                     itemsHTML += '</td><td>'
                     itemsHTML += htmlStatusCalendar(status, fecha_fin, calItem, 'statusDate[]')
@@ -3919,7 +3942,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                     itemsHTML += '</td></tr>'
             
             
-            itemsHTML += '</tbody></table>'
+            itemsHTML += '</tbody></table></div>'
 
             itemsHTML += '</div><br/>'
 
@@ -4082,8 +4105,8 @@ def getDecoratorsTable(decorators):
     if len(decorators) > 0:
 
         #decoratorsHTML = '<table class="table table-row-bordered table-flush align-middle gy-6"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
-        decoratorsHTML = '<table class="table table-striped"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
-        decoratorsHTML += '<th title="Field #1">Name</th>'
+        decoratorsHTML = '<div class="table-responsive"><table class="table table-striped"><thead class="border-bottom border-gray-200 fs-7 fw-bolder bg-lighten"><tr class="fw-bolder text-muted">'
+        decoratorsHTML += '<th title="Field #1" class="p-2">Name</th>'
         decoratorsHTML += '<th title="Field #3">Phone</th>'
         decoratorsHTML += '<th title="Field #2">Email</th>'        
         decoratorsHTML += '<th title="Field #4">Address</th>'
@@ -4106,7 +4129,7 @@ def getDecoratorsTable(decorators):
             zipcode = decorator.zipcode if decorator.zipcode  else " "
 
             decoratorsHTML += '<tr>'
-            decoratorsHTML += '<td class="text-start fs-7">' + str(name) + '</td>'
+            decoratorsHTML += '<td class="text-start fs-7 p-2">' + str(name) + '</td>'
             decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(phone) + '</td>'
             decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(email) + '</td>'
             decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(address) + '</td>'
@@ -4116,7 +4139,7 @@ def getDecoratorsTable(decorators):
             decoratorsHTML += '<td class="text-start text-muted fs-7">' + str(zipcode) + '</td>'
             decoratorsHTML += '</tr>'
         
-        decoratorsHTML += '</tbody></table>'
+        decoratorsHTML += '</tbody></table></div>'
 
     return decoratorsHTML
 

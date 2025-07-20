@@ -236,16 +236,25 @@
 												<!--begin::Text-->
 												{% if decoratorsHTML != '' %}
 												<div class="mb-4 text-gray-600 fs-6 ps-10">
-													<div class="d-flex align-items-center flex-wrap justify-content-between">
-														<div class="card-title fs-6 fw-bolder">Decorators:</div>
-														{{ decoratorsHTML|safe }}
-														{% if ascociatesHTML != '' %}
-															<br/>
-															<div class="card-title fs-6 fw-bolder">Ascociates:</div>
-															{{ ascociatesHTML|safe }}
-														{% endif %}
-													</div>
+													Decorators:
 												</div>
+													
+												<div class="mb-4 text-gray-600 fs-6 ps-10">
+													{{ decoratorsHTML|safe }}
+												</div>
+																									
+														{% if ascociatesHTML != '' %}
+
+												<div class="mb-4 text-gray-600 fs-6 ps-10">
+													Ascociates:
+												</div>										
+												
+												<div class="mb-4 text-gray-600 fs-6 ps-10">
+														{{ ascociatesHTML|safe }}												
+												</div>
+												{% endif %}
+													
+												
 												{% endif %}
 
 												<div class="mb-4 text-gray-600 fs-7 ps-10">											
