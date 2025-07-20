@@ -2491,7 +2491,7 @@ def saveItem(request):
                 group = Group.objects.get(id=group_id)
 
         place = None
-        if place and place_id != '0':
+        if place_id and place_id != '0':
             if Place.objects.get(id=place_id):
                 place = Place.objects.get(id=place_id)
                 
