@@ -888,9 +888,9 @@ def getDataItem(request):
         groupId = item.group.id
 
     
-    place = ''
+    placeId = '0'
     if item.place:
-        place = item.place.name
+        placeId = item.place.id
 
     
     date_proposed = ''
@@ -905,7 +905,7 @@ def getDataItem(request):
             'category': item.subcategory.category.id,
             'subCategory': item.subcategory.id,
             'group': groupId,
-            'place': place,
+            'place': placeId,
             'qty': item.qty,
             'date': date_proposed,
             'notes': item.notes,
@@ -2491,7 +2491,7 @@ def saveItem(request):
                 group = Group.objects.get(id=group_id)
 
         place = None
-        if place_id != '':
+        if place and place_id != '0':
             if Place.objects.get(id=place_id):
                 place = Place.objects.get(id=place_id)
                 
