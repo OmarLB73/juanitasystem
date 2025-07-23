@@ -979,7 +979,7 @@ def getStateValidate(request):
         items = Item.objects.filter(workorder=wo)
 
         itemsC = Item.objects.filter(workorder=wo, itemcommentstate__state_id=wo.state.id).distinct().count()
-        itemsG = WorkOrder.objects.filter(workordercommentstate__state_id=wo.state.id).distinct().count()
+        itemsG = WorkOrder.objects.filter(id=wo.id, workordercommentstate__state_id=wo.state.id).distinct().count()
 
 
         if wo.state.id == 1:
@@ -3540,6 +3540,14 @@ def updateStatus(request):
         workOrder.state = State.objects.get(id = (workOrder.state.id + 1))
         workOrder.save()
 
+
+        try: 
+            if 'stateId' in request.session:
+                request.session['stateId'] = workOrder.state.id                
+        except:
+            None
+
+
         description = "Change to status:" + workOrder.state.name
 
         # Event.objects.create(   type_event_id = 6,                                        
@@ -3982,7 +3990,7 @@ def modalCalendar(request, workOrderId, itemId, id):
             if calendar.status:
                 status = calendar.status
 
-        itemsHTML += '<form id="formItem_' + str(id) + '" method="POST" enctype="multipart/form-data">'
+        itemsHTML += '<form id="formTask_' + str(id) + '" method="POST" enctype="multipart/form-data">'
 
 
         itemsHTML += '<div class="row">' 
