@@ -42,7 +42,7 @@
 
 				<!--begin::Content-->
 				<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-					<!--begin::Toolbar-->
+					<!--begin::Toolbar-->					
 					<div class="toolbar" id="kt_toolbar"> <!-- Div fijo-->
 						<!--begin::Container-->
 						<div id="kt_toolbar_container" class="container-xxl d-flex flex-stack">
@@ -51,8 +51,14 @@
 							<div data-kt-swapper="true" data-kt-swapper-mode="prepend"
 								data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
 								class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
-								<!--begin::Title-->
+								<!--begin::Title-->								
+								{% if mode == 'Panel' %}
 								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Panel</h1>
+								{% endif %}
+
+								{% if mode == 'Calendar' %}
+								<h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">Calendar</h1>
+								{% endif %}
 								<!--end::Title-->
 								<!--begin::Separator-->
 								<span class="h-20px border-gray-200 border-start mx-4"></span>
@@ -92,9 +98,13 @@
 
 							<!--begin::Actions (Búsqueda + Nuevo proyecto)-->
 							<div class="d-flex align-items-center py-1">
-
 								<!--begin::Button-->
-								<a href="{% url 'proyect_new_url' %}" class="btn btn-sm btn-primary">New Proyect</a>
+								{% if mode == 'Panel' %}
+								<a href="{% url 'proyect_new_url' %}" class="btn btn-sm btn-primary">New Proyect</a>								
+								{% endif %}
+								{% if mode == 'Calendar' %}
+								<button id="btnNewTask" type="button" class="btn btn-sm btn-primary px-6 py-2 mr-4" onclick="loadModal(0,0,0,2)">New task</button>
+								{% endif %}
 								<!--end::Button-->
 							</div>
 							<!--end::Actions-->
@@ -438,8 +448,20 @@
 								<!--begin::Col-->
 								<div class="col-xxl-12">
 
+
+									{% if mode == 'Calendar' %}									
+									<div id="please_wait_message" style="text-align: center; padding: 20px;">											
+										<div class="spinner-border text-primary" role="status">
+											<span class="sr-only">Loading...</span>
+										</div>
+										<span class="ml-2">Please wait, loading data...</span>
+									</div>
+									{% endif %}
+
+
 									<!--begin::Calendar Widget 1-->
-									<div class="card card-xxl-stretch">
+									<div id="divRowCalendar" class="card card-xxl-stretch">
+										{% if mode == 'Panel' %}
 										<!--begin::Card header-->
 										<div class="card-header">
 											<h3 class="card-title align-items-start flex-column">
@@ -456,8 +478,20 @@
 											</div>
 										</div>
 										<!--end::Card header-->
+										{% endif %}										
+
 										<!--begin::Card body-->
 										<div class="card-body">
+
+											<div class="card-toolbar">
+												<div class="input-group w-250px mb-5">
+													<input type="text" id="calendar-search" class="form-control form-control-solid" placeholder="Search..." />
+													<span class="input-group-text">
+													<i class="ki-duotone ki-magnifier fs-2"></i>
+													</span>													
+												</div>
+											</div>
+											
 											<!--begin::Calendar-->
 											<div id="kt_calendar_widget_1">
 
@@ -1183,11 +1217,10 @@
 	<script>
 				
 		$(document).ready(function() {	
-			
-			
-			
+									
 			$('#kt_datatable').hide();
-			
+			$('#divRowCalendar').hide();
+						
 			setTimeout(function() {
 				// Aquí simulas la respuesta del servidor. En un caso real, se actualizaría la tabla con los nuevos datos.
 				// Por ejemplo, con AJAX, usarías algo como:
@@ -1196,6 +1229,10 @@
 				// Luego de recibir la respuesta, ocultamos el mensaje de carga y mostramos la tabla.
 				$('#please_wait_message').hide();
 				$('#kt_datatable').show();
+				$('#divRowCalendar').show();
+
+				//$('#divRowCalendar').css('display', 'block');
+
 
 				var table = $('#kt_datatable').DataTable({		
 					"order": [[0, 'desc']],
@@ -1251,7 +1288,7 @@
 			$(document).on('click', '.deleteCommentCalendar', function() {				
 				//$(this).closest('tr').remove();  // Elimina la fila correspondiente
 				$(this).closest('tr').hide();  // Elimina la fila correspondiente
-		  	});
+		  	});			
 
         });
 
@@ -1267,12 +1304,12 @@
 				s = e.clone().add(1, "day").format("YYYY-MM-DD"), 
 				r = document.getElementById("kt_calendar_widget_1");
 	
-				var calendar = new FullCalendar.Calendar(r, {
+				var calendar = new FullCalendar.Calendar(r, {				  	
 					headerToolbar: {
 						left: "prev,next today",
 						center: "title",
-						right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
-					},
+						right: "listMonth,listYear,dayGridMonth,timeGridWeek,timeGridDay"
+					},					
 					height: 800,
 					contentHeight: 780,
 					aspectRatio: 3,
@@ -1281,50 +1318,52 @@
 					views: {
 						dayGridMonth: { buttonText: "month" },
 						timeGridWeek: { buttonText: "week" },
-						timeGridDay: { buttonText: "day" }
+						timeGridDay: { buttonText: "day" },
+						listYear: { buttonText: "year" },
+
 					},
-					initialView: "dayGridMonth",
+					initialView: "listMonth",
 					initialDate: o,
 					editable: true,
 					dayMaxEvents: true,
 					navLinks: true,
-					 // Evento al pasar el ratón sobre el evento
-					// Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
-					eventDidMount: function(info) {
-						// Detectar el mouseover y mouseout
-						var eventEl = info.el; // El elemento DOM del evento						
+					// // Evento al pasar el ratón sobre el evento
+					// // Usamos el `eventDidMount` para agregar eventos de mouse sobre un evento
+					// eventDidMount: function(info) {
+					// 	// Detectar el mouseover y mouseout
+					// 	var eventEl = info.el; // El elemento DOM del evento						
 
-						// Mostrar el tooltip cuando el ratón pasa sobre el evento
-						eventEl.addEventListener('mouseenter', function(jsEvent) {
-							var tooltip = document.getElementById('tooltip');
-							tooltip.style.display = 'block';
+					// 	// Mostrar el tooltip cuando el ratón pasa sobre el evento
+					// 	eventEl.addEventListener('mouseenter', function(jsEvent) {
+					// 		var tooltip = document.getElementById('tooltip');
+					// 		tooltip.style.display = 'block';
 
-							document.getElementById('tooltipCustomer').style.display = '';
-							document.getElementById('tooltipResponsible').style.display = '';
+					// 		document.getElementById('tooltipCustomer').style.display = '';
+					// 		document.getElementById('tooltipResponsible').style.display = '';
 
-							document.getElementById('tooltipTitle').textContent = info.event.title;
-							document.getElementById('tooltipDescriptionResponsible').textContent = info.event.extendedProps.descriptionB;
-							document.getElementById('tooltipDescriptionCustomer').textContent = info.event.extendedProps.descriptionA;
+					// 		document.getElementById('tooltipTitle').textContent = info.event.title;
+					// 		document.getElementById('tooltipDescriptionResponsible').textContent = info.event.extendedProps.descriptionB;
+					// 		document.getElementById('tooltipDescriptionCustomer').textContent = info.event.extendedProps.descriptionA;
 
-							if (info.event.extendedProps.m == 2){
-								document.getElementById('tooltipCustomer').style.display = 'none';
-								document.getElementById('tooltipResponsible').style.display = 'none';
-							}
+					// 		if (info.event.extendedProps.m == 2){
+					// 			document.getElementById('tooltipCustomer').style.display = 'none';
+					// 			document.getElementById('tooltipResponsible').style.display = 'none';
+					// 		}
 
-							var eventDate = info.event.start;
-							var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
+					// 		var eventDate = info.event.start;
+					// 		var formattedDate = moment(eventDate).format('MMMM D, YYYY [at] h:mm A'); 
 
-							document.getElementById('tooltipDate').textContent = formattedDate;							
-							// Posicionar el tooltip cerca del ratón
-							tooltip.style.top = jsEvent.pageY + 10 + 'px';
-							tooltip.style.left = jsEvent.pageX + 10 + 'px';
-						});
+					// 		document.getElementById('tooltipDate').textContent = formattedDate;							
+					// 		// Posicionar el tooltip cerca del ratón
+					// 		tooltip.style.top = jsEvent.pageY + 10 + 'px';
+					// 		tooltip.style.left = jsEvent.pageX + 10 + 'px';
+					// 	});
 
-						// // Ocultar el tooltip cuando el ratón salga del evento
-						eventEl.addEventListener('mouseleave', function() {
-							document.getElementById('tooltip').style.display = 'none';
-						});
-					},
+					// 	// // Ocultar el tooltip cuando el ratón salga del evento
+					// 	eventEl.addEventListener('mouseleave', function() {
+					// 		document.getElementById('tooltip').style.display = 'none';
+					// 	});
+					// },
 					// Nuevo: evento click en un evento
 					eventClick: function(info) {
 		// 
@@ -1350,6 +1389,9 @@
 				})
 	
 				calendar.render();
+
+				// Guardamos los eventos originales para poder filtrar después
+				let allEvents = [];
 				
 				$.ajax({
 					url: "{% url 'getDataCalendar_url' %}",  // URL de la vista AJAX
@@ -1359,36 +1401,49 @@
 						// Recorrer los proyectos devueltos en el JSON y agregarlos a la tabla
 						response.calendar.forEach(function(agendy) {
 							
-							calendar.addEvent({
-								id: agendy.id,								
+							const eventObj = {
+								id: agendy.id,
 								title: agendy.title,
 								start: agendy.start,
 								end: agendy.end,
 								descriptionA: agendy.descriptionA,
 								descriptionB: agendy.descriptionB,
 								color: agendy.color,
-								allDay: agendy.allDay,								
-								//display: 'block',
+								allDay: agendy.allDay,
 								classNames: agendy.className,
-								
 								extendedProps: {
-									w: agendy.w,
-									i: agendy.i,
-									p: agendy.p,
-									m: agendy.m,
+								w: agendy.w,
+								i: agendy.i,
+								p: agendy.p,
+								m: agendy.m
 								}
-								
-							});						
+							};
+
+							allEvents.push(eventObj);           // Guardamos en array original
+      						calendar.addEvent(eventObj);        // Agregamos al calendario							
 	
 						});
 					},
 					error: function(xhr, status, error) {
 						console.error("Error en la solicitud AJAX:", error);
 					}
-				
-	
-	
+						
 				});	
+
+
+				// Filtrar eventos por palabra clave en el título
+				$('#calendar-search').on('input', function () {
+				const searchText = $(this).val().toLowerCase();
+
+				const filtered = allEvents.filter(ev =>
+					ev.title.toLowerCase().includes(searchText)
+				);
+
+				calendar.removeAllEvents();       // Limpiamos el calendario
+				calendar.addEventSource(filtered); // Mostramos solo filtrados
+				});
+
+
 			}
 		}
 
@@ -1514,7 +1569,7 @@
 			
 			formData.append('id1', w);
 			formData.append('id2', i);
-			formData.append('id3', t);
+			formData.append('id3', t);			
 
 			var rows = document.querySelectorAll("#tableComments tbody tr");
 
@@ -1527,9 +1582,16 @@
 
 			}		
 
+			if (w == 0 && i == 0){
+				// Serializamos los datos del formulario (excepto los archivos)
+				var serializedData = $('#formTask_' + String(t)).serialize();		
+			}
+			else{
+				// Serializamos los datos del formulario (excepto los archivos)
+				var serializedData = $('#formItem_' + String(i)).serialize();	
+			}
+			
 
-			// Serializamos los datos del formulario (excepto los archivos)
-			var serializedData = $('#formItem_' + String(i)).serialize();		
 
 			// Convertimos los datos serializados en un objeto y lo agregamos al FormData
 			var params = serializedData.split('&');
