@@ -1645,7 +1645,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                 if len(materials) > 0:
 
-                    if workOrder.state.id >= 4:
+                    if workOrder.state.id >= 1: #Antes estaba desde el estado 4. Ahora, desde el 1.
                         itemsHTML += '<thead><tr><th style="min-width:150px"></th><th>QTY</th><th>Received QTY</th><th>Received Date</th></thead>'
                     else:
                         itemsHTML += '<thead><tr><th style="max-width:50px"></th><th style="max-width:50px">QTY</th><th></th><th></th></thead>'
@@ -1671,17 +1671,16 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         
                         itemsHTML += '<tr><td valign="middle" style="padding:0px;">' + icon + ' ' + materialName + '</td>'                
 
-                        if workOrder.state.id < 4:
+                        # if workOrder.state.id < 4:
+                        #     itemsHTML += '<td style="padding:2px;">' + str(qty) + '</td>'
 
-                            itemsHTML += '<td style="padding:2px;">' + str(qty) + '</td>'
-
-                        elif workOrder.state.id == 4 and mode == 1: #edicion
+                        if workOrder.state.id <= 5 and mode == 1: #edicion
 
                             itemsHTML += '<td style="padding:0px"><input type="text" class="form-control mb-1" value="' + str(qty) + '" readonly style="background: none"/></td>'
                             itemsHTML += '<td style="padding:0px"><input type="text" class="form-control mb-1" name="qtyR_' + materialId + '" value="' + str(qtyR) + '" maxlength="100"/></td>'
                             itemsHTML += '<td style="padding:0px"><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
 
-                        elif workOrder.state.id >= 5 or mode == 2: #solo lectura                           
+                        elif workOrder.state.id >= 6 or mode == 2: #solo lectura                           
 
                             # if mode == 2:
                             #     color = "#ffffff"
@@ -1693,7 +1692,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                         itemsHTML += '</tr>'
 
-                    if workOrder.state.id == 4 and mode == 1: #edicion
+                    if workOrder.state.id <= 5 and mode == 1: #edicion
                         itemsHTML += '<tr><td colspan=3></td></tr>'
                         itemsHTML += '<tr><td colspan=3 align="right" class="bg-white"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
 
