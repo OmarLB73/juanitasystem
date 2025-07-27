@@ -61,13 +61,10 @@ nbconvert==7.16.4
 nbformat==5.10.4
 nest-asyncio==1.5.5
 oauthlib==3.2.2
-opt-einsum==3.3.0
-optree==0.11.0
 packaging==21.3
 pandocfilters==1.5.0
 parso==0.8.3
 pickleshare==0.7.5
-pipreqs==0.5.0
 platformdirs==4.3.6
 plotly==5.22.0
 prometheus-client==0.14.1
