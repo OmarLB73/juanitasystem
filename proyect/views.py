@@ -256,13 +256,9 @@ def proyect_new(request):
                     proyect_save.code =  code
                     proyect_save.save()
 
-                    # Event.objects.create( type_event_id=1,                                        
-                    #                         proyect_id=proyect_id, 
-                    #                         user=request.user.id)
 
-                    workorderId = newWO(request, proyect_id)
-                    
-                    saveEvent(request, 1, workorderId, None)
+                    workorder = newWO(request, proyect_id)                    
+                    saveEvent(request, 2, proyect_save, workorder, None, 'Create WO')
             
                     return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
 
@@ -326,7 +322,7 @@ def proyect_view(request, proyect_id):
 
     decoratorsHTML = getDecoratorsTable(decorators)
     ascociatesHTML = getDecoratorsTable(ascociates)
-    resumenWos = getResumenWOs(proyect)
+    resumenWos = getResumenWOs(request, proyect)
     #notesHTML = funct_data_events(proyect_id)
 
     uielement = UIElement.objects.all()
@@ -482,7 +478,7 @@ def getDataCalendar(request):
     
     # Fechas de los items
     for calendar in calendarItems:
-
+        
         className = 'item'
         fecha_inicio = ''
         fecha_fin = ''
@@ -502,7 +498,8 @@ def getDataCalendar(request):
                  allDay = True
 
             if calendar.status == 2:
-                className = 'itemCompleted'
+                # className = 'itemCompleted'
+                className = 'completed'
 
             # if calendar.date_end and calendar.status != 2:
             #     if calendar.date_end < timezone.now():
@@ -589,6 +586,17 @@ def getDataCalendar(request):
         allDay = False
         color = ''
 
+        comment = CalendarTaskComment.objects.filter(calendar_task = calendar).order_by('id').first()
+
+        title = ''
+        
+        if calendar.responsible:
+            title += calendar.responsible.name
+
+        if comment:
+            title += ': ' + comment.notes
+
+
         if calendar.date_start:
 
             if calendar.date_start:
@@ -613,7 +621,7 @@ def getDataCalendar(request):
             events.append({
                 'id': calendar.id,
                 # 'title':  '✅' + wo.proyect.customer.address,
-                'title': calendar.responsible.name,
+                'title': title,
                 'start': fecha_inicio,
                 'end': fecha_fin,
                 'allDay': allDay,
@@ -920,12 +928,21 @@ def getDataItem(request):
 #Funcion para agregar una WO
 @login_required
 def addWorkOrder(request):
-    #Consulta los decoradores desde la base de datos
     proyectId = request.POST.get('p')    
     result = newWO(request, proyectId)
+    workorderId = -1
+
+    if result:
+        workorderId = result.id
+
+        try: 
+            if 'stateId' in request.session:
+                del request.session['stateId']
+        except:
+            None
                     
     # Devolvemos la lista de ascociates como respuesta JSON
-    return JsonResponse({'result': result})
+    return JsonResponse({'result': workorderId})
 
 
 #Funcion para agregar comentarios a la WO
@@ -2440,23 +2457,21 @@ def obs_funct_data_events(proyect_id):
 
 #Instancia para guardar cada evento que ocurre en la WO.
 @login_required
-def saveEvent(request, type_event_id, workOrderId, description):
+def saveEvent(request, type_event_id, proyect, workOrder, item, description):
 
     # EVENTOS = [
-    #         (0, 'Other'),
-    #         (1, 'Create proyect'),
-    #         (2, 'Comment'),
-    #         (3, 'Create item'),
-    #         (4, 'Delete item'),
-    #         (5, 'Upload file/comment'),        
-    #         (6, 'Change state'),
+        # (0, 'Other'),
+        # (1, 'Create'),
+        # (2, 'Update'),
+        # (3, 'Delete'),    
     #     ]
     try:
 
-        wo = WorkOrder.objects.get(id = workOrderId)
-
-        Event.objects.create(   type_event_id=type_event_id,                                        
-                                workorder=wo, 
+        Event.objects.create(   type_event_id=type_event_id,
+                                proyect = proyect,                                    
+                                workorder= workOrder, 
+                                state = workOrder.state,
+                                item = item,
                                 description = description,
                                 user=request.user.id)
         
@@ -2498,7 +2513,8 @@ def saveItem(request):
             
         try: 
 
-            item = Item.objects.filter(workorder = WorkOrder.objects.get(id=workorder_id), id=item_id).first() #No siempre estará, por eso no se usa get
+            workorder = WorkOrder.objects.get(id=workorder_id)
+            item = Item.objects.filter(workorder = workorder, id=item_id).first() #No siempre estará, por eso no se usa get
 
             if item:
                 item_id = item.id
@@ -2514,6 +2530,8 @@ def saveItem(request):
 
                 item.save()
 
+                saveEvent(request, 2, workorder.proyect, workorder, item, None)
+
             else:
                 item = Item.objects.create( workorder = WorkOrder.objects.get(id=workorder_id),                                            
                                             subcategory = Subcategory.objects.get(id=subcategory_id),
@@ -2526,7 +2544,7 @@ def saveItem(request):
                                             modification_by_user = request.user.id)
                 item_id = item.id
 
-            saveEvent(request, 3, workorder_id, None)
+                saveEvent(request, 1, workorder.proyect, workorder, item, None)
 
 
             ################################### Se recorren los atributos ###################################
@@ -3325,10 +3343,10 @@ def deleteItem(request):
 
     try:
         item = Item.objects.get(id = item_id)
+        saveEvent(request, 3, item.workorder.proyect, item.workorder, item, item.code + ': ' + item.subcategory.category.name)
         item.delete()
         status = 1
-
-        saveEvent(request, 4, item.workorder.id, None) ## Borrar item
+        
 
     except ValueError:
         status = -1
@@ -3345,6 +3363,7 @@ def deleteProyect(request):
 
     try:
         proyect = Proyect.objects.get(id = proyect_id)
+        saveEvent(request, 3, proyect, None, None, 'Address : ' + proyect.customer.address)
         proyect.delete()
         status = 1
 
@@ -3374,6 +3393,7 @@ def deleteComment(request):
                 status = 1
             else:
                 status = 2
+        
         #Si es un comentario genérico
         else:
 
@@ -3383,9 +3403,7 @@ def deleteComment(request):
                 itemCS.delete()        
                 status = 1
             else:
-                status = 2
-
-            # saveEvent(request, 4, item.proyect.id, None) ## Borrar item
+                status = 2            
 
     except ValueError:
         status = -1
@@ -3462,9 +3480,7 @@ def deleteItemCommentFile(request):
                 itemCSF.delete()        
                 status = 1
             else:
-                status = 2
-
-        # saveEvent(request, 4, item.proyect.id, None) ## Borrar item
+                status = 2        
 
     except ValueError:
         status = -1
@@ -3547,12 +3563,9 @@ def updateStatus(request):
             None
 
 
-        description = "Change to status:" + workOrder.state.name
+        description = "Change to status: " + workOrder.state.name
 
-        # Event.objects.create(   type_event_id = 6,                                        
-        #                         workorder=workOrder, 
-        #                         description = description,
-        #                         user=request.user.id)
+        saveEvent(request, 2, workOrder.proyect, workOrder, None, description)
 
         
         status = 1
@@ -3727,13 +3740,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
             itemsHTML += '</td><td>'
-            itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
             itemsHTML += '</td><td>'
             itemsHTML += '-'        
             itemsHTML += '</td><td>'
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
             itemsHTML += '</td><td>'
-            itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
             itemsHTML += '</td><td>'
 
             itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -3829,13 +3842,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
         itemsHTML += '-'        
         itemsHTML += '</td><td>'
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
 
         itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -3924,13 +3937,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
                     itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemA[]" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateItemA2[]" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemA2[]" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
                     itemsHTML += '</td><td>'
                     itemsHTML += '-'        
                     itemsHTML += '</td><td>'
                     itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemB[]" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateItemB2[]" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemB2[]" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
                     itemsHTML += '</td><td>'
 
                     itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -4008,13 +4021,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
         itemsHTML += '-'        
         itemsHTML += '</td><td>'
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
 
         itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -4162,70 +4175,133 @@ def getStateName(stateId, fs):
 
     #stateHTML += '<i class="fas fa-question-circle" data-bs-toggle="tooltip" title="' + description + '"></i>'
 
-    stateHTML += '<div class="fs-' + fs + ' fw-bold p-2 badge-state-' + str(stateId) + '">'
-    stateHTML += name
-    stateHTML += '</div>'
+    if fs != "":
+        stateHTML += '<div class="fs-' + fs + ' fw-bold p-2 badge-state-' + str(stateId) + '">'
+        stateHTML += name
+        stateHTML += '</div>'
+    else:
+        stateHTML += '<th style="width: 90px; max-width: 90px; padding: 0;"><div class="badge-state-' + str(stateId) + ' p-1" style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 10px; text-align: center;" title="' + name + '" >'
+        stateHTML += name
+        stateHTML += '</div></th>'
 
     return stateHTML																									
 
+from collections import defaultdict
 #Retorna resumen WO´s
-def getResumenWOs(proyect):
+def getResumenWOs(request, proyect):
 
-    wos = WorkOrder.objects.filter(proyect = proyect, status=1)
+    state = None
+
+    try: 
+        if 'stateId' in request.session:
+            state = State.objects.filter(id = request.session['stateId']).first()         
+    except:
+        None
+
+    if state:
+        wos = WorkOrder.objects.filter(proyect = proyect, status=1, state = state)
+    else:
+        wos = WorkOrder.objects.filter(proyect = proyect, status=1)
+
+    # Obtener eventos relevantes
+    eventos = Event.objects.filter(type_event_id=2, workorder__in = wos, item = None).select_related('workorder', 'state')
+    # Crear estructura: workorder_id -> { state_id -> fecha }
+    pivot_data = defaultdict(lambda: defaultdict(lambda: None))
+    # Recorrer eventos y guardar la última fecha por estado por workorder
+    for evento in eventos:
+        if evento.workorder and evento.state:
+            current = pivot_data[evento.workorder.id][evento.state.id]
+            if not current or evento.creation_date > current:
+                pivot_data[evento.workorder.id][evento.state.id] = evento.creation_date
+
+
     states = State.objects.filter(status = 1).order_by('id')
 
-    html = '<div class="table-responsive"><table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3"><thead><tr><th width="100px"></th>'
+    html = '<div class="table-responsive"><table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3"><thead><tr><th style="width:80px; max-width:80px;"></th>'
 
     for state in states:
 
-        html += '<th class="fs-30" style="padding:0">'
-        html += getStateName(state.id, '8')
-        html += '</th><th style="border 1px #f1f1f1">Ant</th>'
+        html += getStateName(state.id, "")
+        if state.id != 10:
+            html += '<th style="max-width:2%; padding:3px" class="text-center">Ant</th>'
+        else:
+            html += '<th style="max-width:2%; padding:3px" class="text-center">Total</th>'
 
-    html += '</tr>'
+    html += '</tr></thead><tbody>'
 
 
+    # Cuerpo
     for wo in wos:
+        html += f'<tr><th class="fs-20 fw-bold"><b>WO-{wo.code}</b></th>'
 
-        html += '<tr><th class="fs-20 fw-bold">'
-        html +=  'WO ' + wo.code
-        html += '</th>'
-
+        fechas_validas = []  # Aquí guardaremos todas las fechas válidas
+        prev_fecha = None
+                
         for state in states:
+            # Fecha actual para este estado y workorder
+            fecha = pivot_data.get(wo.id, {}).get(state.id)
+            fecha_str = fecha.strftime("%b %d, %Y") if fecha else ''
+            diff_str = ''
 
-            html += '<th>'        
-            html += '</th>'
+            if fecha:
+                fechas_validas.append(fecha)
 
-            html += '<th>'        
-            html += '</th>'
+            # Solo calcular diferencia si el estado no es 1
+            if state.id != 1:
+                # Calcular diferencia con la fecha anterior
+                if fecha and prev_fecha:
+                    diferencia_dias = (fecha - prev_fecha).days
+                    diff_str = f'{diferencia_dias}'                
+
+                # Escribir celdas: fecha + Ant
+                html += f'<td class="fs-16"><span class="text-muted">{diff_str}</span></td>'
+                html += f'<td class="fs-16">{fecha_str}</td>'
+            else:
+                # Solo escribimos 1 celda si state.id == 10
+                html += f'<td>{fecha_str}</td>'
+
+            # Actualizar fecha anterior solo si existe
+            if fecha:
+                prev_fecha = fecha
+
+        # Total entre primera y última fecha válida
+        if len(fechas_validas) >= 2:
+            fecha_inicio = min(fechas_validas)
+            fecha_fin = max(fechas_validas)
+            total = (fecha_fin - fecha_inicio).days
+        else:
+            total = 0
+
+        html += f'<td><span class="text-muted">{total}</span></td>'
 
         html += '</tr>'
 
-
-    html += '</table></div>'
+    html += '</tbody></table></div>'
 
     return html
 
 
 
 
-
-
-#Retorna el nombre del estado, junto con su clase css
+#Funcion para crear una nueva WO
 def newWO(request, proyectId):
 
     try:
-        work_order = WorkOrder.objects.create(  proyect = Proyect.objects.get(id = proyectId),
+
+        proyect = Proyect.objects.get(id = proyectId)
+        workorder = WorkOrder.objects.create(  proyect = proyect,
                                                 state = State.objects.get(id = 1),                                                        
                                                 created_by_user = request.user.id,
                                                 modification_by_user = request.user.id)
 
-        work_order.save()
+        workorder.save()
 
-        return work_order.id
+        saveEvent(request, 2, proyect, workorder, None, 'Create WO')
+
+        return workorder
         
     except:
-        return -1
+        return None
 
 
 def timeline_body(date_str, name, email, description, stateId):

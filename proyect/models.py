@@ -361,9 +361,10 @@ class ItemAttributeNote(models.Model):
 class Event(models.Model):
     id = models.AutoField(primary_key=True)
     type_event_id = models.IntegerField(choices=EVENTOS,  default=0)
-    workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE, null=True)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True)
-    state = models.ForeignKey(State, on_delete=models.CASCADE, null=True)
+    proyect = models.ForeignKey(Proyect, on_delete=models.SET_NULL, null=True)
+    workorder = models.ForeignKey(WorkOrder, on_delete=models.SET_NULL, null=True)
+    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
+    state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True)
     description = models.CharField(max_length=2000, null=True)    
     user  = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True, null=True)

@@ -406,7 +406,7 @@
 																					</span>
 																					<!--end::Svg Icon-->
 																				</a>
-																				<a href="javascript:del_p(this,{{ proyect.id }})" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+																				<a href="#" onclick="del_p(this, '{{ proyect.id }}'); return false;" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
 																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																					<span class="svg-icon svg-icon-3" title="Delete">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -460,7 +460,7 @@
 
 
 									<!--begin::Calendar Widget 1-->
-									<div id="divRowCalendar" class="card card-xxl-stretch">
+									<div id="divRowCalendar" class="card card-xxl-stretch" style="display:none">
 										{% if mode == 'Panel' %}
 										<!--begin::Card header-->
 										<div class="card-header">
@@ -1198,8 +1198,8 @@
 			}
 
 			.fc-event.itemCompleted {
-				background-color: rgb(211, 60, 211) !important; 
-				border-color: rgb(211, 60, 211) !important;						
+				background-color: rgb(211, 60, 211) !important;
+				border-color: rgb(211, 60, 211) !important;
 				text-decoration: line-through;        
 				opacity: 0.7;										
 			}
@@ -1449,7 +1449,7 @@
 
 
 		function del_p(b,p){
-						
+															
 			Swal.fire({
 				title: 'Are you sure?',
 				text: 'This action will delete the proyect for ever. Do you want to continue?',
@@ -1475,12 +1475,8 @@
 						},
 						success: function(response) {
 							// Rellena los campos con los datos obtenidos de la respuesta
-							if(response.result == "1"){											
-
-								var row = b.parentNode.parentNode.parentNode;
-								row.remove();
-
-
+							if(response.result == "1"){
+								$(b).closest('tr').remove();								
 								Swal.fire({
 									title: 'Deleted!',
 									text: 'The proyect has been successfully deleted.',
@@ -1726,14 +1722,14 @@
 				allowInput: true,
 			});
 
-			$(".hour-picker").flatpickr({
-				enableTime: true,
-				noCalendar: true,
-				dateFormat: "h:i K",
-				time_24hr: false,
-				locale: "en",
-				allowInput: true,
-			});
+			// $(".hour-picker").flatpickr({
+			// 	enableTime: true,
+			// 	noCalendar: true,
+			// 	dateFormat: "h:i K",
+			// 	time_24hr: false,
+			// 	locale: "en",
+			// 	allowInput: true,
+			// });
 
 			$('#dateA').on('change', function() {				
 				var dateAVal = $(this).val();
