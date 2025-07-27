@@ -98,15 +98,11 @@
 																																												
 										<div class="col-xxl-12">
 											<!--begin::Name-->
-											<h3>{{ customer.address}}
-												{% if customer.apartment != None and customer.apartment != "" %}
-												,{{customer.apartment }}{% endif %}
-												{% if customer.city != None and customer.city != "" %}
-												,{{customer.city }}{% endif %}
-												{% if customer.state != None and customer.state != "" %}
-												,{{customer.state }}{% endif %}
-												{% if customer.zipcode != None and customer.zipcode != "" %}
-												,{{customer.zipcode }}{% endif %}
+											<h3>{{customer.address}}
+												{%if customer.apartment != None and customer.apartment != "" %},{{customer.apartment}}{%endif%}
+												{%if customer.city != None and customer.city != "" %},{{customer.city}}{%endif%}
+												{%if customer.state != None and customer.state != "" %},{{customer.state}}{%endif%}
+												{%if customer.zipcode != None and customer.zipcode != "" %},{{customer.zipcode}}{%endif%}
 											</h3>
 											<!--end::Name-->
 											
@@ -1739,14 +1735,14 @@
 					allowInput: true, 
 				});
 
-				$(".hour-picker").flatpickr({
-					enableTime: true,
-					noCalendar: true,
-					dateFormat: "h:i K",
-					time_24hr: false,
-					locale: "en",
-					allowInput: true, 
-				});
+				// $(".hour-picker").flatpickr({
+				// 	enableTime: true,
+				// 	noCalendar: true,
+				// 	dateFormat: "h:i",
+				// 	time_24hr: false,
+				// 	locale: "en",
+				// 	allowInput: true, 
+				// });
 
 
 				$('#dateA').on('change', function() {
@@ -2031,7 +2027,8 @@
 							},
 							success: function(response) {
 								// Rellena los campos con los datos obtenidos de la respuesta
-								if(response.result != -1){									
+								if(response.result != -1){
+									$("#stateId").val('0');
 									loadWOs();
 
 									Swal.fire({
