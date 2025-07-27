@@ -51,6 +51,30 @@
 			}
 		}
 	</style>
+
+
+
+	<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+	<script>
+		window.OneSignal = window.OneSignal || [];
+		OneSignal.push(function() {
+			OneSignal.init({
+			appId: "f0942d52-22c6-48f5-991f-9fe4e931f7f8",  // ⬅️ tu App ID real
+			notifyButton: {
+				enable: true
+			}
+			});
+
+			// // Vincula el ID del usuario Django con OneSignal
+			// {% if request.user.is_authenticated %}
+			// OneSignal.setExternalUserId("{{ request.user.id }}");
+			// {% endif %}
+		});
+	</script>
+
+
+
+
 </head>
 
 <body id="kt_body" class="bg-body">
