@@ -60,7 +60,6 @@ nbclient==0.6.6
 nbconvert==7.16.4
 nbformat==5.10.4
 nest-asyncio==1.5.5
-notebook==6.4.12
 oauthlib==3.2.2
 opt-einsum==3.3.0
 optree==0.11.0
