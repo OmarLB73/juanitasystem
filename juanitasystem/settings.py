@@ -167,5 +167,3 @@ DATABASES['default'] = dj_database_url.parse(database_url)
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 ONESIGNAL_APP_ID = os.environ.get('ONESIGNAL_APP_ID')
 ONESIGNAL_API_KEY = os.environ.get('ONESIGNAL_API_KEY')
-
-
