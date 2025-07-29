@@ -11,6 +11,7 @@ decorator==5.1.1
 defusedxml==0.7.1
 dj-database-url==2.3.0
 Django==5.0
+django-extensions==3.2.3
 djangorestframework==3.14.0
 drf-yasg==1.21.7
 google-auth==2.29.0
