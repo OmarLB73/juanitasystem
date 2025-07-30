@@ -2938,8 +2938,10 @@ def saveCalendar(request):
                 dateEnd_get += ' ' + dateEndHour_get
                 checkAllDay = False
             
-            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
-            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+            #dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
+            #dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %H:%M")
+            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %H:%M")
 
         else:
             dateStart = None
@@ -3196,8 +3198,11 @@ def saveCalendarItems(request):
                 dateEnd_get += ' ' + dateEndHour_get
                 checkAllDay = False
             
-            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
-            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+            #dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %I:%M %p")
+            #dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %I:%M %p")
+
+            dateStart = datetime.strptime(dateStart_get, "%m/%d/%Y %H:%M")
+            dateEnd = datetime.strptime(dateEnd_get, "%m/%d/%Y %H:%M")
 
         else:
             dateStart = None
@@ -4204,9 +4209,9 @@ def getResumenWOs(request, proyect):
         None
 
     if state:
-        wos = WorkOrder.objects.filter(proyect = proyect, status=1, state = state)
+        wos = WorkOrder.objects.filter(proyect = proyect, status=1, state = state).order_by('-id')
     else:
-        wos = WorkOrder.objects.filter(proyect = proyect, status=1)
+        wos = WorkOrder.objects.filter(proyect = proyect, status=1).order_by('-id')
 
     # Obtener eventos relevantes
     eventos = Event.objects.filter(type_event_id=2, workorder__in = wos, item = None).select_related('workorder', 'state')
@@ -4245,7 +4250,8 @@ def getResumenWOs(request, proyect):
         for state in states:
             # Fecha actual para este estado y workorder
             fecha = pivot_data.get(wo.id, {}).get(state.id)
-            fecha_str = fecha.strftime("%b %d, %Y") if fecha else ''
+            fecha_str = timezone.localtime(fecha).strftime("%b %d, %Y") if fecha else ''                                  
+            
             diff_str = ''
 
             if fecha:
