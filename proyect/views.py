@@ -1296,18 +1296,18 @@ def getDataProyect(filters):
 def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectura
 
     proyect = Proyect.objects.get(id=proyect_id)
-    workOrders = WorkOrder.objects.filter(proyect = proyect).order_by('id')
+    workOrders = WorkOrder.objects.filter(proyect = proyect).order_by('-id')
     workOrdersHTML = ""
 
     buttonName = ''
     stateNewName = ''
     stateDescription = ''
     buttonDescription = ''
-    woN = 0
+    woN = len(workOrders) + 1
             
     for wo in workOrders:
         
-        woN += 1
+        woN = woN - 1
 
         items =  Item.objects.filter(workorder__in = workOrders, workorder__status = 1)
 
@@ -1691,13 +1691,15 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                         # if workOrder.state.id < 4:
                         #     itemsHTML += '<td style="padding:2px;">' + str(qty) + '</td>'
 
-                        if workOrder.state.id <= 5 and mode == 1: #edicion
+                        # if workOrder.state.id <= 5 and mode == 1: #edicion
+                        if mode == 1: #edicion
 
                             itemsHTML += '<td style="padding:0px"><input type="text" class="form-control mb-1" value="' + str(qty) + '" readonly style="background: none"/></td>'
                             itemsHTML += '<td style="padding:0px"><input type="text" class="form-control mb-1" name="qtyR_' + materialId + '" value="' + str(qtyR) + '" maxlength="100"/></td>'
                             itemsHTML += '<td style="padding:0px"><input class="form-control receivedDate" name="dateR_' + materialId + '" placeholder="Pick a date" style="width: 100px" value="' + dateR + '"/></td>'
 
-                        elif workOrder.state.id >= 6 or mode == 2: #solo lectura                           
+                        # elif workOrder.state.id >= 6 or mode == 2: #solo lectura
+                        elif mode == 2: #solo lectura
 
                             # if mode == 2:
                             #     color = "#ffffff"
@@ -1709,7 +1711,8 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                         itemsHTML += '</tr>'
 
-                    if workOrder.state.id <= 5 and mode == 1: #edicion
+                    # if workOrder.state.id <= 5 and mode == 1: #edicion
+                    if mode == 1: #edicion
                         itemsHTML += '<tr><td colspan=3></td></tr>'
                         itemsHTML += '<tr><td colspan=3 align="right" class="bg-white"><button type="submit" class="btn btn-primary px-6 py-1 mr-4" data-kt-indicator="off"><span class="indicator-label">Save</span></button></td></tr>'
 
@@ -2508,7 +2511,9 @@ def saveItem(request):
         if place_id and place_id != '0':
             if Place.objects.get(id=place_id):
                 place = Place.objects.get(id=place_id)
-                
+        
+        if item_id == '':
+            item_id = 0
 
             
         try: 
