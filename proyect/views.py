@@ -97,6 +97,9 @@ def panel_view(request):
     uielement = UIElement.objects.all()
     # Crear un diccionario de claves y valores con la key y el label_text
     labels = {element.key: element.label_text for element in uielement}
+
+
+    timeline = htmlDataLog(request)
     
     return render(request, 'proyect/panel.html', {'proyects_data': proyects_data,
                                                   'date_from': date_from,
@@ -108,6 +111,7 @@ def panel_view(request):
                                                   'states': states,
                                                   'decorators': decorators,
                                                   'labels': labels,
+                                                  'timeline': timeline,
                                                   'mode': mode})    
 
 
@@ -235,7 +239,6 @@ def proyect_new(request):
                                                             modification_by_user = request.user.id)
                     proyect_id = proyect_save.id
 
-                    
 
                     for decorator_id in decorators_ids:
                         decorator = ProyectDecorator.objects.get(id = decorator_id)
@@ -256,10 +259,9 @@ def proyect_new(request):
                     proyect_save.code =  code
                     proyect_save.save()
 
+                    saveEvent(request, 1, proyect_save, None, None, 'Create')
+                    newWO(request, proyect_id)
 
-                    workorder = newWO(request, proyect_id)                    
-                    saveEvent(request, 2, proyect_save, workorder, None, 'Create WO')
-            
                     return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
 
             except ValueError:        
@@ -1304,6 +1306,8 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
     stateDescription = ''
     buttonDescription = ''
     woN = len(workOrders) + 1
+
+    items = Item.objects.none() #Evita errores si el proyecto no tiene wos
             
     for wo in workOrders:
         
@@ -1445,7 +1449,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
     
     
 
-    if len(items) > 0 and mode == 1: # Solo si se edita:
+    if (len(items) > 0 and mode == 1) or (len(workOrders) == 0 and mode == 1): # Solo si se edita:
     
         workOrdersHTML += '<div class="d-flex justify-content-star flex-shrink-0">'
         workOrdersHTML += '<a class="btn btn-link fs-6" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
@@ -2470,10 +2474,16 @@ def saveEvent(request, type_event_id, proyect, workOrder, item, description):
     #     ]
     try:
 
+        woState = None
+
+        if workOrder:
+            if workOrder.state:
+                woState = workOrder.state
+
         Event.objects.create(   type_event_id=type_event_id,
                                 proyect = proyect,                                    
                                 workorder= workOrder, 
-                                state = workOrder.state,
+                                state = woState,
                                 item = item,
                                 description = description,
                                 user=request.user.id)
@@ -3368,20 +3378,31 @@ def deleteItem(request):
 #Funcion ejecutada en el panel, para borrar un proyecto en particular.
 @login_required
 def deleteProyect(request):
-    proyect_id = request.POST.get('p') 
+    proyect_id = request.POST.get('p')
     status = 0
+    title = ''
+    message = ''
 
     try:
-        proyect = Proyect.objects.get(id = proyect_id)
-        saveEvent(request, 3, proyect, None, None, 'Address : ' + proyect.customer.address)
-        proyect.delete()
-        status = 1
+
+        if request.user.is_superuser:
+            proyect = Proyect.objects.get(id = proyect_id)
+            saveEvent(request, 3, proyect, None, None, 'Address : ' + proyect.customer.address)
+            proyect.delete()
+            status = 1
+            title = 'Deleted!'
+            message = 'The proyect has been successfully deleted.'
+
+        else:
+            status = 1
+            title = 'Access denied!'
+            message = 'Administrator privileges required.'
 
     except ValueError:
         status = -1
         messages.error('Server error. Please contact to administrator!')
 
-    return JsonResponse({'result': status})
+    return JsonResponse({'result': status, 'title': title, 'message': message})
 
 
 #Funcion ejecutada en los comentarios, para ser eliminados del sistema
@@ -4307,7 +4328,7 @@ def newWO(request, proyectId):
 
         workorder.save()
 
-        saveEvent(request, 2, proyect, workorder, None, 'Create WO')
+        saveEvent(request, 1, proyect, workorder, None, 'Create WO')
 
         return workorder
         
@@ -4531,6 +4552,179 @@ def htmlDataCommentCalendar(request, workorder, item, task, mode): # mode 1: edi
     return itemsHTML
 
 
+#Consulta realizada para obtener los últimos eventos
+
+def htmlDataLog(request): # mode 1: edicion, 2: lectura
+    
+    eventHTML = ''
+
+
+    iconNewProyect = '<div class="timeline-icon symbol symbol-circle symbol-40px"><div class="symbol-label bg-light"> <span class="svg-icon svg-icon-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="black" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 21c-4-3.5-7-7.5-7-11a7 7 0 1 1 14 0c0 3.5-3 7.5-7 11z"/></svg></span>  </div></div>'
+    iconNewWO = '<div class="timeline-icon symbol symbol-circle symbol-40px"><div class="symbol-label bg-light"> <span class="svg-icon svg-icon-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="black" stroke-width="2">     <rect x="9" y="2" width="6" height="6" rx="1" ry="1" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 10H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></span>  </div></div>'
+    iconNewItem = '<div class="timeline-icon symbol symbol-circle symbol-40px me-4"><div class="symbol-label bg-light"> <span class="svg-icon svg-icon-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"  viewBox="0 0 24 24" stroke="black" stroke-width="2"><rect x="3" y="7" width="18" height="10" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 5 9-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 12v7"/></svg></span>  </div></div>'
+    
+
+    iconEdit = '<div class="timeline-icon symbol symbol-circle symbol-40px"><div class="symbol-label bg-light"> <span class="svg-icon svg-icon-2 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="black" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>  </div></div>'
+    iconDelete = '<div class="timeline-icon symbol symbol-circle symbol-40px"><div class="symbol-label bg-light"> <span class="svg-icon svg-icon-2 svg-icon-gray-500" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 7H18M9 7V5C9 4.44772 9.44772 4 10 4H14C14.5523 4 15 4.44772 15 5V7M10 11V17M14 11V17M5 7H19L18.2929 19.2929C18.1054 21.0503 16.636 22.5 14.8726 22.5H9.12742C7.36401 22.5 5.89464 21.0503 5.70711 19.2929L5 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> </span></div></div>'
+    
+    try:
+    
+        events = Event.objects.order_by('-creation_date')[:30]
+
+        for event in events:    
+            
+            eventHTML += '<div class="timeline-item">'
+            eventHTML += '<div class="timeline-line w-40px"></div>'
+            title = ''
+            subtitle = ''
+            address = ''
+            userName = ''
+            date = timezone.localtime(event.creation_date).strftime("%B %d, %Y at %I:%M %p")
+
+            if event.proyect:
+
+                if event.proyect.customer:
+
+                    if event.proyect.customer.address:
+                        address += '<b>' + event.proyect.customer.address + '</b>'
+
+                    if event.proyect.customer.city:
+                        address += ',' + event.proyect.customer.city
+
+                    if event.proyect.customer.state:
+                        address += ',' + event.proyect.customer.state
+
+                    if event.proyect.customer.zipcode:
+                        address += ',' + event.proyect.customer.zipcode
+
+                    if event.proyect.customer.apartment:
+                        address += ',' + event.proyect.customer.apartment
+
+                    if event.proyect.id:
+                        address += ' (<a href="/proyect/view/' + str(event.proyect.id)  + '" class="text-primary fw-bolder me-1">#' + str(event.proyect.id)  + '</a>)'                        
+
+            if event.user:
+                creator = User.objects.filter(id = event.user).first()
+
+                if creator:
+                    userName = '<div class="symbol symbol-circle symbol-25px" data-bs-toggle="tooltip" data-bs-boundary="window" data-bs-placement="top" title="' + creator.first_name + ' ' + creator.last_name + '"> <a href="#" class="text-primary fw-bolder me-1">' + creator.username + '</a></div>'
+                        
+                    
+            ## Create
+            if event.type_event_id == 1 and event.proyect and event.workorder is None:
+                eventHTML += iconNewProyect
+                title += 'A new project has been created: ' + address            
+
+            elif event.type_event_id == 1 and event.workorder and event.item is None:
+                eventHTML += iconNewWO
+                title = 'A new work order has been created for the address: ' + address
+
+            elif event.type_event_id == 1 and event.workorder and event.item:
+                eventHTML += iconNewItem
+                title = 'A new item has been created for the address: ' + address
+
+            
+            ## Edit
+            elif event.type_event_id == 2 and event.workorder and event.item is None:
+                eventHTML += iconEdit
+                title = 'A work order has been updated for the address: ' + address
+
+                if event.workorder.code and event.description:
+
+                    subtitle += '<div class="overflow-auto pb-3">'
+                    subtitle += '<div class="notice d-flex bg-light-primary rounded border-primary border border-dashed min-w-lg-600px flex-shrink-0 p-6">'
+                    subtitle += '<span class="svg-icon svg-icon-2tx svg-icon-primary me-4">'
+                    subtitle += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M19.0687 17.9688H11.0687C10.4687 17.9688 10.0687 18.3687 10.0687 18.9688V19.9688C10.0687 20.5687 10.4687 20.9688 11.0687 20.9688H19.0687C19.6687 20.9688 20.0687 20.5687 20.0687 19.9688V18.9688C20.0687 18.3687 19.6687 17.9688 19.0687 17.9688Z" fill="black" /><path d="M4.06875 17.9688C3.86875 17.9688 3.66874 17.8688 3.46874 17.7688C2.96874 17.4688 2.86875 16.8688 3.16875 16.3688L6.76874 10.9688L3.16875 5.56876C2.86875 5.06876 2.96874 4.46873 3.46874 4.16873C3.96874 3.86873 4.56875 3.96878 4.86875 4.46878L8.86875 10.4688C9.06875 10.7688 9.06875 11.2688 8.86875 11.5688L4.86875 17.5688C4.66875 17.7688 4.36875 17.9688 4.06875 17.9688Z" fill="black" /></svg>'
+                    subtitle += '</span>'
+                                                                                        
+                    subtitle += '<div class="d-flex flex-stack flex-grow-1 flex-wrap flex-md-nowrap">'
+                    subtitle += '<div class="mb-3 mb-md-0 fw-bold">'
+
+                    if event.workorder.code:
+                        subtitle += '<h7 class="text-gray-900 fw-bolder">Work Order ' + event.workorder.code + '</h7>'
+
+                    if event.description:
+                        subtitle += '<div class="fs-7 text-gray-700 pe-7">' + event.description + '</div>'
+
+                    subtitle += '</div>'
+                    
+                    
+                    if event.workorder.state:
+                        if event.workorder.state.id >= 5:            
+                            subtitle += '<a href="/proyect/generate_pdf/' + str(event.workorder.id)  + '" class="btn btn-sm btn-primary px-6 align-self-center text-nowrap" target="_blank">Download WO</a>'
+                    
+                    subtitle += '</div>'
+                    subtitle += '</div>'
+                    subtitle += '</div>'
+
+
+            elif event.type_event_id == 2 and event.workorder and event.item:
+                eventHTML += iconEdit
+                title = 'A item has been updated for the address: ' + address            
+
+
+            ## Delete
+            elif event.type_event_id == 3 and event.proyect is None:
+                eventHTML += iconDelete
+                title += 'A project has been deleted'
+
+                if event.description:
+                    if event.description != '':
+                        title += ': ' + event.description
+            
+            elif event.type_event_id == 3 and event.proyect and event.workorder is None:
+                eventHTML += iconDelete
+                title += 'A work order has been deleted'
+
+                if event.description:
+                    if event.description != '':
+                        title += ': ' + event.description
+
+            elif event.type_event_id == 3 and event.proyect and event.workorder and event.item is None:
+                eventHTML += iconDelete
+                title += 'A item has been deleted'
+
+                if event.description:
+                    if event.description != '':
+                        title += ': ' + event.description
+
+
+            #### 
+
+            if title != '':
+            
+                eventHTML += '<div class="timeline-content mb-10 mt-n2">'
+                eventHTML += '<div class="pe-3 mb-5">'
+                eventHTML += '<div class="fs-7 fw-bold mb-2">'
+                eventHTML += title
+
+
+                eventHTML += '<div class="d-flex align-items-center mt-1 fs-6">'
+                eventHTML += '<div class="text-muted me-2 fs-7">This event occurred on ' + date
+                
+                if userName != '':
+                    eventHTML += ' by ' + userName
+
+                if subtitle != '':
+                    eventHTML += '<br/><br/>' + subtitle
+                
+                eventHTML += '</div>'
+                eventHTML += '</div>'
+
+
+                eventHTML += '</div>'
+                eventHTML += '</div>'
+                eventHTML += '</div>'
+
+            #### 
+
+            eventHTML += '</div>'
+
+    except:
+        pass
+    
+
+    return eventHTML
 
 
 import io

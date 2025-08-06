@@ -75,7 +75,7 @@
 								</div>
 							</div>
 						</div>
-						
+						{% if user.is_superuser %}
 						<div data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-lg-1">
 							<span class="menu-link py-3">
 								<span class="menu-title">Administration</span>
@@ -162,7 +162,7 @@
 								</div>
 							</div>
 						</div>
-						
+						{% endif %}
 						<div data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start"
 							class="menu-item menu-lg-down-accordion me-lg-1">
 							<span class="menu-link py-3">
