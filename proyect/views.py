@@ -1344,20 +1344,30 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
             workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
             workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12">' #BORDE ITEM style="border:1px solid white; border-width:1px;"
-            
+
+            #Tiulo colapsable
+            title = '<span class="card-label fw-bolder fs-3">Work Order ' + str(woN) + ':</span>' 
+            workOrdersHTML += htmlDivCollapse("divWO", str(wo.id), title, 2)            
+
             #Titulo
-            workOrdersHTML += '<div class="card-header pt-5">'
+            workOrdersHTML += '<div class="card-header">'         
+
+                        
             workOrdersHTML += '<div class="col-lg-12">'
 
+            
+
+            
             workOrdersHTML += '<div class="row">'
+            
 
             #Celda 1
             workOrdersHTML += '<div class="col-lg-7">' #style="border:1px solid red; border-width:1px;"
             
-            workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'
-            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">Work Order ' + str(woN) + ':' + getStateName(wo.state.id, '6') + '</span>' 
-
+            workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'            
+            
             #Subtitulo
+            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">' + getStateName(wo.state.id, '6') + '</span>'
             workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
             workOrdersHTML += '</h3>'
 
@@ -1372,7 +1382,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '<div class="col-lg-3 d-flex flex-column justify-content-end">' #style="border:1px solid green; border-width:1px;"
 
             if mode == 1:
-                workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,1)">Schedule (+)</a></div>'
+                workOrdersHTML += '<div class="col-lg-4"><a id="aAddItem" class="btn btn-link fs-6" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,1)"><b>Schedule (+)</b></a></div>'
 
             workOrdersHTML += '</div>'
 
@@ -1402,14 +1412,14 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
                 if wo.state.id == 2:
 
                     workOrdersHTML += '<div class="col-xl-2 py-1 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general quote (+)</a>'
+                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)"><b>Add general quote (+)</b></a>'
                     workOrdersHTML += '</div>'
 
 
                 if wo.state.id == 3:
 
                     workOrdersHTML += '<div class="col-xl-2 py-1 fv-row">'
-                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)">Add general approve quote (+)</a>'
+                    workOrdersHTML += '<a class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(wo.id) + ',0,0,0)"><b>Add general approve quote (+)</b></a>'
                     workOrdersHTML += '</div>'
 
                 if wo.state.id >= 4 and wo.state.id <= 9:
@@ -1424,10 +1434,10 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
                 if mode == 1:
                     
                     # workOrdersHTML += '<a href="../../generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
-                    workOrdersHTML += '<a id="downloadWO" class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalWO" onclick="loadModalWO(' + str(wo.id) + ')">Download WO</a>'
+                    workOrdersHTML += '<img alt="" class="w-20px me-2" src="/static/images/pdf.svg" alt=""><a id="downloadWO" class="btn btn-link fs-6 py-1" data-bs-toggle="modal" data-bs-target="#modalWO" onclick="loadModalWO(' + str(wo.id) + ')">View WO</a>'
 
                 else:
-                    workOrdersHTML += '<a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">Download WO</a>'
+                    workOrdersHTML += '<img alt="" class="w-20px me-2" src="/static/images/pdf.svg" alt=""><a href="../../proyect/generate_pdf/' + str(wo.id) + '" class="fs-6 text-hover-primary" target="_blank">View WO</a>'
                 workOrdersHTML += '</div>'
 
                     
@@ -1438,13 +1448,19 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
 
             #Comentarios genéricos por etapa/estado
             workOrdersHTML += getDataComments(request, wo.id, 0, mode)
-
+                        
             workOrdersHTML += '</div>'
             #Fin item
+           
 
-            workOrdersHTML += '</div>' #Fin BORDE ITEM
-            workOrdersHTML += '</div>' #FIN CONTENEDOR EXTERNO
+            #Fin colapsable            
+            workOrdersHTML += '</div></div>'
+
+            workOrdersHTML += '</div>' #Fin BORDE ITEM            
+            workOrdersHTML += '</div>' #FIN CONTENEDOR EXTERNO            
             workOrdersHTML += '</div>' #FIN WO
+
+            
 
     
     
@@ -1541,13 +1557,14 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                 if mode == 1: #edicion
 
-                    if workOrder.state.id in (1,2,3,4):
+                    if workOrder.state.id == 5:
+                        itemsHTML += '<a class="btn btn-link fs-6 " data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)"><b>Due date (+)</b></a>'
+
+                    if workOrder.state.id in (1,2,3,4,5,6,7,8,9):
 
                         itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" onclick="editItem(' + str(workOrderId) + ',' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" /><path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" /></svg></span></a>'
                         itemsHTML += '<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" onclick="delI(this,' + str(item.id) + ')"><span class="svg-icon svg-icon-3" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" /><path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" /><path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" /></svg></span></a>'
-
-                    if workOrder.state.id == 5:
-                        itemsHTML += '<a class="btn btn-link fs-6 " data-bs-toggle="modal" data-bs-target="#modalComment" onclick="loadModal(' + str(workOrder.id) + ',' + str(item.id) + ',0,1)">Due date (+)</a>'
+                    
 
                 itemsHTML += '</div>'
 
@@ -1987,36 +2004,9 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                     #Inicio Fila 4
                     #Ver detalle
-                    itemsHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divItemDetail_' + str(item.id) + '">'
-                    itemsHTML += '<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">'
 
-                    itemsHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
-                    itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-                    itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-                    itemsHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-                    itemsHTML += '</svg>'
-                    itemsHTML += '</span>'
+                    itemsHTML += htmlDivCollapse("divItemDetail", str(item.id), 'See more details', 1)  #mode1: colapsado mode2: open
 
-                    itemsHTML += '<span class="svg-icon toggle-off svg-icon-1">'
-                    itemsHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
-                    itemsHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
-                    itemsHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
-                    itemsHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
-                    itemsHTML += '</svg>'
-                    itemsHTML += '</span>'
-                    
-                    itemsHTML += '</div>'
-
-                    itemsHTML += '<h7 class="text-gray-700 cursor-pointer mb-0">See more details</h7>'
-                    
-                    itemsHTML += '</div>'                     
-                                
-
-                    
-
-                    itemsHTML += '<div id="divItemDetail_' + str(item.id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
-
-                    itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
 
                     ##############################################################################################################
                     ############################################## Celda (archivos) ##############################################
@@ -2208,8 +2198,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
 
     stateName = ""
 
-    if int(itemId) != 0:
-        itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
+    if int(itemId) != 0:        
         item = Item.objects.get(workorder=workorder, id=itemId)
 
         if item:
@@ -2217,17 +2206,17 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
 
             if len(itemCSs) > 0:
                 itemsHTML += '<div class="separator border-secondary my-10"></div>'
-                itemsHTML += '<h7><b>Comments by item:</b></h7>'
+                itemsHTML += htmlDivCollapse("divCommentItem", str(itemId), "Comments by item:", 2)
 
-    else: 
-        itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
+    else:         
         itemCSs = WorkOrderCommentState.objects.filter(workorder=workorder).order_by('-id')
 
-        if len(itemCSs) > 0:
-                itemsHTML += '<h7><b>General comments:</b></h7>'
+        if len(itemCSs) > 0:            
+            itemsHTML += htmlDivCollapse("divGeneralCommentItem", str(workOrderId), "General comments by item:", 2)            
 
     
     if len(itemCSs) > 0:
+        itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
         # 27-04-2025
         itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="15%">User</th><th>Notes</th>'
 
@@ -2288,8 +2277,13 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
         else:
              itemsHTML += '<td></td>'
         itemsHTML += '</tr>'
-    
-    itemsHTML += '</table></div></div>'
+        
+
+    #Se cierra panel colapsable
+
+    if len(itemCSs) > 0:
+        itemsHTML += '</table></div></div>'
+        itemsHTML += '</div></div>'
 
     return itemsHTML
 
@@ -2934,14 +2928,14 @@ def saveCalendar(request):
                 dateEnd_get = dateStart_get
 
             if dateStartHour_get == '' or dateStartHour_get == None:
-                dateStartHour_get = '12:00 AM' 
+                dateStartHour_get = ' 00:00' 
 
             if dateEndHour_get == '' or dateEndHour_get == None:
-                dateEndHour_get = '11:59 PM' 
+                dateEndHour_get = ' 23:59' 
 
             if checkAllDay:
-                dateStart_get += ' 12:00 AM'
-                dateEnd_get += ' 11:59 PM'
+                dateStart_get += ' 00:00'
+                dateEnd_get += ' 23:59'
                 checkAllDay = True
             else:
                 dateStart_get += ' ' + dateStartHour_get
@@ -3194,14 +3188,14 @@ def saveCalendarItems(request):
                 dateEnd_get = dateStart_get
 
             if dateStartHour_get == '' or dateStartHour_get == None:
-                dateStartHour_get = '12:00 AM' 
+                dateStartHour_get = ' 00:00' 
 
             if dateEndHour_get == '' or dateEndHour_get == None:
-                dateEndHour_get = '11:59 PM' 
+                dateEndHour_get = ' 23:59' 
 
             if checkAllDay and checkAllDay == '1':
-                dateStart_get += ' 12:00 AM'
-                dateEnd_get += ' 11:59 PM'
+                dateStart_get += ' 00:00'
+                dateEnd_get += ' 23:59'
                 checkAllDay = True
             else:
                 dateStart_get += ' ' + dateStartHour_get
@@ -4552,8 +4546,50 @@ def htmlDataCommentCalendar(request, workorder, item, task, mode): # mode 1: edi
     return itemsHTML
 
 
-#Consulta realizada para obtener los últimos eventos
+def htmlDivCollapse(name, id, title, mode):
+    divHTML = ''
 
+    if mode == 1:
+        divHTML += '<div class="d-flex align-items-center collapsible py-1 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
+    if mode == 2:
+        divHTML += '<div class="d-flex align-items-center collapsible py-1 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
+
+    divHTML += '<div class="btn btn-sm btn-icon btn-active-color-primary">'
+    
+    divHTML += '<span class="svg-icon toggle-on svg-icon-primary svg-icon-1">'
+    divHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    divHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+    divHTML += '<rect x="6.0104" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+    divHTML += '</svg>'
+    divHTML += '</span>'
+    
+    divHTML += '<span class="svg-icon toggle-off svg-icon-1">'
+    divHTML += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">'
+    divHTML += '<rect opacity="0.3" x="2" y="2" width="20" height="20" rx="5" fill="black"></rect>'
+    divHTML += '<rect x="10.8891" y="17.8033" width="12" height="2" rx="1" transform="rotate(-90 10.8891 17.8033)" fill="black"></rect>'
+    divHTML += '<rect x="6.01041" y="10.9247" width="12" height="2" rx="1" fill="black"></rect>'
+    divHTML += '</svg>'
+    divHTML += '</span>'
+
+    divHTML += '</div>'
+
+    divHTML += '<h7 class="cursor-pointer mb-0"><b>' + title + '</b></h7>'
+
+    divHTML += '</div>'
+    
+    if mode == 1:
+        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+    if mode == 2:
+        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse show" style="border:1px solid white; border-width:1px;">'
+    
+
+    divHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+
+    return divHTML
+
+
+
+#Consulta realizada para obtener los últimos eventos
 def htmlDataLog(request): # mode 1: edicion, 2: lectura
     
     eventHTML = ''
@@ -4651,7 +4687,7 @@ def htmlDataLog(request): # mode 1: edicion, 2: lectura
                     
                     if event.workorder.state:
                         if event.workorder.state.id >= 5:            
-                            subtitle += '<a href="/proyect/generate_pdf/' + str(event.workorder.id)  + '" class="btn btn-sm btn-primary px-6 align-self-center text-nowrap" target="_blank">Download WO</a>'
+                            subtitle += '<a href="/proyect/generate_pdf/' + str(event.workorder.id)  + '" class="btn btn-sm btn-primary px-6 align-self-center text-nowrap" target="_blank">View WO</a>'
                     
                     subtitle += '</div>'
                     subtitle += '</div>'

@@ -378,15 +378,17 @@
 																			</div>
 																			<!--end::Col-->
 																			<!--begin::Col-->
-																			<div class="col-xl-6 fv-row">
+																			<div class="col-xl-6 fv-row d-flex align-items-center gap-2">
 																				<!--begin::Input-->
 		
-																				<select id="selectCategory" class="form-select form-select-solid" name="category">
+																				<select id="selectCategory" class="form-select form-select-solid w-100" name="category">
 																					<option value="">---</option>
 																					{% for category in categories %}
 																					<option value="{{ category.id }}">{{ category.name }}</option>
 																					{% endfor %}
 																				</select>
+
+																				<img src="/static/admin/img/icon-addlink.svg" alt="" width="20" height="20">
 		
 																				<!--end::Input-->
 																			</div>
