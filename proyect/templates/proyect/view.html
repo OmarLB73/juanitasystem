@@ -374,21 +374,22 @@
 																		<div class="row mb-6">
 		
 																			<div class="col-xl-2">
-																				<div class="fs-7 fw-bold mt-2 mb-3">Category:</div>
+																				<div class="fs-7 fw-bold mt-2 mb-3 required">Category:</div>
 																			</div>
 																			<!--end::Col-->
 																			<!--begin::Col-->
-																			<div class="col-xl-6 fv-row d-flex align-items-center gap-2">
+																			<!-- <div class="col-xl-6 fv-row d-flex align-items-center gap-2"> -->
+																			<div class="col-xl-6 fv-row">
 																				<!--begin::Input-->
 		
-																				<select id="selectCategory" class="form-select form-select-solid w-100" name="category">
-																					<option value="">---</option>
+																				<select id="selectCategory" class="form-select form-select-solid w-100" data-placeholder="Select category" name="category">
+																					<option value=""></option>
 																					{% for category in categories %}
 																					<option value="{{ category.id }}">{{ category.name }}</option>
 																					{% endfor %}
 																				</select>
 
-																				<img src="/static/admin/img/icon-addlink.svg" alt="" width="20" height="20">
+																				<!-- <img src="/static/admin/img/icon-addlink.svg" alt="" width="20" height="20"> -->
 		
 																				<!--end::Input-->
 																			</div>
@@ -400,7 +401,7 @@
 		
 																			<!--begin::Col-->
 																			<div class="col-xl-2">
-																				<div class="fs-7 fw-bold mt-2 mb-3">Sub Category:</div>
+																				<div class="fs-7 fw-bold mt-2 mb-3 required">Sub Category:</div>
 																			</div>
 																			<!--end::Col-->
 																			<!--begin::Col-->
@@ -408,9 +409,8 @@
 																				<!--begin::Input-->
 																			
 																				<select id="selectSubcategory" class="form-select form-select-solid"
-																					data-kt-select2="false" data-placeholder="Select"
-																					data-allow-clear="true" name="subcategory">
-																					<option value="">---</option>
+																					data-placeholder="Select sub category" name="subcategory">
+																					<option value=""></option>
 																				</select>
 																			
 																				<!--end::Input-->
@@ -431,9 +431,8 @@
 																				<!--begin::Input-->
 																			
 																				<select id="selectGroup" class="form-select form-select-solid"
-																					data-kt-select2="false" data-placeholder="Select"
-																					data-allow-clear="true" name="group">
-																					<option value="">---</option>
+																					data-placeholder="Select group" name="group">
+																					<option value=""></option>
 																				</select>
 																			
 																				<!--end::Input-->
@@ -454,9 +453,8 @@
 																				<!--begin::Input-->
 		
 																				<select id="selectPlace" class="form-select form-select-solid"
-																					data-kt-select2="false" data-placeholder="Select"
-																					data-allow-clear="true" name="place">
-																					<option value="">---</option>
+																					data-placeholder="Select place" name="place">
+																					<option value=""></option>
 																					{% for place in places %}
 																					<option value="{{ place.id }}">{{ place.name }}</option>
 																					{% endfor %}
@@ -857,7 +855,7 @@
 				initializeFlatpickr();
 
 				$('#aAddItem').click(function() {
-					cleanItemForm();					
+					cleanItemForm();
 				});
 
 
@@ -968,8 +966,38 @@
 					loadGroup(0);
 				});
 
-				saveMaterial();												
+				saveMaterial();
 
+
+				$('#modalItem').on('shown.bs.modal', function () {			
+															
+					$('#selectCategory').select2({
+						tags: true,						
+						dropdownParent: $('#modalItem'),						
+						width: '100%'  // para forzar ancho completo,						
+					});
+
+					$('#selectSubcategory').select2({
+						tags: true,						
+						dropdownParent: $('#modalItem'),						
+						width: '100%'  // para forzar ancho completo
+					});
+
+					$('#selectGroup').select2({
+						tags: true,						
+						dropdownParent: $('#modalItem'),						
+						width: '100%',  // para forzar ancho completo
+						allowClear: true
+					});
+
+					$('#selectPlace').select2({
+						tags: true,						
+						dropdownParent: $('#modalItem'),						
+						width: '100%',  // para forzar ancho completo
+						allowClear: true
+					});
+				});
+								
 			});
 
 			
@@ -1070,10 +1098,12 @@
 								$('#selectSubcategory').val(i);  // Establecer el valor
 							}
 
-							// if(g > 0){
-							// 	loadGroup(g)
-							// }
-							loadGroup($('#selectSubcategory option:first').val())
+							if(g > 0){
+							 	loadGroup(g)
+							}
+							else{
+								loadGroup($('#selectSubcategory option:first').val())
+							}
 
 						},
 						error: function(xhr, status, error) {
@@ -1245,17 +1275,12 @@
 
 			function cleanItemForm(){
 
-				const formEl = document.getElementById("formItem");
+				formItemValidator.resetForm(true);
+				$('#formItem')[0].reset();
 
-				// Limpia inputs con clases visuales
-				formEl.querySelectorAll(".is-valid, .is-invalid").forEach(el => {
-				el.classList.remove("is-valid", "is-invalid");
-				});
+				$('#selectCategory').val(null).trigger('change'); // Limpia la selección
 
-				// Opcional: si hay íconos, suelen estar en elementos con clase `.fv-plugins-icon`
-				formEl.querySelectorAll(".fv-plugins-icon").forEach(el => {
-				el.style.display = "none";
-				});
+				const formEl = document.getElementById("formItem");				
 
 				var select = document.getElementById('selectCategory');
 				select.selectedIndex = 0; // Establece el primer elemento como seleccionado
@@ -1943,8 +1968,7 @@
 					},					
 					success: function(response) {
 						$('#selectCategory').val(response.category);
-						loadSubcategory(response.subCategory,response.group);						
-						$('#selectPlace').val(response.place);
+						loadSubcategory(response.subCategory,response.group);												
 						$('#selectPlace').val(response.place);
 						$('#inputQty').val(response.qty);
 						$('#textareaNotes').val(response.notes);

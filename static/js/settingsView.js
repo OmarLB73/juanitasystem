@@ -1,12 +1,15 @@
 "use strict";
+
+var formItemValidator; // declarada fuera de init()
+
 var KTProjectSettings = {
     init: function () {
         !function () {
-            var t;            
+            //var t;            
             // $("#kt_datepicker_1").flatpickr({ enableTime: !0, dateFormat: "Y-m-d, H:i" });
             var e = document.getElementById("formItem"),
                 i = e.querySelector("#submitItem");
-            t = FormValidation.formValidation(e, {
+            formItemValidator = FormValidation.formValidation(e, {
                 fields: {
                     category: { validators: { notEmpty: { message: " " } } },
                     subcategory: { validators: { notEmpty: { message: " " } } },
@@ -28,8 +31,8 @@ var KTProjectSettings = {
                     });                    
 
                     e.preventDefault(),
-                        t.validate().then((function (t) {
-                            "Valid" == t ?                            
+                        formItemValidator.validate().then((function (formItemValidator) {
+                            "Valid" == formItemValidator ?
                                 swal.fire({
                                     title: '¿Are you sure?',
                                     text: 'Do you want to save the item?',
