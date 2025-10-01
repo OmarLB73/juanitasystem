@@ -163,7 +163,7 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
             workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12">' #BORDE ITEM style="border:1px solid white; border-width:1px;"
 
             #Tiulo colapsable
-            title = '<span class="card-label fw-bolder fs-3">Work Order ' + str(woN) + ':</span>' 
+            title = '<span class="card-label fw-bolder fs-3 me-4">Work Order: ' + str(woN) + '</span>  ' + getStateName(wo.state.id, 'WO')
             workOrdersHTML += htmlDivCollapse("divWO", str(wo.id), title, 2)            
 
             #Titulo
@@ -171,20 +171,18 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
 
                         
             workOrdersHTML += '<div class="col-lg-12">'
-
-            
+          
 
             
             workOrdersHTML += '<div class="row pb-2">'
             
-
             #Celda 1
             workOrdersHTML += '<div class="col-lg-4">' #style="border:1px solid red; border-width:1px;"
             
             workOrdersHTML += '<h3 class="card-title align-items-start flex-column">'            
             
             #Subtitulo
-            workOrdersHTML += '<span class="card-label fw-bolder fs-3 mb-1">' + getStateName(wo.state.id, '6') + '</span>'
+            workOrdersHTML += ''
             workOrdersHTML += '<span class="text-muted mt-1 fw-bold fs-7">' + stateDescription + '</span>'
             workOrdersHTML += '</h3>'
 
@@ -1050,7 +1048,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
     if len(itemCSs) > 0:
         itemsHTML += '<div class="col-xl-12 fv-row text-start"><div class="table-responsive">'
         # 27-04-2025
-        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="15%">User</th><th>Notes</th>'
+        itemsHTML += '<table class="table table-rounded table-striped"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="15%">State</th><th width="10%">Date</th><th width="10%">Time</th><th width="10%">User</th><th width="5%">Accepted</th><th>Notes</th>'
 
         if mode == 1:
             itemsHTML += '<th></th>'
@@ -1084,7 +1082,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             time = timezone.localtime(itemCS.modification_date).strftime('%H:%M %p')
 
         if itemCS.state:
-            stateName = getStateName(itemCS.state.id, '7')
+            stateName = getStateName(itemCS.state.id, 'TC')
 
         user = User.objects.get(id=itemCS.modification_by_user)
 
@@ -1099,8 +1097,12 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
             
             itemTxt += "</ul>"
 
+        accepted = ''
 
-        itemsHTML += '<tr class="py-0 fw-bold fs-7 ' + state + '"><td style="padding:0; border:0">' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td>' + itemTxt + '</td>'
+        if itemCS.accepted:
+            accepted = '<img src="/static/images/check2.svg" alt="Logo" width="15">'
+
+        itemsHTML += '<tr class="py-0 fw-bold fs-7 ' + state + '"><td style="padding:0; border:0">' + stateName + '</td><td>' + date + '</td><td>' + time + '</td><td>' + username + '</td><td align=center>' + accepted +'</td><td>' + itemTxt + '</td>'
 
         user_session = request.user
 
@@ -1175,6 +1177,7 @@ def modalComment(workOrderId, itemId, commentId):
 
     item = None    
     files = None
+    accepted = None
 
     itemCSId = "0"
     
@@ -1191,6 +1194,7 @@ def modalComment(workOrderId, itemId, commentId):
             if itemCS:
                 itemCSId = str(itemCS.id)
                 itemTxt = itemCS.notes
+                accepted = itemCS.accepted
                 files = ItemCommentStateFile.objects.filter(item_comment_state = itemCS)
 
     #General
@@ -1201,6 +1205,7 @@ def modalComment(workOrderId, itemId, commentId):
         if itemCS:
             itemCSId = str(itemCS.id)
             itemTxt = itemCS.notes
+            accepted = itemCS.accepted
             files = WorkOrderCommentStateFile.objects.filter(workorder_comment_state = itemCS)
                 
             
@@ -1222,7 +1227,16 @@ def modalComment(workOrderId, itemId, commentId):
     itemsHTML += '<form id="formItem_' + itemId + '" method="POST" enctype="multipart/form-data">'
     
     
-    itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + modalSubTitle + '</div>'
+    itemsHTML += '<div class="fs-7 fw-bold mt-2 mb-3">' + modalSubTitle + '</div> '
+    
+    if workorder.state.checkBoxDescription:
+        if workorder.state.checkBoxDescription != '':            
+            checked = ''
+            if accepted:
+                checked = 'checked'
+
+            itemsHTML +='<div class="form-check pb-2"><input class="form-check-input" type="checkbox" name="chkState" ' + checked + '><label class="form-check-label">' + workorder.state.checkBoxDescription + '</label></div>'
+
     itemsHTML += '<textarea name="notes" class="form-control form-control-solid h-80px" maxlength="2000">' + str(itemTxt) + '</textarea><br/>'
         
     if files:        

@@ -125,6 +125,7 @@ class State(models.Model):
     linkDescription = models.CharField(max_length=150, null=True)
     modalTitle = models.CharField(max_length=250, null=True)
     modalSubTitle = models.TextField(null=True, blank=True)    
+    checkBoxDescription = models.CharField(max_length=150, null=True)
     positiveMessage = models.CharField(max_length=250, null=True)
     negativeMessage = models.CharField(max_length=250, null=True)
     created_by_user = models.IntegerField(null=True, blank=True)

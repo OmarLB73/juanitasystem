@@ -64,10 +64,10 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class StateAdmin(admin.ModelAdmin):
-    list_display = ['id','name','buttonName','description','buttonDescription', 'linkDescription', 'modalTitle','modalSubTitle','positiveMessage','negativeMessage','status','modification_by_user_text','modification_date']
-    fields = ['name','buttonName','description','buttonDescription','linkDescription','modalTitle','modalSubTitle','positiveMessage','negativeMessage','status']
+    list_display = ['id','name','buttonName','description','buttonDescription', 'linkDescription', 'modalTitle','modalSubTitle', 'checkBoxDescription' ,'positiveMessage','negativeMessage','status','modification_by_user_text','modification_date']
+    fields = ['name','buttonName','description','buttonDescription','linkDescription','modalTitle','modalSubTitle', 'checkBoxDescription','positiveMessage','negativeMessage','status']
     ordering = ['id']
-    search_fields = ['name','buttonName','description','buttonDescription','linkDescription']
+    search_fields = ['name','buttonName','description','buttonDescription','linkDescription','checkBoxDescription']
 
     def modification_by_user_text(self, obj):
         user = User.objects.filter(id=obj.modification_by_user).first()

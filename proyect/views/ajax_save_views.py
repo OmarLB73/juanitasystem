@@ -16,7 +16,7 @@ from ..utils.utils import validateTypeFile
 
 #Instancia para guardar los datos del item.
 @login_required
-def saveItem(request):    
+def saveItem(request):
 
     if request.method == 'POST':        
         workorder_id = request.POST.get('wo_id')
@@ -382,11 +382,17 @@ def saveComment(request):
         itemId = request.POST.get('id2')
         commentId = request.POST.get('id3')
         notes = request.POST.get('notes')
+        chkState = request.POST.get('chkState')
         date_end = request.POST.get('date_end')
         responsible_id = request.POST.get('responsable')        
 
         workorder = WorkOrder.objects.get(id=workOrderId)
         item = Item.objects.filter(workorder = workorder, id=itemId).first() #No siempre estará, por eso no se usa get
+        accept = False
+
+        if chkState:
+            if chkState == 'on':
+                accept = True
 
         #A nivel de item       
         if item: 
@@ -403,6 +409,7 @@ def saveComment(request):
                 item_coment_save = ItemCommentState.objects.create( item = item,
                                                                     state = workorder.state,
                                                                     notes = notes,
+                                                                    accepted = accept,
                                                                     created_by_user = request.user.id,
                                                                     modification_by_user = request.user.id)
                                        
@@ -444,6 +451,7 @@ def saveComment(request):
                     item_coment_save = WorkOrderCommentState.objects.create(workorder = workorder,
                                                                             state = workorder.state,
                                                                             notes = notes,
+                                                                            accepted = accept,
                                                                             created_by_user = request.user.id,
                                                                             modification_by_user = request.user.id)
                             

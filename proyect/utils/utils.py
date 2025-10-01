@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError #Para manejar excepciones
 from django.utils import timezone #Para ver la hora correctamente.
 from django.contrib.auth.models import User #Datos del usuario
+from collections import defaultdict
 
 from ..models import State, WorkOrder, Event, Proyect, Responsible, CalendarItem, CalendarItemComment, CalendarWorkOrder, CalendarWorkOrderComment, CalendarTask, CalendarTaskComment, CalendarItemCommentFile, CalendarWorkOrderCommentFile, CalendarTaskCommentFile
 
@@ -87,7 +88,7 @@ def getDecoratorsTable(decorators):
 
 
 #Retorna el nombre del estado, junto con su clase css
-def getStateName(stateId, fs):
+def getStateName(stateId, case): #case: WO - comments table
     
     state = State.objects.get(id = stateId)
 
@@ -98,8 +99,12 @@ def getStateName(stateId, fs):
 
     #stateHTML += '<i class="fas fa-question-circle" data-bs-toggle="tooltip" title="' + description + '"></i>'
 
-    if fs != "":
-        stateHTML += '<div class="fs-' + fs + ' fw-bold p-2 badge-state-' + str(stateId) + '">'
+    if case == "WO":
+        stateHTML += '<span class="fs-6 fw-bold p-2 badge-state-' + str(stateId) + '">'
+        stateHTML += name
+        stateHTML += '</span>'
+    elif case == "TC":
+        stateHTML += '<div class="fs-7 fw-bold p-2 badge-state-' + str(stateId) + '">'
         stateHTML += name
         stateHTML += '</div>'
     else:
@@ -110,7 +115,7 @@ def getStateName(stateId, fs):
     return stateHTML																									
 
 
-from collections import defaultdict
+
 #Retorna resumen WO´s
 def getResumenWOs(request, proyect):
 
@@ -128,7 +133,7 @@ def getResumenWOs(request, proyect):
         wos = WorkOrder.objects.filter(proyect = proyect, status=1).order_by('-id')
 
     # Obtener eventos relevantes
-    eventos = Event.objects.filter(type_event_id=2, workorder__in = wos, item = None).select_related('workorder', 'state')
+    eventos = Event.objects.filter(type_event_id__in=(1,2), workorder__in = wos, item = None).select_related('workorder', 'state')
     # Crear estructura: workorder_id -> { state_id -> fecha }
     pivot_data = defaultdict(lambda: defaultdict(lambda: None))
     # Recorrer eventos y guardar la última fecha por estado por workorder
@@ -229,7 +234,8 @@ def newWO(request, proyectId):
         return None
 
 
-def timeline_body(date_str, name, email, description, stateId):
+
+def _obsoleto_timeline_body(date_str, name, email, description, stateId):
     
     timeline_cont = '<div class="timeline-content mb-10 mt-n1">'    
     timeline_cont += '<div class="mb-5 pe-3">'
