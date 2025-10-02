@@ -459,6 +459,7 @@ class WorkOrderCommentState(models.Model):
     id = models.AutoField(primary_key=True)
     workorder = models.ForeignKey(WorkOrder, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
     notes = models.TextField(blank=True, null=True)    
     created_by_user = models.IntegerField(null=True, blank=True)
     creation_date = models.DateTimeField(default=timezone.now, null=True)
