@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required #para controlar las se
 # from django.utils import timezone #Para ver la hora correctamente.
 
 
-from ..models import Item, Proyect, ItemCommentState, WorkOrderCommentState, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, ItemCommentStateFile, WorkOrderCommentStateFile, ItemImage, ItemFile, ItemMaterial
+from ..models import Item, Proyect, ItemCommentState, WorkOrderCommentState, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, ItemCommentStateFile, WorkOrderCommentStateFile, ItemImage, ItemFile, ItemMaterial, CalendarTask
 from ..services.proyect_service import saveEvent
 
 
@@ -226,3 +226,20 @@ def deleteFile(request):
     return JsonResponse({'result': status})
 
 
+#Funcion ejecutada para eliminar tareas del calendario
+@login_required
+def deleteTaskCalendar(request):            
+    id = request.POST.get('i')
+    status = 0
+
+    try:
+        task = CalendarTask.objects.filter(id = id)
+        if task:
+            task.delete()
+            status = 1
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+ 
+    return JsonResponse({'result': status})

@@ -8,7 +8,7 @@ from django.utils import timezone #Para ver la hora correctamente.
 from PIL import Image #Para validar el tipo de imagen
 
 from ..models import Group, Place, WorkOrder, Item, Subcategory, CategoryAttribute, ItemAttribute, ItemAttributeNote, Attribute, AttributeOption, ItemMaterial, ItemFile, ItemImage, ItemCommentState, ItemCommentStateFile,WorkOrderCommentState, WorkOrderCommentStateFile, Responsible, CalendarItem,CalendarWorkOrder, CalendarTask, State, Category
-from ..services.proyect_service import saveEvent
+from ..services.proyect_service import saveEvent, saveCalendarItems, saveCalendarComments
 from ..utils.utils import validateTypeFile
 
 

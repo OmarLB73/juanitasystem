@@ -609,7 +609,7 @@
 						</div>
 						<!--end::Modal header-->
 						<!--begin::Modal body-->
-						<div id="divViewProyect" class="modal-body pt-0 pb-20 px-lg-17">
+						<div id="divViewProyect" class="bg-light modal-body pt-2 pb-20 px-lg-17">
 
 
 							
@@ -840,33 +840,39 @@
 			<!--begin::Modal content-->
 			<div class="modal-content">
 				<!--begin::Modal header-->
-				<div class="modal-header border-0 justify-content-end">
-					<!--begin::Edit-->
-					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-primary me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Edit proyect" id="modal_CalendarA_edit">
-						<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
-						<span class="svg-icon svg-icon-2">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" />
-								<path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" />
-							</svg>
-						</span>
-						<!--end::Svg Icon-->
-					</div>					
-					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
-						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
-						<span class="svg-icon svg-icon-1">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
-								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
-							</svg>
-						</span>
-						<!--end::Svg Icon-->
+				<div class="modal-header d-flex justify-content-between align-items-center p-5">	
+					
+					<h4 id="h2Title" class="mb-0">Calendar</h4>
+
+					<div class="d-flex gap-2">
+
+						<!--begin::Edit-->
+						<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-primary me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Edit proyect" id="modal_CalendarA_edit">
+							<!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path opacity="0.3" d="M21.4 8.35303L19.241 10.511L13.485 4.755L15.643 2.59595C16.0248 2.21423 16.5426 1.99988 17.0825 1.99988C17.6224 1.99988 18.1402 2.21423 18.522 2.59595L21.4 5.474C21.7817 5.85581 21.9962 6.37355 21.9962 6.91345C21.9962 7.45335 21.7817 7.97122 21.4 8.35303ZM3.68699 21.932L9.88699 19.865L4.13099 14.109L2.06399 20.309C1.98815 20.5354 1.97703 20.7787 2.03189 21.0111C2.08674 21.2436 2.2054 21.4561 2.37449 21.6248C2.54359 21.7934 2.75641 21.9115 2.989 21.9658C3.22158 22.0201 3.4647 22.0084 3.69099 21.932H3.68699Z" fill="black" />
+									<path d="M5.574 21.3L3.692 21.928C3.46591 22.0032 3.22334 22.0141 2.99144 21.9594C2.75954 21.9046 2.54744 21.7864 2.3789 21.6179C2.21036 21.4495 2.09202 21.2375 2.03711 21.0056C1.9822 20.7737 1.99289 20.5312 2.06799 20.3051L2.696 18.422L5.574 21.3ZM4.13499 14.105L9.891 19.861L19.245 10.507L13.489 4.75098L4.13499 14.105Z" fill="black" />
+								</svg>
+							</span>
+							<!--end::Svg Icon-->
+						</div>					
+						<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+							<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+							<span class="svg-icon svg-icon-1">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+									<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+								</svg>
+							</span>
+							<!--end::Svg Icon-->
+						</div>
+						<!--end::Close-->
 					</div>
-					<!--end::Close-->
 				</div>
 				<!--end::Modal header-->
 				<!--begin::Modal body-->
-				<div class="modal-body pt-0 pb-15 px-lg-17">
+				<div class="modal-body p-5 px-lg-17">
 					<!--begin::Row-->
 					<div class="d-flex">
 						<!--begin::Icon-->
@@ -879,7 +885,7 @@
 						</span>
 						<!--end::Svg Icon-->
 						<!--end::Icon-->
-						<div class="mb-9">
+						<div class="mb-4">
 							<!--begin::Event name-->
 							<div class="d-flex align-items-center mb-2">
 								<span class="fs-3 fw-bolder me-3" data-kt-calendar="event_name"><span id="tooltipTitleMd"></span></span>
@@ -927,33 +933,40 @@
 		<div id="divModalDialog" class="modal-dialog modal-dialog-centered mw-1000px">
 			<!--begin::Modal content-->
 			<div class="modal-content">
-				<!--begin::Modal header-->
-				<div class="modal-header border-0 justify-content-end">					
-					<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="modal_CalendarB_delete">						
-						<span class="svg-icon svg-icon-2">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
-								<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
-								<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
-							</svg>
-						</span>
-					</div>					
-					<!--begin::Close-->
-					<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
-						<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
-						<span class="svg-icon svg-icon-1">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
-								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
-							</svg>
-						</span>
-						<!--end::Svg Icon-->
+				<!--begin::Modal header-->				
+				<div class="modal-header d-flex justify-content-between align-items-center p-5">	
+					
+					<h4 id="h2Title" class="mb-0">Task</h4>
+
+					<div class="d-flex gap-2">
+
+						<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete Event" id="modal_CalendarB_delete">						
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
+									<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
+									<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
+								</svg>
+							</span>
+						</div>	
+						<!--begin::Close-->
+						<div class="btn btn-icon btn-sm btn-color-gray-500 btn-active-icon-primary" data-bs-toggle="tooltip" title="Close" data-bs-dismiss="modal">
+							<!--begin::Svg Icon | path: icons/duotune/arrows/arr061.svg-->
+							<span class="svg-icon svg-icon-1">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black" />
+									<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black" />
+								</svg>
+							</span>
+							<!--end::Svg Icon-->
+						</div>
+						<!--end::Close-->
+
 					</div>
-					<!--end::Close-->
 				</div>
 				<!--end::Modal header-->
 				<!--begin::Modal body-->
-				<div class="modal-body pt-0 pb-15 px-lg-17">										
+				<div class="modal-body p-5 px-lg-17">										
 					<!--begin::Row-->
 					<div id="saveModal2">
 										
@@ -1094,8 +1107,8 @@
 			$(document).on('click', '.deleteCommentCalendar', function() {				
 				//$(this).closest('tr').remove();  // Elimina la fila correspondiente
 				$(this).closest('tr').hide();  // Elimina la fila correspondiente
-		  	});			
-
+		  	});
+			
         });
 
 
@@ -1179,6 +1192,10 @@
 						document.getElementById('modal_CalendarA_edit').addEventListener('click', function() {														
     						window.location.href = "/proyect/view/" + info.event.extendedProps.p; // Combinar URL de Django con el ID
 						});
+
+						document.getElementById('modal_CalendarB_delete').onclick = function () {
+  							del_t(info.event, info.event.id);
+						};
 
 
 						var eventDate = info.event.start;
@@ -1526,6 +1543,70 @@
 			});
 		}
 
+
+		function del_t(obj,i){			
+			
+			Swal.fire({
+				title: 'Are you sure?',
+				text: 'Do you want to delete the task?',
+				icon: 'warning',
+				showCancelButton: true,  // Muestra el botón de cancelación
+				confirmButtonText: 'Yes',
+				cancelButtonText: 'Cancel'
+			}).then((result) => {
+				if (result.isConfirmed) {																		
+											
+					$.ajax({					
+						url: "{% url 'deleteTaskCalendar_url' %}",  // La URL que manejará la consulta AJAX
+						method: 'POST',
+						data: {							
+							'i': i
+						},
+						beforeSend: function(xhr, settings) {
+							// Añadir el token CSRF en las cabeceras
+							xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+						},
+						success: function(response) {
+							// Rellena los campos con los datos obtenidos de la respuesta
+							if(response.result = "1"){			
+																	
+								obj.remove();
+
+								$('#modal_CalendarA').modal('hide');
+								$('#modal_CalendarB').modal('hide');
+
+								Swal.fire({
+									title: 'Deleted!',
+									text: 'The task has been successfully deleted.',
+									icon: 'info',
+									confirmButtonText: 'Ok.'
+								});
+
+	
+							}
+							else{
+								Swal.fire({
+									title: 'Error server!',
+									text: error,
+									icon: 'error',
+									confirmButtonText: 'Ok.'
+								});
+							}
+
+						},
+						error: function(xhr, status, error) {																
+							Swal.fire({
+									title: 'Error server!',
+									text: error,
+									icon: 'error',
+									confirmButtonText: 'Ok.'
+								});
+						}
+					});	
+				}
+			});
+		}
+
 		
 		function initializeFlatpickr() {
 			$(".dateComplete-picker").flatpickr({				
@@ -1552,14 +1633,30 @@
 			// 	allowInput: true,
 			// });
 
-			$('#dateA').on('change', function() {				
-				var dateAVal = $(this).val();
-				var dateBVal = $('#dateB').val();
+			const selectA = document.getElementById('dateA');
+			const selectB = document.getElementById('dateB');
 
-				if (dateBVal == "") {
-					$('#dateB').val(dateAVal);
-				}
-			});
+			if (selectA && selectB) {
+				selectA.addEventListener('change', function() {
+					selectB.value = selectA.value;
+					});
+			}
+			
+			const selectA2 = document.getElementById('dateA2');
+			const selectB2 = document.getElementById('dateB2');
+
+			if (selectA2 && selectB2) {
+				selectA2.addEventListener('change', function() {
+					selectB2.value = selectA2.value;
+
+					// Si usás Select2 en dateB2, necesitás actualizarlo:
+					if ($(selectB2).hasClass('select2-hidden-accessible')) {
+						$(selectB2).trigger('change.select2');
+					}
+				});
+			}		
+
+
 		}
 
 

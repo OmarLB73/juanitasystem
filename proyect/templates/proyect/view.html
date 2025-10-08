@@ -195,13 +195,13 @@
 							<!--begin::Card-->
 							<div class="card card-custom gutter-b" >
 								
-								<div class="card-body p-5" style="top:20px">
+								<div class="card-body ps-5" style="top:20px">
 																									
 									<div class="row mb-0">
 										<div class="col-lg-12" style="border:1px solid white; border-width:1px;">
 
 
-											<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divProjectDetail">
+											<div class="d-flex align-items-center collapsible toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#divProjectDetail">
 												<!--begin::Icon-->
 												<div class="btn btn-sm btn-icon mw-20px btn-active-color-primary me-5">
 													<!--begin::Svg Icon | path: icons/duotune/general/gen036.svg-->
@@ -309,11 +309,13 @@
 											</div>											
 										</div>
 									</div>
-								</div>
+									
+									<a class="btn btn-light-primary btn-sm" data-bs-toggle="modal" onclick='addWO("{{proyect.id}}")'><span class="svg-icon svg-icon-12"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a.5.5 0 0 1 .5.5V7h5.5a.5.5 0 0 1 0 1H8.5v5.5a.5.5 0 0 1-1 0V8H2a.5.5 0 0 1 0-1h5.5V1.5A.5.5 0 0 1 8 1z"></path></svg></span><b>Add Work Order</b></a>
+								</div>								
 							</div>
 							<!--end::Card-->
 							
-							<div class="separator-dashed mt-4 mb-6"></div>
+							<div class="separator-dashed mt-4 mb-2"></div>							
 
 							<div id="messageSave">
 
@@ -1772,12 +1774,59 @@
 				// });
 
 
-				$('#dateA').on('change', function() {
-					var dateAVal = $(this).val();
-					var dateBVal = $('#dateB').val();
+				const selectA = document.getElementById('dateA');
+				const selectB = document.getElementById('dateB');
 
-					if (dateBVal == "") {
-						$('#dateB').val(dateAVal);
+				if (selectA && selectB) {
+					selectA.addEventListener('change', function() {
+						selectB.value = selectA.value;
+						});
+				}
+				
+				const selectA2 = document.getElementById('dateA2');
+				const selectB2 = document.getElementById('dateB2');
+
+				if (selectA2 && selectB2) {
+					selectA2.addEventListener('change', function() {
+						selectB2.value = selectA2.value;
+
+						// Si usás Select2 en dateB2, necesitás actualizarlo:
+						if ($(selectB2).hasClass('select2-hidden-accessible')) {
+							$(selectB2).trigger('change.select2');
+						}
+					});
+				}		
+
+
+				const inputsA = document.querySelectorAll('input[name="dateItemA[]"]');
+				const inputsB = document.querySelectorAll('input[name="dateItemB[]"]');
+
+				inputsA.forEach((inputA, index) => {
+					const inputB = inputsB[index];
+
+					if (inputB) {
+						inputA.addEventListener('input', function () {
+							inputB.value = inputA.value;
+						});
+					}
+  				});
+
+
+				const selectsA2 = document.querySelectorAll('select[name="dateItemA2[]"]');
+				const selectsB2 = document.querySelectorAll('select[name="dateItemB2[]"]');
+
+				selectsA2.forEach((selectA2, index) => {
+					const selectB2 = selectsB2[index]; // El que le corresponde en la misma posición
+
+					if (selectB2) {
+						selectA2.addEventListener('change', function () {
+							selectB2.value = selectA2.value;
+
+							// Si usás Select2, actualizás el segundo select visualmente
+							if ($(selectB2).hasClass('select2-hidden-accessible')) {
+							$(selectB2).trigger('change.select2');
+							}
+						});
 					}
 				});
 

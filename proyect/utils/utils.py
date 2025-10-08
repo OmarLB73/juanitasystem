@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError #Para manejar excepciones
 from django.utils import timezone #Para ver la hora correctamente.
 from django.contrib.auth.models import User #Datos del usuario
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 from ..models import State, WorkOrder, Event, Proyect, Responsible, CalendarItem, CalendarItemComment, CalendarWorkOrder, CalendarWorkOrderComment, CalendarTask, CalendarTaskComment, CalendarItemCommentFile, CalendarWorkOrderCommentFile, CalendarTaskCommentFile
 
@@ -234,7 +235,6 @@ def newWO(request, proyectId):
         return None
 
 
-
 def _obsoleto_timeline_body(date_str, name, email, description, stateId):
     
     timeline_cont = '<div class="timeline-content mb-10 mt-n1">'    
@@ -360,6 +360,7 @@ def htmlDivCommentCalendar():
 
     return html
 
+
 #Consulta realizada para obtener los datos de cada uno de los comentarios para el calendario.
 def htmlDataCommentCalendar(request, workorder, item, task, mode): # mode 1: edicion, 2: lectura
 
@@ -455,9 +456,9 @@ def htmlDivCollapse(name, id, title, mode):
     divHTML = ''
 
     if mode == 1:
-        divHTML += '<div class="d-flex align-items-center collapsible py-1 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
+        divHTML += '<div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
     if mode == 2:
-        divHTML += '<div class="d-flex align-items-center collapsible py-1 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
+        divHTML += '<div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#' + str(name) + '_' + str(id) + '">'
 
     divHTML += '<div class="btn btn-sm btn-icon btn-active-color-primary">'
     
@@ -483,12 +484,12 @@ def htmlDivCollapse(name, id, title, mode):
     divHTML += '</div>'
     
     if mode == 1:
-        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse" style="border:1px solid white; border-width:1px;">'
+        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse">' # style="border:1px solid white; border-width:1px;"
     if mode == 2:
-        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse show" style="border:1px solid white; border-width:1px;">'
+        divHTML += '<div id="' + str(name) + '_' + str(id) + '" class="row fs-7 ms-1 collapse show">' #style="border:1px solid white; border-width:1px;"
     
 
-    divHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+    divHTML += '<div class="row">' # style="border:1px solid white; border-width:1px;"
 
     return divHTML
 
@@ -683,3 +684,34 @@ def enviar_notificacion_push(titulo, mensaje, user_ids):
 
     r = requests.post("https://onesignal.com/api/v1/notifications", json=payload, headers=headers)
     return r.status_code, r.json()
+
+
+#Generar lista de horas
+def getHours(intervalo=15):
+    horas = []
+    tiempo = datetime.strptime("00:00", "%H:%M")
+    fin = datetime.strptime("23:45", "%H:%M")
+    while tiempo <= fin:
+        hora_24 = tiempo.strftime("%H:%M")      # para guardar en base de datos
+        hora_12 = tiempo.strftime("%I:%M %p").lower()    # para mostrar al usuario
+        horas.append((hora_24, hora_12))
+        tiempo += timedelta(minutes=intervalo)
+    return horas
+
+
+#Generar select con la lista de horas
+def getDateSelect(name='hora', id='hora-select', classAdd='', selected=None, checked=None):
+    opciones = getHours()
+    display = ''
+
+    if checked:
+        display = 'style="display:none"'
+
+    html = f'<select name="{name}" id="{id}" class="form-select form-select-solid py-2 {classAdd}" data-control="select2" data-placeholder="Select a time" data-allow-clear="true" {display}>\n'
+        
+    for value, label in opciones:
+        selected_attr = ' selected' if value == selected else ''
+        html += f'  <option value="{value}"{selected_attr}>{label}</option>\n'
+    
+    html += '</select>'
+    return html

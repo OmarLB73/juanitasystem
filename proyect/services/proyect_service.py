@@ -8,7 +8,7 @@ from django.contrib.auth.models import User #Datos del usuario
 
 
 from ..models import Proyect, ProyectDecorator, WorkOrder, Item, ItemMaterial, Event, CalendarItem, Responsible, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, CalendarItemCommentFile, CalendarWorkOrderCommentFile, CalendarTaskCommentFile,State, ItemAttribute,ItemAttributeNote, ItemFile, ItemImage, ItemCommentState, WorkOrderCommentState, ItemCommentStateFile, WorkOrderCommentStateFile, Customer, CalendarWorkOrder, CalendarTask
-from ..utils.utils import validateTypeFile, htmlDivCollapse, getStateName, htmlResponsibleSelect, htmlStatusCalendar, htmlDivCommentCalendar, htmlDataCommentCalendar, htmlSpanCalendar
+from ..utils.utils import validateTypeFile, htmlDivCollapse, getStateName, htmlResponsibleSelect, htmlStatusCalendar, htmlDivCommentCalendar, htmlDataCommentCalendar, htmlSpanCalendar, getDateSelect
 
 
 
@@ -160,19 +160,18 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
 
             workOrdersHTML += '<div class="row gy-5 g-xl-8">' #WO        
             workOrdersHTML += '<div class="col-xxl-12" style="">' #CONTENEDOR EXTERNO
-            workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12">' #BORDE ITEM style="border:1px solid white; border-width:1px;"
+            workOrdersHTML += '<div class="card card-xxl-stretch mb-8 mb-xl-12 ps-3">' #BORDE ITEM style="border:1px solid white; border-width:1px;"
 
             #Tiulo colapsable
             title = '<span class="card-label fw-bolder fs-3 me-4">Work Order: ' + str(woN) + '</span>  ' + getStateName(wo.state.id, 'WO')
             workOrdersHTML += htmlDivCollapse("divWO", str(wo.id), title, 2)            
 
             #Titulo
-            workOrdersHTML += '<div class="card-header">'         
+            workOrdersHTML += '<div class="card-header border-0">'         
 
                         
             workOrdersHTML += '<div class="col-lg-12">'
           
-
             
             workOrdersHTML += '<div class="row pb-2">'
             
@@ -284,11 +283,11 @@ def getDataWOs(request, proyect_id, stateId, mode): # mode 1: edicion, 2: lectur
     
     
 
-    if (len(items) > 0 and mode == 1) or (len(workOrders) == 0 and mode == 1): # Solo si se edita:
+    # if (len(items) > 0 and mode == 1) or (len(workOrders) == 0 and mode == 1): # Solo si se edita:
     
-        workOrdersHTML += '<div class="d-flex justify-content-star flex-shrink-0">'
-        workOrdersHTML += '<a class="btn btn-link fs-6" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
-        workOrdersHTML += '</div>'        
+    #     workOrdersHTML += '<div class="d-flex justify-content-star flex-shrink-0">'
+    #     workOrdersHTML += '<a class="btn btn-link fs-6" onclick="addWO(' + str(proyect_id) + ')">Add Work Order (+)</a>'
+    #     workOrdersHTML += '</div>'
 
     return workOrdersHTML
 
@@ -408,7 +407,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                                                 
                 
                 # Inicio fila 2
-                itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-lg-12">' #style="border:1px solid white; border-width:1px;"
                                 
                 itemsHTML += '<div class="row">'
                                 
@@ -421,7 +420,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                     place = item.place.name
 
 
-                itemsHTML += '<div class="col-xl-4" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-4">' # style="border:1px solid white; border-width:1px;"
                 itemsHTML += '<table><tbody>'
                 itemsHTML += '<tr><td><b>Category:</b> ' + item.subcategory.category.name + '</td></tr>'
                 itemsHTML += '<tr><td><b>Sub Category:</b> ' + item.subcategory.name + '</td></tr>'
@@ -461,7 +460,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 ############################################# Celda (atributos) ##############################################
                 ##############################################################################################################
 
-                itemsHTML += '<div class="col-xl-3" style="border:1px solid white; border-width:1px;">'            
+                itemsHTML += '<div class="col-xl-3">' # style="border:1px solid white; border-width:1px;"
                 itemsHTML += '<table><tbody>'
 
                 attributes = ItemAttribute.objects.filter(item = Item.objects.get(id=item.id))
@@ -495,7 +494,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                 ############################################ Celda (materiales) ##############################################
                 ##############################################################################################################
                 
-                itemsHTML += '<div class="col-xl-5" style="border:1px solid white; border-width:1px;">'
+                itemsHTML += '<div class="col-xl-5">' #style="border:1px solid white; border-width:1px;"
                 itemsHTML += '<h6>Materials:</h6>'
                 itemsHTML += '<form method="POST" class="formMaterial"><div class="table-responsive">'
                 itemsHTML += '<table class="table table-striped" width="100%"><tbody>'
@@ -845,7 +844,7 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
 
                     if len(files) > 0 or len(materials) > 0:
 
-                        itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'
+                        itemsHTML += '<div class="col-lg-12">' # style="border:1px solid white; border-width:1px;"
                         itemsHTML += '<div class="row">'
                         itemsHTML += '<div class="col-xl-12">'
 
@@ -919,13 +918,13 @@ def getDataItems(request, workOrderId, mode): # mode 1: edicion, 2: lectura
                     itemsHTML += '</div>'
 
 
-                    itemsHTML += '<div class="row" style="border:1px solid white; border-width:1px;">'
+                    itemsHTML += '<div class="row">' # style="border:1px solid white; border-width:1px;"
 
                     ##############################################################################################################
                     ############################################## Celda (imagenes) ##############################################
                     ##############################################################################################################
 
-                    itemsHTML += '<div class="col-lg-12" style="border:1px solid white; border-width:1px;">'                        
+                    itemsHTML += '<div class="col-lg-12">' # style="border:1px solid white; border-width:1px;"
                     itemsHTML += '<section class="grid-gallery-section">'
                     
                     # itemsHTML += '<div id="gallery-filters" class="gallery-button-group">'
@@ -1284,8 +1283,7 @@ def modalCalendar(request, workOrderId, itemId, id):
     fecha_inicio = ''
     fecha_fin = ''
     fechaDate_inicio = ''
-    fechaDate_fin = ''
-    style_display = ''
+    fechaDate_fin = ''    
     allDay = False
     status = 0
     
@@ -1319,9 +1317,9 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<div class="row"><div class="table-responsive">'
 
         if allDay and workorder.state.id > 5:
-            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="40%">Responsible</th><th width="10%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="20%"></th></tr></thead><tbody>'
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="25%">Responsible</th><th width="50%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th><th width="0%"></th></tr></thead><tbody>'
         else:
-            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="20%">Status</th><th width="0%"></th></tr></thead><tbody>'
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="25%">Responsible</th><th width="50%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th><th width="0%"></th></tr></thead><tbody>'
         
         itemsHTML += '<tr><td valign="top">'
         itemsHTML += str(item.code)
@@ -1336,13 +1334,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
             itemsHTML += '</td><td>'
-            itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += getDateSelect(name='dateA2', id='dateA2', classAdd='hour-picker', selected = fechaDate_inicio, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
             itemsHTML += '</td><td>'
             itemsHTML += '-'        
             itemsHTML += '</td><td>'
             itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
             itemsHTML += '</td><td>'
-            itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+            itemsHTML += getDateSelect(name='dateB2', id='dateB2', classAdd='hour-picker', selected = fecha_fin, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
             itemsHTML += '</td><td>'
 
             itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -1381,7 +1379,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<div class="row text-end">'
 
-        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<div class="col-md-12 p-5">'
         itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',' + itemId + ',0)">Save</button>'
         itemsHTML += '</div>'                            
         
@@ -1406,8 +1404,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                 fechaDate_fin = fecha_fin[11:16]
 
             if calendar.allday:
-                allDay = True
-                style_display = '; display:none'
+                allDay = True                
 
             if calendar.responsible:
                 responsibleId = calendar.responsible.id
@@ -1422,7 +1419,7 @@ def modalCalendar(request, workOrderId, itemId, id):
         itemsHTML += '<b style="margin-left:-10px">Work Order:</b>'
         itemsHTML += '<div class="row"><div class="table-responsive">' 
                         
-        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="5%">N°</th><th width="30%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="5%">N°</th><th width="30%">Responsible</th><th width="50%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
         
         itemsHTML += '<tr><td valign="top">'
         itemsHTML += str(workorder.code)
@@ -1438,13 +1435,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += getDateSelect(name='dateA2', id='dateA2', classAdd='hour-picker', selected = fechaDate_inicio, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
         itemsHTML += '-'        
         itemsHTML += '</td><td>'
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += getDateSelect(name='dateB2', id='dateB2', classAdd='hour-picker', selected = fecha_fin, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
 
         itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -1483,7 +1480,7 @@ def modalCalendar(request, workOrderId, itemId, id):
             
             itemsHTML += '<b style="margin-left:-10px">Items:</b>'
             itemsHTML += '<div class="row"><div class="table-responsive">'                            
-            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="30%">Responsible</th><th width="35%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+            itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="10%">Code</th><th width="25%">Responsible</th><th width="50%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
 
             itemN = 0
             for item in items:
@@ -1495,8 +1492,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                 fechaDate_inicio = ''
                 fechaDate_fin = ''
                 status = 0
-                allDay = False
-                style_display = ''
+                allDay = False                
                 
                 if item.status == 1:
 
@@ -1512,8 +1508,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                             fechaDate_fin = fecha_fin[11:16]
 
                         if calItem.allday:
-                            allDay = True
-                            style_display = '; display:none'
+                            allDay = True                            
 
                         if calItem.responsible:
                             responsibleId = calItem.responsible.id
@@ -1533,13 +1528,13 @@ def modalCalendar(request, workOrderId, itemId, id):
         
                     itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemA[]" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemA2[]" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += getDateSelect(name='dateItemA2[]', id='dateItemA2[]', classAdd='hour-picker', selected = fechaDate_inicio, checked = allDay) # '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemA2[]" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
                     itemsHTML += '</td><td>'
                     itemsHTML += '-'        
                     itemsHTML += '</td><td>'
                     itemsHTML += '<input class="form-control form-control-solid date-picker py-2" name="dateItemB[]" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
                     itemsHTML += '</td><td>'
-                    itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemB2[]" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+                    itemsHTML += getDateSelect(name='dateItemB2[]', id='dateItemB2[]', classAdd='hour-picker', selected = fechaDate_fin, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateItemB2[]" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
                     itemsHTML += '</td><td>'
 
                     itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
@@ -1564,7 +1559,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<div class="row text-end">'
 
-        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<div class="col-md-12 p-5">'
         itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(' + str(workorder.id) + ',0,0)">Save</button>'                
         itemsHTML += '</div>'                            
             
@@ -1589,8 +1584,7 @@ def modalCalendar(request, workOrderId, itemId, id):
                 fechaDate_fin = fecha_fin[11:16]
 
             if calendar.allday:
-                allDay = True
-                style_display = '; display:none'
+                allDay = True                
 
             if calendar.responsible:
                 responsibleId = calendar.responsible.id
@@ -1603,7 +1597,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<div class="row">' 
                         
-        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="35%">Responsible</th><th width="40%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
+        itemsHTML += '<table class="table table-bordered"><thead><tr class="fw-bolder fs-7 text border-bottom border-gray-200 py-4"><th width="30%">Responsible</th><th width="50%">' + htmlSpanCalendar() + 'Date</th><th width="15%">Status</th></tr></thead><tbody>'
         
         itemsHTML += '<tr><td>'
         itemsHTML += '<select class="form-select form-select-sm form-select-solid selectResponsible" data-kt-select2="true" data-placeholder="Select..." data-allow-clear="false" name="responsible">'
@@ -1617,21 +1611,22 @@ def modalCalendar(request, workOrderId, itemId, id):
         
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateA" name="dateA" placeholder="Start" value="' + fecha_inicio + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += getDateSelect(name='dateA2', id='dateA2', classAdd='hour-picker', selected = fechaDate_inicio, checked = allDay) #'<input class="form-control form-control-solid timepicker py-2" name="dateA2" placeholder="Time" value="' + fechaDate_inicio + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
         itemsHTML += '-'        
         itemsHTML += '</td><td>'
         itemsHTML += '<input class="form-control form-control-solid date-picker py-2" id="dateB" name="dateB" placeholder="End" value="' + fecha_fin + '" style="max-width: 90px"/>'
         itemsHTML += '</td><td>'
-        itemsHTML += '<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
+        itemsHTML += getDateSelect(name='dateB2', id='dateB2', classAdd='hour-picker' , selected = fechaDate_fin, checked = allDay) #'<input type="time" class="form-control form-control-solid hour-picker py-2" name="dateB2" placeholder="Time" value="' + fechaDate_fin + '" style="max-width: 80px'+ style_display +'"/>'
         itemsHTML += '</td><td>'
 
         itemsHTML += '<tr><td class="p-3 text-start" colspan=5>'
 
+        checked = ''
         if allDay:
-            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" checked>'
-        else:
-            itemsHTML += '<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem">'
+            checked += 'checked'        
+
+        itemsHTML += f'<input class="form-check-input checkAllDay" name="checkAllDay" type="checkbox" value="1" style="width:1.3rem; height:1.3rem" {checked}>'
         
         itemsHTML += '<label class="form-check-label text-gray-700 fw-bold px-3">  All day</label>'
         itemsHTML += '</td></tr></table>'
@@ -1655,7 +1650,7 @@ def modalCalendar(request, workOrderId, itemId, id):
 
         itemsHTML += '<div class="row text-end">'
 
-        itemsHTML += '<div class="col-md-12">'
+        itemsHTML += '<div class="col-md-12 p-5">'
         itemsHTML += '<button type="button" class="btn btn-primary px-8 py-2 mr-2" onclick="saveCalendar(0,0,' + str(id) + ')">Save</button>'
         itemsHTML += '</div>'                            
         
