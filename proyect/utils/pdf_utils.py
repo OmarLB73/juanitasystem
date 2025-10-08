@@ -28,20 +28,22 @@ def generate_pdf(request, workorderId):
         
         address = ''
 
-        if wo.proyect.customer.address != "":
-            address += wo.proyect.customer.address
+        if wo.proyect.customer:
 
-        if wo.proyect.customer.apartment != "":
-            address += "," + wo.proyect.customer.apartment
+            if wo.proyect.customer.address != "":
+                address += wo.proyect.customer.address
 
-        if wo.proyect.customer.city != "":
-            address += "," + wo.proyect.customer.city
+            if wo.proyect.customer.apartment != "":
+                address += "," + wo.proyect.customer.apartment
 
-        if wo.proyect.customer.state != "":
-            address += "," + wo.proyect.customer.state
+            if wo.proyect.customer.city != "":
+                address += "," + wo.proyect.customer.city
 
-        if wo.proyect.customer.zipcode != "":
-            address += "," + wo.proyect.customer.zipcode
+            if wo.proyect.customer.state != "":
+                address += "," + wo.proyect.customer.state
+
+            if wo.proyect.customer.zipcode != "":
+                address += "," + wo.proyect.customer.zipcode
         
         name = wo.proyect.customer.name if str(wo.proyect.customer.name) != "" else "--"
         phone = wo.proyect.customer.phone if str(wo.proyect.customer.phone) != "" else "--"
@@ -145,10 +147,10 @@ def generate_pdf(request, workorderId):
 
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
-                htmlCabecera1 += "<tr><th align='center' colspan=6><h1>" + str(category) + "</h1></th></tr>"
-                htmlCabecera1 += "<tr><th>Sub Category:</td><td>" + str(subcategory) + "</td><th>Group:</td><td>" + str(group) + "</td><th>Place:</td><td>" + str(place) + "</td></tr>"
+                htmlCabecera1 += "<tr><th colspan='6' style='text-align: center;'><h1>" + str(category) + "</h1></th></tr>"
+                htmlCabecera1 += "<tr><th>Sub Category:</td><td>" + str(subcategory) + "</td><th>Group:</th><td>" + str(group) + "</td><th>Place:</th><td>" + str(place) + "</td></tr>"
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
-                htmlCabecera1 += "<tr><th>QTY:</td><td>" + str(qty) + "</td><th>Due date:</th><td>" + str(date_end) + "</td><th>Responsible:</th><td>" + str(responsible) + "</td></tr>"                
+                htmlCabecera1 += "<tr><th>QTY:</th><td>" + str(qty) + "</td><th>Due date:</th><td>" + str(date_end) + "</td><th>Responsible:</th><td>" + str(responsible) + "</td></tr>"                
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
                 htmlCabecera1 += "<tr><th style='vertical-align: top;'>Notes:</th><td colspan=3>" + str(notes) + "</td></tr>"
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"

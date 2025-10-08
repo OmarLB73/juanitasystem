@@ -241,6 +241,7 @@ def getDataCalendar(request):
         fecha_fin = ''
         allDay = False
         color = ''
+        description = ''
 
         comment = CalendarTaskComment.objects.filter(calendar_task = calendar).order_by('id').first()
 
@@ -273,6 +274,9 @@ def getDataCalendar(request):
 
             if calendar.responsible:
                 color = calendar.responsible.color
+
+            if calendar.responsible:
+                description = calendar.responsible.name
                     
             events.append({
                 'id': calendar.id,
@@ -281,7 +285,7 @@ def getDataCalendar(request):
                 'start': fecha_inicio,
                 'end': fecha_fin,
                 'allDay': allDay,
-                'description': calendar.responsible.name,
+                'description': description,
                 'color': color,          
                 'p': 0,
                 'w': 0,
