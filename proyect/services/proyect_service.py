@@ -1122,7 +1122,7 @@ def getDataComments(request, workOrderId, itemId, mode): # mode 1: edicion, 2: l
 
 
 #Consulta realizar al crear un proyecto, para obtener todos los proyectos de tal cliente
-def getDataCustomer(filtersCustomer, caso):
+def getCustomer(filtersCustomer, caso):
 
     customer_data = []
 
@@ -1669,36 +1669,6 @@ def modalCalendar(request, workOrderId, itemId, id):
 ##################################
 ## Funciones para Guardar ###
 ##################################
-
-
-#Instancia para guardar cada evento que ocurre en la WO.
-def saveEvent(request, type_event_id, proyect, workOrder, item, description):
-
-    # EVENTOS = [
-        # (0, 'Other'),
-        # (1, 'Create'),
-        # (2, 'Update'),
-        # (3, 'Delete'),    
-    #     ]
-    try:
-
-        woState = None
-
-        if workOrder:
-            if workOrder.state:
-                woState = workOrder.state
-
-        Event.objects.create(   type_event_id=type_event_id,
-                                proyect = proyect,                                    
-                                workorder= workOrder, 
-                                state = woState,
-                                item = item,
-                                description = description,
-                                user=request.user.id)
-        
-    except Proyect.DoesNotExist:        
-        messages.error('Server error. Please contact to administrator!')
-    
 
 
 #Instancia para guardar los datos del calendario para los items de una wo

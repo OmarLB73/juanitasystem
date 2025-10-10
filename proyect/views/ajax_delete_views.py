@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required #para controlar las se
 
 
 from ..models import Item, Proyect, ItemCommentState, WorkOrderCommentState, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, ItemCommentStateFile, WorkOrderCommentStateFile, ItemImage, ItemFile, ItemMaterial, CalendarTask
-from ..services.proyect_service import saveEvent
+from ..utils.utils import saveEvent
 
 
 #Funcion ejecutada en la vista del proyecto, para borrar un item específico.

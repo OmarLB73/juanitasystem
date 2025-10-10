@@ -5,7 +5,7 @@ from django.db.models import Q, Count # permite realizar consultas complejas / C
 from django.utils import timezone #Para ver la hora correctamente.
 
 from ..models import Customer, ProyectDecorator, CalendarItem, CalendarWorkOrder, CalendarTask, CalendarTaskComment, WorkOrder, ItemMaterial, Item, CategoryAttribute, ItemAttribute, AttributeOption, ItemAttributeNote, ItemImage, ItemFile, Subcategory, Category, Group
-from ..services.proyect_service import modalComment, modalCalendar, getDataWOs
+from ..services.proyect_service import modalComment, modalCalendar, getDataWOs, getCustomer
 from ..utils.utils import getDecoratorsTable, newWO
 
 
@@ -73,7 +73,7 @@ def getAddress(request):
 
         if address.strip() != '' and len(address) >= 3:
             condicionesCustomer = Q(address__icontains = address) & (Q(city__icontains = city) | Q(state__icontains = state) | Q(zipcode__icontains = zipcode) | Q(apartment__icontains = apartment))
-            customer_data = getDataCustomer(condicionesCustomer, 1)
+            customer_data = getCustomer(condicionesCustomer, 1)
 
     messageHtml = ""
    

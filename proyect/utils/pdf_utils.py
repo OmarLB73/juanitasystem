@@ -92,7 +92,7 @@ def generate_pdf(request, workorderId):
 
         items = Item.objects.filter(workorder = wo).order_by("id")                        
                 
-        if items:
+        if items and 1 == 2:
             
             n = 1
             

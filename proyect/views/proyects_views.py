@@ -1,12 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required #para controlar las sesiones
 from django.db.models import Q, Count # permite realizar consultas complejas / Count permite agrupar consultas
 from datetime import datetime # dar formato a la fecha
 
 from ..models import Type, State, ProyectDecorator, UIElement, Proyect, Category, Place, Customer
-from ..services.proyect_service import getDataProyect, getDataWOs, getDataCustomer, saveEvent
-from ..utils.utils import htmlDataLog, getDecoratorsTable, getResumenWOs, newWO
+from ..services.proyect_service import getDataProyect, getDataWOs, getCustomer
+from ..utils.utils import htmlDataLog, getDecoratorsTable, getResumenWOs, newWO, saveEvent
 from ..utils.pdf_utils import generate_pdf
 
 
@@ -131,7 +132,7 @@ def proyect_new(request):
         #Se busca si existe el cliente
         condicionesCustomer = Q()
         condicionesCustomer = Q(address__icontains = address) & Q(city__icontains = city) & Q(state__icontains = state) & Q(zipcode__icontains = zipcode) & Q(apartment__icontains = apartment)
-        customer_data = getDataCustomer(condicionesCustomer, 1)
+        customer_data = getCustomer(condicionesCustomer, 1)
 
         # Si la direccion no existe por si acaso
         if len(customer_data) == 0:  
@@ -242,7 +243,7 @@ def proyect_new(request):
                     proyect_save.save()
 
                     saveEvent(request, 1, proyect_save, None, None, 'Create')
-                    newWO(request, proyect_id)
+                    newWO(request, proyect_id)                    
 
                     return redirect(reverse('view_url', kwargs={'proyect_id': proyect_id}))
 

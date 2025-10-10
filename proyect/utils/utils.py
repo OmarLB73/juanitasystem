@@ -5,10 +5,9 @@ from django.utils import timezone #Para ver la hora correctamente.
 from django.contrib.auth.models import User #Datos del usuario
 from collections import defaultdict
 from datetime import datetime, timedelta
+from django.contrib import messages
 
 from ..models import State, WorkOrder, Event, Proyect, Responsible, CalendarItem, CalendarItemComment, CalendarWorkOrder, CalendarWorkOrderComment, CalendarTask, CalendarTaskComment, CalendarItemCommentFile, CalendarWorkOrderCommentFile, CalendarTaskCommentFile
-
-# from .services import saveEvent
 
 
 #Funcion usada para validar tipos de archivos
@@ -715,3 +714,35 @@ def getDateSelect(name='hora', id='hora-select', classAdd='', selected=None, che
     
     html += '</select>'
     return html
+
+
+
+#Instancia para guardar cada evento que ocurre en la WO.
+def saveEvent(request, type_event_id, proyect, workOrder, item, description):
+
+    # EVENTOS = [
+        # (0, 'Other'),
+        # (1, 'Create'),
+        # (2, 'Update'),
+        # (3, 'Delete'),    
+    #     ]
+    try:
+
+        woState = None
+
+        if workOrder:
+            if workOrder.state:
+                woState = workOrder.state
+
+        Event.objects.create(   type_event_id=type_event_id,
+                                proyect = proyect,                                    
+                                workorder= workOrder, 
+                                state = woState,
+                                item = item,
+                                description = description,
+                                user=request.user.id)
+        
+    except Proyect.DoesNotExist:        
+        messages.error('Server error. Please contact to administrator!')
+    
+
