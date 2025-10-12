@@ -24,39 +24,39 @@ def generate_pdf(request, workorderId):
 
         #Cabecera cliente
 
-        # htmlCabecera += "<table class='table_wo'>"
+        htmlCabecera += "<table class='table_wo'>"
         
-        # address = ''
+        address = ''
 
-        # if wo.proyect.customer:
+        if wo.proyect.customer:
 
-        #     if wo.proyect.customer.address != "":
-        #         address += wo.proyect.customer.address
+            if wo.proyect.customer.address != "":
+                address += wo.proyect.customer.address
 
-        #     if wo.proyect.customer.apartment != "":
-        #         address += "," + wo.proyect.customer.apartment
+            if wo.proyect.customer.apartment != "":
+                address += "," + wo.proyect.customer.apartment
 
-        #     if wo.proyect.customer.city != "":
-        #         address += "," + wo.proyect.customer.city
+            if wo.proyect.customer.city != "":
+                address += "," + wo.proyect.customer.city
 
-        #     if wo.proyect.customer.state != "":
-        #         address += "," + wo.proyect.customer.state
+            if wo.proyect.customer.state != "":
+                address += "," + wo.proyect.customer.state
 
-        #     if wo.proyect.customer.zipcode != "":
-        #         address += "," + wo.proyect.customer.zipcode
+            if wo.proyect.customer.zipcode != "":
+                address += "," + wo.proyect.customer.zipcode
         
-        # name = wo.proyect.customer.name if str(wo.proyect.customer.name) != "" else "--"
-        # phone = wo.proyect.customer.phone if str(wo.proyect.customer.phone) != "" else "--"
-        # email = wo.proyect.customer.email if str(wo.proyect.customer.email) != "" else "--"
+        name = wo.proyect.customer.name if str(wo.proyect.customer.name) != "" else "--"
+        phone = wo.proyect.customer.phone if str(wo.proyect.customer.phone) != "" else "--"
+        email = wo.proyect.customer.email if str(wo.proyect.customer.email) != "" else "--"
 
-        # code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
+        code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
         
         
-        # htmlCabecera += "<tr><th colspan=2></th><th></th><th>Code:</th><td>" + str(code) + "</td></tr>"
-        # htmlCabecera += "<tr><th style='width: 88px'>Address:</th><td style='width: 340px'>" + address + "</td><th></th><th style='width: 80px'>Phone:</th><td style='width: 250px'>" + str(phone) + "</td></tr>"
-        # htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td><th></th><th>Email:</th><td>" + str(email) + "</td></tr>"        
+        htmlCabecera += "<tr><th colspan='3'></th><th>Code:</th><td>" + str(code) + "</td></tr>"
+        htmlCabecera += "<tr><th style='width: 88px'>Address:</th><td style='width: 340px'>" + address + "</td><th></th><th style='width: 80px'>Phone:</th><td style='width: 250px'>" + str(phone) + "</td></tr>"
+        htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td><th></th><th>Email:</th><td>" + str(email) + "</td></tr>"
         
-        # htmlCabecera += "</table>"
+        htmlCabecera += "</table>"
         
                 
         #Cabecera proyecto
