@@ -60,30 +60,30 @@ def generate_pdf(request, workorderId):
         
                 
         #Cabecera proyecto
-        # htmlCabecera += "<table class='table_wo'>"
+        htmlCabecera += "<table class='table_wo'>"
 
         
 
-        # decorators = ProyectDecorator.objects.filter(proyects = wo.proyect)
+        decorators = ProyectDecorator.objects.filter(proyects = wo.proyect)
 
-        # if decorators and 1 == 2:
+        if decorators and 1 == 2:
 
-        #     htmlCabecera += "<tr><th rowspan='" + str(len(decorators)) + "' style='width: 85px; text-align: left; vertical-align: top;'>Decorator:</th>"
-        #     n = 0
+            htmlCabecera += "<tr><th rowspan='" + str(len(decorators)) + "' style='width: 85px; text-align: left; vertical-align: top;'>Decorator:</th>"
+            n = 0
 
-        #     for decorator in decorators:
-        #         name = decorator.name if str(decorator.name) != "" else "--"
-        #         phone = decorator.phone if str(decorator.phone) != "" else "--"
-        #         email = decorator.email if str(decorator.email) != "" else "--"
+            for decorator in decorators:
+                name = decorator.name if str(decorator.name) != "" else "--"
+                phone = decorator.phone if str(decorator.phone) != "" else "--"
+                email = decorator.email if str(decorator.email) != "" else "--"
 
-        #         if n == 0:
-        #             htmlCabecera += "<td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td>"
-        #             htmlCabecera += "</tr>"
-        #             n+=1
-        #         else:
-        #             htmlCabecera += "<tr><td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td></tr>"            
+                if n == 0:
+                    htmlCabecera += "<td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td>"
+                    htmlCabecera += "</tr>"
+                    n+=1
+                else:
+                    htmlCabecera += "<tr><td>" + str(name) + " / " + str(phone) + " / " + str(email) + "</td></tr>"            
 
-        # htmlCabecera += "</table>"
+        htmlCabecera += "</table>"
 
         #Items
 
@@ -92,7 +92,7 @@ def generate_pdf(request, workorderId):
 
         items = Item.objects.filter(workorder = wo).order_by("id")                        
                 
-        if items and 1 == 2:
+        if items:
             
             n = 1
             
