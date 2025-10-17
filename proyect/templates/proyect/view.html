@@ -587,10 +587,12 @@
 																<table id="tableMaterials" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
 																	<thead class="fw-bolder text-muted">																							
 																		<tr>																								
-																			<th class="align-top" width="30%">Name</th>
-																			<th class="align-top" width="20%">Estimated quantity</th>																								
+																			<th class="align-top" width="25%">Name</th>
+																			<th class="align-top" width="12%">Estimated quantity</th>
+																			<th class="align-top" width="12%">Received quantity</th>
+																			<th class="align-top" width="12%">Date</th>
 																			<th class="align-top" width="30%">Select file (optional)</th>
-																			<th class="align-top text-center" width="10%">Preview</th>
+																			<th class="align-top text-center" width="15%">Preview</th>
 																			<th class="align-top" width="10%"></th>
 																		</tr>
 																	</thead>
@@ -598,6 +600,8 @@
 																		<tr class="baseRow" style="display:none">																								
 																			<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"></td>
 																			<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid"></td>
+																			<td valign="top"><input type="text" name="materialRQTY[]" class="form-control form-control-solid"></td>
+																			<td valign="top"><input type="text" name="date[]" class="form-control form-control-solid"></td>
 																			<td valign="top" class="text-center"><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
 																			<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>
 																			<td valign="top" class="text-center">

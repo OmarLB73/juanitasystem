@@ -52,9 +52,9 @@ def generate_pdf(request, workorderId):
         code = wo.proyect.code if str(wo.proyect.code) != "" else "--"
         
         
-        htmlCabecera += "<tr><th colspan='3'></th><th>Code:</th><td>" + str(code) + "</td></tr>"
-        htmlCabecera += "<tr><th style='width: 88px'>Address:</th><td style='width: 340px'>" + address + "</td><th></th><th style='width: 80px'>Phone:</th><td style='width: 250px'>" + str(phone) + "</td></tr>"
-        htmlCabecera += "<tr><th>Customer:</th><td>" + str(name) + "</td><th></th><th>Email:</th><td>" + str(email) + "</td></tr>"
+        # htmlCabecera += "<tr><th colspan='3'></th><th>Code:</th><td>" + str(code) + "</td></tr>"
+        # htmlCabecera += "<tr><th style='width: 88px'>Address:</th><td style='width: 340px'>" + address + "</td><th></th><th style='width: 80px'>Phone:</th><td style='width: 250px'>" + str(phone) + "</td></tr>"
+        htmlCabecera += "<tr><th style='width: 95px'>Client's Name:</th><td class='borde_abajo'>" + str(name) + "</td><th></th><th style='width: 80px'>Address:</th><td class='borde_abajo'>" + str(address) + "</td></tr>"
         
         htmlCabecera += "</table>"
         
@@ -100,7 +100,7 @@ def generate_pdf(request, workorderId):
 
                 #htmlCabecera += " <div class='new-page'><table class='table_item'>"
                 htmlCabecera += "<div><table class='table_item'>"
-                htmlCabecera += "<tr><th colspan='2' style='background-color:#f1f1f1; border:1px solid'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                htmlCabecera += "<br/>" # "<tr><th colspan='2' style='background-color:#f1f1f1; border:1px solid'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
                 htmlCabecera += "</table></div>"
 
 
@@ -119,6 +119,12 @@ def generate_pdf(request, workorderId):
                 place = "--"
                 if item.place:
                     place = item.place.name if str(item.place.name) != "" else "--"
+
+                date = timezone.localtime().strftime('%m/%d/%Y')
+
+                itemCode = "--"
+                if item.code:
+                    itemCode = item.code if str(item.code) != "" else "--"
                 
                 
                 qty = item.qty if str(item.qty) != "" else "--"
@@ -147,10 +153,21 @@ def generate_pdf(request, workorderId):
 
 
                 htmlCabecera1 = "<table class='table_item_detalle'>"
-                htmlCabecera1 += "<tr><th colspan='6' style='text-align: center;'><h1>" + str(category) + "</h1></th></tr>"
-                htmlCabecera1 += "<tr><th>Sub Category:</td><td>" + str(subcategory) + "</td><th>Group:</th><td>" + str(group) + "</td><th>Place:</th><td>" + str(place) + "</td></tr>"
+                htmlCabecera1 += "<tr><th colspan='4' style='text-align: center;'><h1 style='font-size: 30px;'>" + str(category) + "</h1></th><th colspan='2' style='text-align: right;'>"
+                
+                htmlCabecera1 += "<table>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Date: " + str(date) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Code: " + str(itemCode) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Responsible: " + str(responsible) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Due Date: " + str(date_end) + "</b></td></tr>"
+                htmlCabecera1 += "</table>"
+                
+                htmlCabecera1 += "</th></tr>"
+                
+                
+                htmlCabecera1 += "<tr><th>Sub Category:</td><td>" + str(subcategory) + "</td><th>Group:</th><td>" + str(group) + "</td></tr>"
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
-                htmlCabecera1 += "<tr><th>QTY:</th><td>" + str(qty) + "</td><th>Due date:</th><td>" + str(date_end) + "</td><th>Responsible:</th><td>" + str(responsible) + "</td></tr>"                
+                htmlCabecera1 += "<tr><th>QTY:</th><td>" + str(qty) + "</td></tr>"                
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
                 htmlCabecera1 += "<tr><th style='vertical-align: top;'>Notes:</th><td colspan=3>" + str(notes) + "</td></tr>"
                 htmlCabecera1 += "<tr style='height:5px'><th></th></tr>"
@@ -201,8 +218,9 @@ def generate_pdf(request, workorderId):
                             name = attribute.attribute.name if str(attribute.attribute.name) != "" else "--"
                             notes = attribute.notes if str(attribute.notes) != "" else "--"
                             atributos1 += "<tr><th>" + str(name) + ":</th><td colspan=3>" + str(notes) + "</td></tr>"
-                            atributos1 += "<tr style='height:5px'><th></th></tr>"                            
-
+                            atributos1 += "<tr style='height:5px'><th></th></tr>"
+                            
+                    atributos1 += "<tr><th valign='top'>Place:</th><td colspan=3>" + str(place) + "</td></tr>"
                                     
                     htmlCabecera1 += atributos1 + atributos2
                     

@@ -11,7 +11,8 @@
         }
         .header {
             text-align: center;
-            font-size: 15px;            
+            font-size: 15px;
+            border:none;
         }
         .content {
             font-size: 12px;
@@ -43,6 +44,14 @@
             font-weight: bold;
             border: none;
         }        
+
+        .table_wo td.borde_abajo {
+            border-bottom: 1px solid black;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            padding: one; 
+        }      
         
         .table_item {    
             border-collapse: collapse;
@@ -108,7 +117,7 @@
 <body>
     <img src="{{URL}}/static/images/logo_v2.png" width="200"/>
     <div class="header">
-        <h1>Work Order</h1>
+        <h1 style='font-size: 30px;'>Work Order</h1>
     </div>
     <div class="content">
         {{ CABECERA|safe }}

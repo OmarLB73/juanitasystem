@@ -783,11 +783,11 @@ def updateStatus(request):
         workOrder.save()
 
 
-        if workOrder.state.id == 9:
+        if workOrder.state.id:
 
             enviado = sendEmail(
             destinatario= request.user.email,
-            asunto='Awaiting Final Payment: ' + workOrder.proyect.customer.address,
+            asunto= workOrder.state.name + ': ' + workOrder.proyect.customer.address,
             mensaje='Este es un mensaje de email desde el sistema de Juanita.'
         )
 
