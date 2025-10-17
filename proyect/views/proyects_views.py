@@ -13,7 +13,7 @@ from ..utils.pdf_utils import generate_pdf
 
 @login_required
 def panel_view(request):
-
+    
     if request.path == '/proyect/calendar/':        
         mode = 'Calendar'
     else:

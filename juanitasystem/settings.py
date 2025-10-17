@@ -145,6 +145,14 @@ LOGOUT_REDIRECT_URL = '/user/login/'  # Redirige a login después de hacer logou
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+##### EMAIL #####
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
 ########## DESPLIEGUE ##########
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -167,3 +175,7 @@ DATABASES['default'] = dj_database_url.parse(database_url)
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 ONESIGNAL_APP_ID = os.environ.get('ONESIGNAL_APP_ID')
 ONESIGNAL_API_KEY = os.environ.get('ONESIGNAL_API_KEY')
+
+EMAIL_HOST_USER = os.environ.get('EMAIL')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS_APP')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

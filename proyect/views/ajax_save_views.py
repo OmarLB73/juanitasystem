@@ -9,7 +9,7 @@ from PIL import Image #Para validar el tipo de imagen
 
 from ..models import Group, Place, WorkOrder, Item, Subcategory, CategoryAttribute, ItemAttribute, ItemAttributeNote, Attribute, AttributeOption, ItemMaterial, ItemFile, ItemImage, ItemCommentState, ItemCommentStateFile,WorkOrderCommentState, WorkOrderCommentStateFile, Responsible, CalendarItem,CalendarWorkOrder, CalendarTask, State, Category
 from ..services.proyect_service import saveCalendarItems, saveCalendarComments
-from ..utils.utils import validateTypeFile, saveEvent
+from ..utils.utils import validateTypeFile, saveEvent, sendEmail
 
 
 
@@ -781,6 +781,16 @@ def updateStatus(request):
         workOrder = WorkOrder.objects.get(id = workOrderId)
         workOrder.state = State.objects.get(id = (workOrder.state.id + 1))
         workOrder.save()
+
+
+        if workOrder.state.id == 9:
+
+            enviado = sendEmail(
+            destinatario= request.user.email,
+            asunto='Awaiting Final Payment: ' + workOrder.proyect.customer.address,
+            mensaje='Este es un mensaje de email desde el sistema de Juanita.'
+        )
+
 
 
         try: 

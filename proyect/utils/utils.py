@@ -6,6 +6,7 @@ from django.contrib.auth.models import User #Datos del usuario
 from collections import defaultdict
 from datetime import datetime, timedelta
 from django.contrib import messages
+from django.core.mail import send_mail #email
 
 from ..models import State, WorkOrder, Event, Proyect, Responsible, CalendarItem, CalendarItemComment, CalendarWorkOrder, CalendarWorkOrderComment, CalendarTask, CalendarTaskComment, CalendarItemCommentFile, CalendarWorkOrderCommentFile, CalendarTaskCommentFile
 
@@ -745,4 +746,22 @@ def saveEvent(request, type_event_id, proyect, workOrder, item, description):
     except Proyect.DoesNotExist:        
         messages.error('Server error. Please contact to administrator!')
     
+
+
+def sendEmail(destinatario, asunto, mensaje, desde=None):
+    if desde is None:
+        desde = settings.DEFAULT_FROM_EMAIL
+    try:
+        send_mail(
+            subject=asunto,
+            message=mensaje,
+            from_email=desde,
+            recipient_list=[destinatario],
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
+        return False
+
 
