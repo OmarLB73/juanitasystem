@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required #para controlar las se
 # from django.utils import timezone #Para ver la hora correctamente.
 
 
-from ..models import Item, Proyect, ItemCommentState, WorkOrderCommentState, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, ItemCommentStateFile, WorkOrderCommentStateFile, ItemImage, ItemFile, ItemMaterial, CalendarTask
+from ..models import Item, Proyect, ItemCommentState, WorkOrderCommentState, CalendarItemComment, CalendarWorkOrderComment, CalendarTaskComment, ItemCommentStateFile, WorkOrderCommentStateFile, ItemImage, ItemFile, ItemMaterial, CalendarTask, WorkOrder
 from ..utils.utils import saveEvent
 
 
@@ -243,3 +243,24 @@ def deleteTaskCalendar(request):
         messages.error('Server error. Please contact to administrator!')
  
     return JsonResponse({'result': status})
+
+
+#Funcion ejecutada en la vista del proyecto, para borrar una wo específico.
+@login_required
+def deleteWO(request):
+    wo_id = request.POST.get('w') 
+    status = 0
+
+    try:
+        workorder = WorkOrder.objects.get(id = wo_id)
+        saveEvent(request, 3, workorder.proyect, workorder, None, workorder.code + ': ' + workorder.proyect.customer.address)
+        workorder.delete()
+        status = 1
+        
+
+    except ValueError:
+        status = -1
+        messages.error('Server error. Please contact to administrator!')
+
+    return JsonResponse({'result': status})
+

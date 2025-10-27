@@ -199,6 +199,8 @@ def saveItem(request):
             materials = request.POST.getlist('material[]')
             materialsIds = request.POST.getlist('materialIds[]')
             materialsQTY = request.POST.getlist('materialQTY[]')
+            materialsRQTY = request.POST.getlist('materialRQTY[]')
+            materialsDate = request.POST.getlist('materialDate[]')
             materialsF = request.FILES.getlist('materialFile[]')
             materialsFileOK = request.POST.getlist('materialFileOk[]')            
             indexFile = 0
@@ -208,6 +210,8 @@ def saveItem(request):
                 file = None
                 fileName = None
                 qty = ""
+                qtyR = None
+                dateR = None
                 id = "0"
 
                 if material.strip() != "":                    
@@ -228,6 +232,11 @@ def saveItem(request):
                         if materialsQTY[index]:
                             qty = materialsQTY[index]
 
+                        if materialsRQTY[index]:
+                            qtyR = materialsRQTY[index]
+
+                        if materialsDate[index]:
+                            dateR = materialsDate[index]
                         
                         if materialsIds[index]:
                             if materialsIds[index] != '0':
@@ -239,6 +248,8 @@ def saveItem(request):
                             
                             item_material.qty = qty
                             item_material.notes = material
+                            item_material.qty_received = qtyR
+                            item_material.date_received = dateR
 
                             if file:
 
@@ -253,6 +264,8 @@ def saveItem(request):
                                                             file = file,
                                                             name = fileName,
                                                             qty = qty,
+                                                            qty_received = qtyR,
+                                                            date_received = dateR,
                                                             notes = material)
 
                     except OSError: #Guardarlo como archivo adjunto
@@ -265,6 +278,8 @@ def saveItem(request):
                             # item_material.name = fileName
                             item_material.qty = qty
                             item_material.notes = material
+                            item_material.qty_received = qtyR
+                            item_material.date_received = dateR
 
                             item_material.save()
                         
@@ -274,6 +289,8 @@ def saveItem(request):
                                                             file = None,
                                                             name = '',
                                                             qty = qty,
+                                                            qty_received = qtyR,
+                                                            date_received = dateR,
                                                             notes = material)
                             
                     except:

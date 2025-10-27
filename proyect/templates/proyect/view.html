@@ -590,7 +590,7 @@
 																			<th class="align-top" width="25%">Name</th>
 																			<th class="align-top" width="12%">Estimated quantity</th>
 																			<th class="align-top" width="12%">Received quantity</th>
-																			<th class="align-top" width="12%">Date</th>
+																			<th class="align-top" width="10%">Date</th>
 																			<th class="align-top" width="30%">Select file (optional)</th>
 																			<th class="align-top text-center" width="15%">Preview</th>
 																			<th class="align-top" width="10%"></th>
@@ -601,21 +601,19 @@
 																			<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial"></td>
 																			<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid"></td>
 																			<td valign="top"><input type="text" name="materialRQTY[]" class="form-control form-control-solid"></td>
-																			<td valign="top"><input type="text" name="date[]" class="form-control form-control-solid"></td>
+																			<td valign="top"><input type="text" name="materialDate[]" class="form-control form-control-solid materialDate"></td>
 																			<td valign="top" class="text-center"><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>
 																			<td valign="top" class="text-center"><img class="preview" src="" alt="Preview" style="display:none;"><div class="symbol symbol-100px mb-5 fileUpload" style="display:none;"><img src="/static/images/upload.svg" alt=""></div></td>
 																			<td valign="top" class="text-center">
 																				<div class="btn btn-icon btn-sm btn-color-gray-400 btn-active-icon-danger me-2 deleteMaterial" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Delete">
-																					<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="0">'
-																					<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+																					<input type="hidden" name="materialIds[]" class="form-control form-control-solid" value="0">'																					
 																					<span class="svg-icon svg-icon-2">
 																						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
 																							<path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black" />
 																							<path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black" />
 																							<path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black" />
 																						</svg>
-																					</span>
-																					<!--end::Svg Icon-->
+																					</span>																					
 																				</div>
 																			</td>
 																		</tr>
@@ -876,6 +874,17 @@
 					$('#tableMaterials tbody').append(newRow);
 
 					autoCompleteReload();
+
+					// Aplicar flatpickr a los inputs con la clase 'materialDate'
+					$(".materialDate").flatpickr({
+						enableTime: false,
+						dateFormat: "m/d/Y",
+						allowInput: true, 
+					});
+
+
+
+
 				});
 
 				$('#addImage').click(function() {
@@ -1768,6 +1777,9 @@
 					allowInput: true, 
 				});
 
+
+				
+
 				// $(".hour-picker").flatpickr({
 				// 	enableTime: true,
 				// 	noCalendar: true,
@@ -1999,7 +2011,7 @@
 			}
 			
 
-			function editItem(w,i){
+			function editItem(w,i){				
 				cleanItemForm();
 				$('#modalItem').modal('show');
 
@@ -2036,6 +2048,13 @@
 						autoCompleteReload();
 						initializeSelect2();
 						viewAttributesImages();
+
+						$(".materialDate").flatpickr({
+							enableTime: false,
+							dateFormat: "m/d/Y",
+							allowInput: true, 
+						});
+						
 
 					},
 					error: function() {
@@ -2228,70 +2247,75 @@
 
 			
 			function delAttachedFile(t,f){
+				
+				if (f == 0){
+					t.remove();
+				}
+				else{
 
-				i = $('#item_id').val()				
+					i = $('#item_id').val()				
 
-				Swal.fire({
-					title: 'Are you sure?',
-					text: 'This action will delete the selected data. Do you want to continue?',
-					icon: 'warning',
-					showCancelButton: true,  // Muestra el botón de cancelación
-					confirmButtonText: 'Yes',
-					cancelButtonText: 'Cancel'
-				}).then((result) => {
-					if (result.isConfirmed) {			
-						
-		
-						$.ajax({					
-							url: "{% url 'deleteFile_url' %}",  // La URL que manejará la consulta AJAX
-							method: 'POST',
-							data: {								
-								'f': f,
-								'i': i
-							},
-							beforeSend: function(xhr, settings) {
-								// Añadir el token CSRF en las cabeceras
-								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
-							},
-							success: function(response) {
-								// Rellena los campos con los datos obtenidos de la respuesta
-								if(response.result = "1"){
+					Swal.fire({
+						title: 'Are you sure?',
+						text: 'This action will delete the selected data. Do you want to continue?',
+						icon: 'warning',
+						showCancelButton: true,  // Muestra el botón de cancelación
+						confirmButtonText: 'Yes',
+						cancelButtonText: 'Cancel'
+					}).then((result) => {
+						if (result.isConfirmed) {
 
-									t.remove();  // Elimina la fila correspondiente									
+							$.ajax({					
+								url: "{% url 'deleteFile_url' %}",  // La URL que manejará la consulta AJAX
+								method: 'POST',
+								data: {								
+									'f': f,
+									'i': i
+								},
+								beforeSend: function(xhr, settings) {
+									// Añadir el token CSRF en las cabeceras
+									xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+								},
+								success: function(response) {
+									// Rellena los campos con los datos obtenidos de la respuesta
+									if(response.result == "1"){
 
+										t.remove();
+
+										Swal.fire({
+											title: 'Deleted!',
+											text: 'The data has been successfully deleted.',
+											icon: 'info',
+											confirmButtonText: 'Ok.'
+										});									
+										//loadWOs();
+
+									}
+									else{
+										Swal.fire({
+											title: 'Error server!',
+											text: error,
+											icon: 'error',
+											confirmButtonText: 'Ok.'
+										});
+									}
+
+								},
+								error: function(xhr, status, error) {																
 									Swal.fire({
-										title: 'Deleted!',
-										text: 'The data has been successfully deleted.',
-										icon: 'info',
-										confirmButtonText: 'Ok.'
-									});									
-									//loadWOs();
-
+											title: 'Error server!',
+											text: error,
+											icon: 'error',
+											confirmButtonText: 'Ok.'
+										});
 								}
-								else{
-									Swal.fire({
-										title: 'Error server!',
-										text: error,
-										icon: 'error',
-										confirmButtonText: 'Ok.'
-									});
-								}
-
-							},
-							error: function(xhr, status, error) {																
-								Swal.fire({
-										title: 'Error server!',
-										text: error,
-										icon: 'error',
-										confirmButtonText: 'Ok.'
-									});
-							}
-						});	
+							});	
 
 
 
-					}
-				});
+						}
+					});
+				}
 			}
 			
 
@@ -2406,7 +2430,69 @@
 			// 	});	
 
 			// }
-		
+			
+
+
+			function dWO(o, w){
+
+				Swal.fire({
+					title: 'Are you sure?',
+					text: 'This action will delete the Work Order. Do you want to continue?',
+					icon: 'warning',
+					showCancelButton: true,  // Muestra el botón de cancelación
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'Cancel'
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// Si el usuario confirma, se ejecuta la acción AJAX
+						$.ajax({
+							url: "{% url 'deleteWO_url' %}",  // La URL que manejará la consulta AJAX
+							method: 'POST',
+							data: {
+								'w': w  // El valor que se envía al servidor
+							},
+							beforeSend: function(xhr, settings) {
+								// Añadir el token CSRF en las cabeceras
+								xhr.setRequestHeader('X-CSRFToken', $('meta[name="csrf-token"]').attr('content'));
+							},
+							success: function(response) {
+								// Rellena los campos con los datos obtenidos de la respuesta
+								if(response.result == "1"){
+									// loadWOs();
+									// $('.grid-gallery').masonry_gallery();
+
+									var wo = o.parentNode.parentNode.parentNode.parentNode;
+									wo.remove();
+
+									Swal.fire({
+										title: 'Deleted!',
+										text: 'The Work Order has been successfully deleted.',
+										icon: 'info',
+										confirmButtonText: 'Ok.'
+									});
+
+									loadWOs();
+
+								}
+
+								
+							},
+							error: function(xhr, status, error) {																
+								Swal.fire({
+										title: 'Error server!',
+										text: error,
+										icon: 'error',
+										confirmButtonText: 'Ok.'
+									});
+
+							}
+						});	
+					}
+				});
+			}
+
+
+
 		</script>
 
 </body>

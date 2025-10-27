@@ -421,6 +421,8 @@ def getDataItem(request):
         fileUrl = ''
         style = 'style="display:none"'
         qty = ''
+        qtyR = ''
+        dateR = ''
         img = ''
         fileName = ''
         id = '0'
@@ -449,12 +451,20 @@ def getDataItem(request):
         if itemMaterial.qty:
             qty = itemMaterial.qty
 
+        if itemMaterial.qty_received:
+            qtyR = itemMaterial.qty_received
+
+        if itemMaterial.date_received:
+            dateR = itemMaterial.date_received
+
         if itemMaterial.id:
             id = str(itemMaterial.id)
 
         materialsHTML += '<tr class="baseRow">'
         materialsHTML += '<td valign="top"><input type="text" name="material[]" class="form-control form-control-solid autocompleteMaterial" value="' + itemMaterial.notes + '"></td>'
-        materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'        
+        materialsHTML += '<td valign="top"><input type="text" name="materialQTY[]" class="form-control form-control-solid" value="' + qty + '"></td>'
+        materialsHTML += '<td valign="top"><input type="text" name="materialRQTY[]" class="form-control form-control-solid" value="' + qtyR + '"></td>'
+        materialsHTML += '<td valign="top"><input type="text" name="materialDate[]" class="form-control form-control-solid materialDate" value="' + dateR + '"></td>'
         materialsHTML += '<td valign="top" class="text-center"><input type="file" name="materialFile[]" class="form-control form-control"><input type="hidden" name="materialFileOk[]"></td>'
         materialsHTML += '<td valign="top" class="text-center">' + img + '</div></td>'
         materialsHTML += '<td valign="top" class="text-center">'

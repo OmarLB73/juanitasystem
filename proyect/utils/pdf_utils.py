@@ -18,7 +18,7 @@ def generate_pdf(request, workorderId):
     except Proyect.DoesNotExist:
         raise Http404("El proyecto no existe")
     
-    htmlCabecera = ""
+    htmlCabecera = "<div class='header'><h1 style='font-size: 30px;'>Work Order " + str(wo.code) + "</h1></div><div class='content'>"
     
     if wo:
 
@@ -133,7 +133,7 @@ def generate_pdf(request, workorderId):
                 
                 
                 date_end = "--"
-                responsible = " "
+                responsible = "--"
 
 
                 calendar = CalendarItem.objects.filter(item = item).first()
@@ -156,10 +156,10 @@ def generate_pdf(request, workorderId):
                 htmlCabecera1 += "<tr><th colspan='4' style='text-align: center;'><h1 style='font-size: 30px;'>" + str(category) + "</h1></th><th colspan='2' style='text-align: right;'>"
                 
                 htmlCabecera1 += "<table>"
-                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Date: " + str(date) + "</b></td></tr>"
-                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Code: " + str(itemCode) + "</b></td></tr>"
-                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Responsible: " + str(responsible) + "</b></td></tr>"
-                htmlCabecera1 += "<tr><td style='border: none; font-size: 15px;'><b>Due Date: " + str(date_end) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 13px;'><b>Date: " + str(date) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 13px;'><b>Code: " + str(itemCode) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 13px;'><b>Responsible: " + str(responsible) + "</b></td></tr>"
+                htmlCabecera1 += "<tr><td style='border: none; font-size: 13px;'><b>Due Date: " + str(date_end) + "</b></td></tr>"
                 htmlCabecera1 += "</table>"
                 
                 htmlCabecera1 += "</th></tr>"
@@ -250,15 +250,19 @@ def generate_pdf(request, workorderId):
                     for material in materials:
 
                         materialName = str(material.notes)
-                        qty = str(material.qty)   
-                        qtyR = ''             
-                        dateR = ''
+                        qty = '--'
+                        qtyR = '--'
+                        dateR = '--'
+
+
+                        if material.qty:
+                            qty = str(material.qty)
 
                         if material.qty_received:
-                            qtyR = material.qty_received
+                            qtyR = str(material.qty_received)
 
                         if material.date_received:                            
-                            dateR = material.date_received
+                            dateR = str(material.date_received)
 
                         htmlCabeceraMat += '<tr><td>' + materialName + '</td>' 
                         htmlCabeceraMat += '<td>' + qty + '</td>' 
@@ -267,7 +271,7 @@ def generate_pdf(request, workorderId):
 
                         htmlCabeceraMat += '</tr>'
                     
-                    htmlCabeceraMat += "</table><br/>"                     
+                    htmlCabeceraMat += "</table><br/>"
                     htmlCabecera += htmlCabeceraMat
                     
                 
@@ -333,9 +337,7 @@ def generate_pdf(request, workorderId):
             
 
 
-                
-
-
+    htmlCabecera += "</div>"
 
     template = get_template('proyect/pdf_template.html')
     context = {

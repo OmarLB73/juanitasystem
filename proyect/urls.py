@@ -3,7 +3,7 @@ from django.urls import include, path
 from .views.proyects_views import panel_view, proyect_new, proyect_view, grafics_view, pdf_view
 from .views.ajax_select_views import getDataDecorator, getDataCustomer, getAddress, getDataCalendar, getDataModal, getDataMaterial, getDataItem, getDataWO, getStateValidate, selectAscociate, selectSubcategory, selectGroup, selectAttibutes, selectWOs, addWorkOrder
 from .views.ajax_save_views import saveSessionState, saveItem, saveComment, saveCalendar, saveQuote, saveMaterial, saveWO, updateStatus
-from .views.ajax_delete_views import deleteItem, deleteProyect, deleteItemCommentFile, deleteComment, deleteCommentCalendar, deleteFile, deleteTaskCalendar
+from .views.ajax_delete_views import deleteItem, deleteProyect, deleteItemCommentFile, deleteComment, deleteCommentCalendar, deleteFile, deleteTaskCalendar, deleteWO
 
 urlpatterns = [
 
@@ -57,6 +57,7 @@ urlpatterns = [
     path('deleteCommentCalendar/', deleteCommentCalendar, name='deleteCommentCalendar_url'),
     path('deleteFile/', deleteFile, name='deleteFile_url'),
     path('deleteTaskCalendar/', deleteTaskCalendar, name='deleteTaskCalendar_url'),
+    path('deleteWO/', deleteWO, name='deleteWO_url'),
                 
 
 ]
