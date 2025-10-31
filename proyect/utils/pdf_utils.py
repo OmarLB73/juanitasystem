@@ -100,7 +100,7 @@ def generate_pdf(request, workorderId):
 
                 #htmlCabecera += " <div class='new-page'><table class='table_item'>"
                 htmlCabecera += "<div><table class='table_item'>"
-                htmlCabecera += "<br/>" # "<tr><th colspan='2' style='background-color:#f1f1f1; border:1px solid'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
+                #htmlCabecera += "<br/>" # "<tr><th colspan='2' style='background-color:#f1f1f1; border:1px solid'>Item: " + str(code) + "-" + str(n) + "</th></tr>"
                 htmlCabecera += "</table></div>"
 
 
@@ -245,7 +245,7 @@ def generate_pdf(request, workorderId):
                     table_img = ""
                     nt = 1
 
-                    htmlCabeceraMat += "<table><tr><td style='width:300px; border-left:none; border-top:none'></td><td style='width:170px'>QTY</td><td style='width:170px'>Received QTY</td><td style='width:100px'>Received Date</td></tr>"
+                    htmlCabeceraMat += "<table><tr><td style='width:300px; border-left:none; border-top:none'></td><td style='width:160px'>QTY</td><td style='width:170px'>Received QTY</td><td style='width:100px'>Received Date</td></tr>"
                     
                     for material in materials:
 
@@ -280,7 +280,7 @@ def generate_pdf(request, workorderId):
                         file = material.file.name if str(material.file.name) != "" else "--"
                         notes = material.notes if str(material.notes) != "" else "--"
                         
-                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=160px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
                         
                         if material.file:
                             if material.file.url[-4:] not in ('.pdf','.doc','.xls','.ppt') and material.file.url[-5:] not in ('.docx','.xlsx','.pptx'):
@@ -311,7 +311,7 @@ def generate_pdf(request, workorderId):
                     for image in images:
                         file = image.file.name if str(image.file.name) != "" else "--"
                         notes = image.notes if str(image.notes) != "" else "--"
-                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=180px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
+                        table_img = "<table><tr><td style='padding:0 0; text-align: center; vertical-align: top; height=160px'><img src='media/" + file + "'width='90%'/></td></tr><tr><td style='text-align: left; vertical-align: top;'>" + notes + "</td></tr></table>"                                                
                         if nt == 1:
                             htmlCabeceraImg += "<tr><td style='padding:0 0; text-align: left; vertical-align: top;'>" + table_img + "</td>"
                         elif nt == 2:
